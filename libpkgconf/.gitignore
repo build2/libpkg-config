@@ -3,9 +3,14 @@
 *.d
 *.t
 *.i
+*.i.*
 *.ii
+*.ii.*
 *.o
 *.obj
+*.gcm
+*.pcm
+*.ifc
 *.so
 *.dll
 *.a

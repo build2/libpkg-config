@@ -1,3 +1,4 @@
-config.build
-root/
-bootstrap/
+/config.build
+/root/
+/bootstrap/
+build/

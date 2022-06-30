@@ -3,15 +3,23 @@
 
 using in
 
-c.std = 99
+c.std = 99 # @@ TMP
 
 using c
 
 h{*}: extension = h
 c{*}: extension = c
 
+# Assume headers are importable unless stated otherwise.
+#
+h{*}: c.importable = true
+
 if ($c.target.system == 'win32-msvc')
   c.poptions += -D_CRT_SECURE_NO_WARNINGS -D_SCL_SECURE_NO_WARNINGS
 
 if ($c.class == 'msvc')
   c.coptions += /wd4251 /wd4275 /wd4800
+
+# The test target for cross-testing (running tests under Wine, etc).
+#
+test.target = $c.target
