@@ -35,14 +35,6 @@
 #endif
 
 /*
- * Let's assume cygwin_conv_path() is always available if compile with MSYS
- * gcc.
- */
-#if defined(__MSYS__)
-# define HAVE_CYGWIN_CONV_PATH 1
-#endif
-
-/*
  * We don't consider such an outdated environments.
  */
 #define HAVE_SYS_STAT_H 1

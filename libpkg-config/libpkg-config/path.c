@@ -25,10 +25,6 @@
 #include <libpkg-config/stdinc.h>
 #include <libpkg-config/bsdstubs.h>
 
-#if defined(HAVE_CYGWIN_CONV_PATH) && defined(__MSYS__)
-# include <sys/cygwin.h>
-#endif
-
 #if defined(HAVE_SYS_STAT_H) && ! defined(_WIN32)
 # include <sys/stat.h>
 # define PKGCONF_CACHE_INODES
@@ -318,7 +314,7 @@ normpath(const char *path)
  *
  * .. c:function:: bool pkgconf_path_relocate(char *buf, size_t buflen)
  *
- *    Relocates a path, possibly calling normpath() or cygwin_conv_path() on it.
+ *    Relocates a path, possibly calling normpath() on it.
  *
  *    :param char* buf: The path to relocate.
  *    :param size_t buflen: The buffer length the path is contained in.
@@ -328,28 +324,6 @@ normpath(const char *path)
 bool
 pkgconf_path_relocate(char *buf, size_t buflen)
 {
-#if defined(HAVE_CYGWIN_CONV_PATH) && defined(__MSYS__)
-	ssize_t size;
-	char *tmpbuf, *ti;
-
-	size = cygwin_conv_path(CCP_POSIX_TO_WIN_A, buf, NULL, 0);
-	if (size < 0 || (size_t) size > buflen)
-		return false;
-
-	tmpbuf = malloc(size);
-	if (cygwin_conv_path(CCP_POSIX_TO_WIN_A, buf, tmpbuf, size))
-		return false;
-
-	pkgconf_strlcpy(buf, tmpbuf, buflen);
-	free(tmpbuf);
-
-	/* rewrite any backslash arguments for best compatibility */
-	for (ti = buf; *ti != '\0'; ti++)
-	{
-		if (*ti == '\\')
-			*ti = '/';
-	}
-#else
 	char *tmpbuf;
 
 	if ((tmpbuf = normpath(buf)) != NULL)
@@ -364,7 +338,6 @@ pkgconf_path_relocate(char *buf, size_t buflen)
 		pkgconf_strlcpy(buf, tmpbuf, buflen);
 		free(tmpbuf);
 	}
-#endif
 
 	return true;
 }
