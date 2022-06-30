@@ -73,8 +73,11 @@ pkgconf_parser_parse(FILE *f, void *data, const pkgconf_parser_operand_func_t *o
 		}
 
 		op = *p;
-		*p = '\0';
-		p++;
+		if (*p != '\0') /* Increment already done in above loop? */
+		{
+			*p = '\0';
+			p++;
+		}
 
 		while (*p && isspace((unsigned int)*p))
 			p++;
