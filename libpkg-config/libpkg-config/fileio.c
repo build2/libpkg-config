@@ -27,7 +27,7 @@ char *
 pkgconf_fgetline(char *line, size_t size, FILE *stream)
 {
 	char *s = line;
-	char *end = line + size - 1;
+	char *end = line + size - 2; /* Potentially assign 2 char in loop. */
 	bool quoted = false;
 	int c = '\0', c2;
 
