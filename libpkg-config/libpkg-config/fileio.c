@@ -48,9 +48,12 @@ pkgconf_fgetline(char *line, size_t size, FILE *stream)
 				do {
 					c = getc(stream);
 				} while (c != '\n' && c != EOF);
-				*s++ = c;
+				*s++ = '\n';
 				break;
 			}
+                        else
+                        	*s++ = c;
+
 			quoted = false;
 			continue;
 		}
@@ -69,9 +72,7 @@ pkgconf_fgetline(char *line, size_t size, FILE *stream)
 				continue;
 			}
 			else
-			{
-				*s++ = c;
-			}
+                        	*s++ = c;
 
 			break;
 		}
