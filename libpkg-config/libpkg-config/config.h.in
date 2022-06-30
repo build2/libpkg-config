@@ -1,4 +1,4 @@
-/* file      : libpkgconf/config.h.in -*- C -*-
+/* file      : libpkg-config/config.h.in -*- C -*-
  * license   : ISC; see accompanying COPYING file
  */
 #ifndef LIBPKGCONF_CONFIG_H

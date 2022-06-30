@@ -19,9 +19,9 @@
  * OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-#include <libpkgconf/config.h>
-#include <libpkgconf/stdinc.h>
-#include <libpkgconf/libpkgconf.h>
+#include <libpkg-config/config.h>
+#include <libpkg-config/stdinc.h>
+#include <libpkg-config/libpkgconf.h>
 
 #if defined(HAVE_CYGWIN_CONV_PATH) && defined(__MSYS__)
 # include <sys/cygwin.h>

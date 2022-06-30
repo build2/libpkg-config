@@ -1,7 +1,7 @@
-# file      : libpkgconf/buildfile
+# file      : libpkg-config/buildfile
 # license   : ISC; see accompanying COPYING file
 
-lib{pkgconf}: {h c}{* -config} {h}{config}
+lib{pkg-config}: {h c}{* -config} {h}{config}
 
 tclass = $c.target.class
 
@@ -125,21 +125,21 @@ else
 
 # Export options.
 #
-lib{pkgconf}:  cc.export.poptions = "-I$src_root"
-liba{pkgconf}: cc.export.poptions += -DPKGCONFIG_IS_STATIC
+lib{pkg-config}:  cc.export.poptions = "-I$src_root"
+liba{pkg-config}: cc.export.poptions += -DPKGCONFIG_IS_STATIC
 
-# See bootstrap.build for details.
+# For pre-releases use the complete version to make sure they cannot be used
+# in place of another pre-release or the final version. See the version module
+# for details on the version.* variable values.
 #
 if $version.pre_release
-  lib{pkgconf}: bin.lib.version = @"-$version.project_id"
+  lib{pkg-config}: bin.lib.version = "-$version.project_id"
 else
-  lib{pkgconf}: bin.lib.version = @"-$release_num"
+  lib{pkg-config}: bin.lib.version = "-$version.major.$version.minor"
 
-# Install into the pkgconf/libpkgconf/ subdirectory of, say, /usr/include/.
-# Also make sure Cflags is properly set in .pc files to pkgconfig/.
+# Install into the libpkg-config/ subdirectory of, say, /usr/include/.
 #
-h{*}: install = include/libpkgconf/
-install.include = $install.include/pkgconf/
+h{*}: install = include/libpkg-config/
 
 # Implementation details.
 #

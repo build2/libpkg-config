@@ -22,7 +22,7 @@
 #ifndef LIBPKGCONF_BSDSTUBS_H
 #define LIBPKGCONF_BSDSTUBS_H
 
-#include <libpkgconf/libpkgconf-api.h>
+#include <libpkg-config/libpkgconf-api.h>
 
 #ifdef __cplusplus
 extern "C" {

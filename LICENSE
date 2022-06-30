@@ -1,8 +1,8 @@
-libpkgconf/libpkgconf/bsdstubs.c:
+libpkg-config/libpkg-config/bsdstubs.c:
 
 Original ISC License (without "and/or"); see the file header for details.
 
-libpkgconf/libpkgconf/win-dirent.h:
+libpkg-config/libpkg-config/win-dirent.h:
 
 MIT License; see the file headers for details.
 

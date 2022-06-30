@@ -1,6 +1,6 @@
 # file      : tests/api/buildfile
 # license   : ISC; see accompanying COPYING file
 
-import libs = libpkgconf%lib{pkgconf}
+import libs = libpkg-config%lib{pkg-config}
 
 exe{driver}: {h c}{*} $libs testscript

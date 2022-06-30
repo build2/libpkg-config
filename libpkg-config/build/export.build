@@ -3,7 +3,7 @@
 
 $out_root/
 {
-  include libpkgconf/
+  include libpkg-config/
 }
 
-export $out_root/libpkgconf/$import.target
+export $out_root/libpkg-config/$import.target

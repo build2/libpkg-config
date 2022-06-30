@@ -21,8 +21,8 @@
 #include <sys/types.h>
 #include <string.h>
 
-#include <libpkgconf/bsdstubs.h>
-#include <libpkgconf/config.h>
+#include <libpkg-config/bsdstubs.h>
+#include <libpkg-config/config.h>
 
 #ifndef HAVE_STRLCPY
 /*

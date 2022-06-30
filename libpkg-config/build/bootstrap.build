@@ -1,0 +1,10 @@
+# file      : build/bootstrap.build
+# license   : ISC; see accompanying COPYING file
+
+project = libpkg-config
+
+using version
+using config
+using test
+using install
+using dist

@@ -19,8 +19,8 @@
  * OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-#include <libpkgconf/stdinc.h>
-#include <libpkgconf/libpkgconf.h>
+#include <libpkg-config/stdinc.h>
+#include <libpkg-config/libpkgconf.h>
 
 char *
 pkgconf_fgetline(char *line, size_t size, FILE *stream)
