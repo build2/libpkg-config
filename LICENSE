@@ -1,6 +1,16 @@
+libpkgconf/libpkgconf/bsdstubs.c:
+
+Original ISC License (without "and/or"); see the file header for details.
+
+libpkgconf/libpkgconf/win-dirent.h:
+
+MIT License; see the file headers for details.
+
+The rest:
+
 ISC License
 
-Copyright (c) 2011-2018 pkgconf authors (see AUTHORS file).
+Copyright information is in the COPYRIGHT file.
 
 Permission to use, copy, modify, and/or distribute this software for any
 purpose with or without fee is hereby granted, provided that the above
