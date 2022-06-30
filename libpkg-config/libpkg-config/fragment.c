@@ -19,7 +19,7 @@
  * OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-#include <libpkg-config/libpkgconf.h>
+#include <libpkg-config/pkg-config.h>
 
 #include <libpkg-config/stdinc.h>
 #include <libpkg-config/bsdstubs.h>
@@ -27,8 +27,8 @@
 /*
  * !doc
  *
- * libpkgconf `fragment` module
- * ============================
+ * libpkg-config `fragment` module
+ * ===============================
  *
  * The `fragment` module provides low-level management and rendering of fragment lists.  A
  * `fragment list` contains various `fragments` of text (such as ``-I /usr/include``) in a matter

@@ -19,17 +19,17 @@
  * OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-#include <libpkg-config/libpkgconf.h>
+#include <libpkg-config/pkg-config.h>
 
 #include <libpkg-config/stdinc.h>
 
 /*
  * !doc
  *
- * libpkgconf `cache` module
- * =========================
+ * libpkg-config `cache` module
+ * ============================
  *
- * The libpkgconf `cache` module manages a package/module object cache, allowing it to
+ * The libpkg-config `cache` module manages a package/module object cache, allowing it to
  * avoid loading duplicate copies of a package/module.
  *
  * A cache is tied to a specific pkgconf client object, so package objects should not

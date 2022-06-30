@@ -19,7 +19,7 @@
  * OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-#include <libpkg-config/libpkgconf.h>
+#include <libpkg-config/pkg-config.h>
 
 #include <libpkg-config/stdinc.h>
 #include <libpkg-config/bsdstubs.h>
@@ -27,8 +27,8 @@
 /*
  * !doc
  *
- * libpkgconf `dependency` module
- * ==============================
+ * libpkg-config `dependency` module
+ * =================================
  *
  * The `dependency` module provides support for building `dependency lists` (the basic component of the overall `dependency graph`) and
  * `dependency nodes` which store dependency information.

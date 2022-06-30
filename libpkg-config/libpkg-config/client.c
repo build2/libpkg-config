@@ -1,6 +1,6 @@
 /*
  * client.c
- * libpkgconf consumer lifecycle management
+ * Consumer lifecycle management.
  *
  * ISC License
  *
@@ -19,7 +19,7 @@
  * OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-#include <libpkg-config/libpkgconf.h>
+#include <libpkg-config/pkg-config.h>
 
 #include <libpkg-config/config.h>
 #include <libpkg-config/stdinc.h>
@@ -28,11 +28,11 @@
 /*
  * !doc
  *
- * libpkgconf `client` module
- * ==========================
+ * libpkg-config `client` module
+ * =============================
  *
- * The libpkgconf `client` module implements the `pkgconf_client_t` "client" object.
- * Client objects store all necessary state for libpkgconf allowing for multiple instances to run
+ * The libpkg-config `client` module implements the `pkgconf_client_t` "client" object.
+ * Client objects store all necessary state for libpkg-config allowing for multiple instances to run
  * in parallel.
  *
  * Client objects are not thread safe, in other words, a client object should not be shared across

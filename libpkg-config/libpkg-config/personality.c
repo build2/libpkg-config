@@ -1,6 +1,6 @@
 /*
  * personality.c
- * libpkgconf cross-compile personality database
+ * Cross-compile personality database.
  *
  * ISC License
  *
@@ -19,7 +19,7 @@
  * OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-#include <libpkg-config/libpkgconf.h>
+#include <libpkg-config/pkg-config.h>
 
 #include <libpkg-config/config.h>
 #include <libpkg-config/stdinc.h>

@@ -1,6 +1,6 @@
 /*
- * iter.h
- * Linked lists and iterators.
+ * list.h
+ * Linked lists.
  *
  * ISC License
  *
@@ -19,8 +19,8 @@
  * OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-#ifndef LIBPKG_CONFIG_ITER_H
-#define LIBPKG_CONFIG_ITER_H
+#ifndef LIBPKG_CONFIG_LIST_H
+#define LIBPKG_CONFIG_LIST_H
 
 #ifdef __cplusplus
 extern "C" {
@@ -108,4 +108,4 @@ pkgconf_node_delete(pkgconf_node_t *node, pkgconf_list_t *list)
 }
 #endif
 
-#endif /* LIBPKG_CONFIG_ITER_H */
+#endif /* LIBPKG_CONFIG_LIST_H */

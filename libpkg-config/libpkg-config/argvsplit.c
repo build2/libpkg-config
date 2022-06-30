@@ -19,15 +19,15 @@
  * OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-#include <libpkg-config/libpkgconf.h>
+#include <libpkg-config/pkg-config.h>
 
 #include <libpkg-config/stdinc.h>
 
 /*
  * !doc
  *
- * libpkgconf `argvsplit` module
- * =============================
+ * libpkg-config `argvsplit` module
+ * ================================
  *
  * This is a lowlevel module which provides parsing of strings into argument vectors,
  * similar to what a shell would do.

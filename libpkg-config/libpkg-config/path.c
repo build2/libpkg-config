@@ -19,7 +19,7 @@
  * OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-#include <libpkg-config/libpkgconf.h>
+#include <libpkg-config/pkg-config.h>
 
 #include <libpkg-config/config.h>
 #include <libpkg-config/stdinc.h>
@@ -62,8 +62,8 @@ path_list_contains_entry(const char *text, pkgconf_list_t *dirlist)
 /*
  * !doc
  *
- * libpkgconf `path` module
- * ========================
+ * libpkg-config `path` module
+ * ===========================
  *
  * The `path` module provides functions for manipulating lists of paths in a cross-platform manner.  Notably,
  * it is used by the `pkgconf client` to parse the ``PKG_CONFIG_PATH``, ``PKG_CONFIG_LIBDIR`` and related environment

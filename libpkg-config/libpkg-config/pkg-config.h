@@ -1,6 +1,6 @@
 /*
- * libpkgconf.h
- * Global include file for everything in libpkgconf.
+ * pkg-config.h
+ * Global include file for everything public in libpkg-config.
  *
  * ISC License
  *
@@ -19,15 +19,15 @@
  * OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-#ifndef LIBPKG_CONFIG_LIBPKGCONF_H
-#define LIBPKG_CONFIG_LIBPKGCONF_H
+#ifndef LIBPKG_CONFIG_PKG_CONFIG_H
+#define LIBPKG_CONFIG_PKG_CONFIG_H
 
 #include <stdio.h>
 #include <stdarg.h>
 #include <stddef.h>
 #include <stdbool.h>
 
-#include <libpkg-config/iter.h>
+#include <libpkg-config/list.h> /* pkgconf_list_t */
 
 #include <libpkg-config/export.h>
 
@@ -400,4 +400,4 @@ LIBPKG_CONFIG_SYMEXPORT void pkgconf_path_copy_list(pkgconf_list_t *dst, const p
 }
 #endif
 
-#endif /* LIBPKG_CONFIG_LIBPKGCONF_H */
+#endif /* LIBPKG_CONFIG_PKG_CONFIG_H */

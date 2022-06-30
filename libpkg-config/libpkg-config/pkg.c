@@ -19,7 +19,7 @@
  * OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-#include <libpkg-config/libpkgconf.h>
+#include <libpkg-config/pkg-config.h>
 
 #include <libpkg-config/config.h>
 #include <libpkg-config/stdinc.h>
@@ -28,8 +28,8 @@
 /*
  * !doc
  *
- * libpkgconf `pkg` module
- * =======================
+ * libpkg-config `pkg` module
+ * ==========================
  *
  * The `pkg` module provides dependency resolution services and the overall `.pc` file parsing
  * routines.

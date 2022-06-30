@@ -19,15 +19,15 @@
  * OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-#include <libpkg-config/libpkgconf.h>
+#include <libpkg-config/pkg-config.h>
 
 #include <libpkg-config/stdinc.h>
 
 /*
  * !doc
  *
- * libpkgconf `queue` module
- * =========================
+ * libpkg-config `queue` module
+ * ============================
  *
  * The `queue` module provides an interface that allows easily building a dependency graph from an
  * arbitrary set of dependencies.  It also provides support for doing "preflight" checks on the entire

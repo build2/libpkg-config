@@ -8,7 +8,7 @@
 #  undef NDEBUG
 #endif
 
-#include <libpkg-config/libpkgconf.h>
+#include <libpkg-config/pkg-config.h>
 
 #include <stdio.h>   /* printf(), fprintf(), stderr */
 #include <stddef.h>  /* size_t, NULL */

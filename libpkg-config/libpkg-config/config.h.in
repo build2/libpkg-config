@@ -9,7 +9,7 @@
  * and upstream's meson.build.
  *
  * Note that we will explicitly undefine macros that are present in the
- * libpkgconf source code but should not be defined. While this is not
+ * libpkg-config source code but should not be defined. While this is not
  * technically required, it simplifies the change tracking (see README-DEV).
  * As a bonus we also make sure that they are not get eventually defined by
  * some system headers.

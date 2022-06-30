@@ -19,7 +19,7 @@
  * OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-#include <libpkg-config/libpkgconf.h>
+#include <libpkg-config/pkg-config.h>
 
 #include <libpkg-config/stdinc.h>
 #include <libpkg-config/bsdstubs.h>
@@ -27,8 +27,8 @@
 /*
  * !doc
  *
- * libpkgconf `tuple` module
- * =========================
+ * libpkg-config `tuple` module
+ * ============================
  *
  * The `tuple` module provides key-value mappings backed by a linked list.  The key-value
  * mapping is mainly used for variable substitution when parsing .pc files.
