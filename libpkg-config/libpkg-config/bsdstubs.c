@@ -17,11 +17,12 @@
  * OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-#include <stdlib.h>
-#include <sys/types.h>
-#include <string.h>
-
 #include <libpkg-config/bsdstubs.h>
+
+#include <stdlib.h>
+#include <string.h>
+#include <sys/types.h>
+
 #include <libpkg-config/config.h>
 
 #ifndef HAVE_STRLCPY

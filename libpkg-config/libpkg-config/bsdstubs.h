@@ -22,17 +22,15 @@
 #ifndef LIBPKG_CONFIG_BSDSTUBS_H
 #define LIBPKG_CONFIG_BSDSTUBS_H
 
-#include <libpkg-config/export.h>
+#include <stddef.h>
 
 #ifdef __cplusplus
 extern "C" {
 #endif
 
-/* @@ TMP: unexport */
-
-LIBPKG_CONFIG_SYMEXPORT extern size_t pkgconf_strlcpy(char *dst, const char *src, size_t siz);
-LIBPKG_CONFIG_SYMEXPORT extern size_t pkgconf_strlcat(char *dst, const char *src, size_t siz);
-LIBPKG_CONFIG_SYMEXPORT extern char *pkgconf_strndup(const char *src, size_t len);
+extern size_t pkgconf_strlcpy(char *dst, const char *src, size_t siz);
+extern size_t pkgconf_strlcat(char *dst, const char *src, size_t siz);
+extern char *pkgconf_strndup(const char *src, size_t len);
 
 #ifdef __cplusplus
 }

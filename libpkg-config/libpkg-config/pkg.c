@@ -19,9 +19,11 @@
  * OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
+#include <libpkg-config/libpkgconf.h>
+
 #include <libpkg-config/config.h>
 #include <libpkg-config/stdinc.h>
-#include <libpkg-config/libpkgconf.h>
+#include <libpkg-config/bsdstubs.h>
 
 /*
  * !doc

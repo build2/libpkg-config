@@ -28,7 +28,6 @@
 #include <stdbool.h>
 
 #include <libpkg-config/iter.h>
-#include <libpkg-config/bsdstubs.h> /* @@ ?? */
 
 #include <libpkg-config/export.h>
 

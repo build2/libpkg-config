@@ -144,5 +144,5 @@ h{*}: install = include/libpkg-config/
 #
 h{config}: install = false
 
-for h: stdinc win-dirent
+for h: bsdstubs stdinc win-dirent
   h{$h}@./: install = false
