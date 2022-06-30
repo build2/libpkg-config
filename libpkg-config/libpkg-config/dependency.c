@@ -247,14 +247,15 @@ pkgconf_dependency_parse_str(const pkgconf_client_t *client, pkgconf_list_t *dep
 {
 	parse_state_t state = OUTSIDE_MODULE;
 	pkgconf_pkg_comparator_t compare = PKGCONF_CMP_ANY;
-	char cmpname[PKGCONF_ITEM_SIZE];
 	char buf[PKGCONF_BUFSIZE];
 	size_t package_sz = 0, version_sz = 0;
 	char *start = buf;
 	char *ptr = buf;
 	char *vstart = NULL;
 	char *package = NULL, *version = NULL;
+	char cmpname[32]; /* One of pkgconf_pkg_comparator_names. */
 	char *cnameptr = cmpname;
+	char *cnameend = cmpname + 32 - 1;
 
 	memset(cmpname, '\0', sizeof cmpname);
 
@@ -322,7 +323,8 @@ pkgconf_dependency_parse_str(const pkgconf_client_t *client, pkgconf_list_t *dep
 			if (PKGCONF_IS_OPERATOR_CHAR(*ptr))
 			{
 				state = INSIDE_OPERATOR;
-				*cnameptr++ = *ptr;
+				if (cnameptr < cnameend)
+					*cnameptr++ = *ptr;
 			}
 
 			break;
@@ -333,7 +335,7 @@ pkgconf_dependency_parse_str(const pkgconf_client_t *client, pkgconf_list_t *dep
 				state = AFTER_OPERATOR;
 				compare = pkgconf_pkg_comparator_lookup_by_name(cmpname);
 			}
-			else
+			else if (cnameptr < cnameend)
 				*cnameptr++ = *ptr;
 
 			break;
