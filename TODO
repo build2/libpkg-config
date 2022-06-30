@@ -1,3 +1,10 @@
-On the revision:
+For new revision:
 
-On the release:
+For new release:
+
+  - What is a project email (update the manifest file)? Using
+    packaging@build2.org for now.
+
+  - Consider redefining PKGCONF_BUFSIZE from the current 65535 bytes to
+    something smaller, given it is used to allocate buffers on the stack
+    (sometimes several of them).
