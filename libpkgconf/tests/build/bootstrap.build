@@ -1,0 +1,8 @@
+# file      : tests/build/bootstrap.build
+# license   : ISC; see accompanying COPYING file
+
+project = # Unnamed subproject.
+
+using config
+using dist
+using test

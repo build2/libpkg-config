@@ -1,0 +1,9 @@
+# file      : build/export.build
+# license   : ISC; see accompanying COPYING file
+
+$out_root/
+{
+  include libpkgconf/
+}
+
+export $out_root/libpkgconf/$import.target

@@ -1,0 +1,57 @@
+/* file      : libpkgconf/config.h.in -*- C -*-
+ * license   : ISC; see accompanying COPYING file
+ */
+#ifndef LIBPKGCONF_CONFIG_H
+#define LIBPKGCONF_CONFIG_H
+
+/*
+ * For the semantics of the following macros refer to config.h.meson.orig
+ * and upstream's meson.build.
+ *
+ * Note that we will explicitly undefine macros that are present in the
+ * libpkgconf source code but should not be defined. While this is not
+ * technically required, it simplifies the change tracking (see README-DEV).
+ * As a bonus we also make sure that they are not get eventually defined by
+ * some system headers.
+ */
+
+#define PACKAGE_VERSION "$PACKAGE_VERSION$"
+
+/*
+ * strndup() is not present on Windows while strl*() are only present on
+ * *BSD and MacOS.
+ *
+ */
+#if !defined(_WIN32)
+#  define HAVE_STRNDUP 1
+#endif
+
+#if defined(__FreeBSD__) || \
+    defined(__OpenBSD__) || \
+    defined(__NetBSD__)  || \
+    defined(__APPLE__)
+#  define HAVE_STRLCPY 1
+#  define HAVE_STRLCAT 1
+#endif
+
+/*
+ * Let's assume cygwin_conv_path() is always available if compile with MSYS
+ * gcc.
+ */
+#if defined(__MSYS__)
+# define HAVE_CYGWIN_CONV_PATH 1
+#endif
+
+/*
+ * We don't consider such an outdated environments.
+ */
+#define HAVE_SYS_STAT_H 1
+
+#define PACKAGE_BUGREPORT "https://todo.sr.ht/~kaniini/pkgconf"
+
+#define PKG_DEFAULT_PATH  "$PKG_DEFAULT_PATH$"
+#define PERSONALITY_PATH  "$PERSONALITY_PATH$"
+#define SYSTEM_INCLUDEDIR "$SYSTEM_INCLUDEDIR$"
+#define SYSTEM_LIBDIR     "$SYSTEM_LIBDIR$"
+
+#endif /* LIBPKGCONF_CONFIG_H */

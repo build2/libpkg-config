@@ -1,0 +1,4 @@
+# file      : tests/buildfile
+# license   : ISC; see accompanying COPYING file
+
+./: {*/ -build/}

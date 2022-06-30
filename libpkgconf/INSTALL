@@ -1,0 +1,7 @@
+The aim of this package is to make reading the INSTALL file unnecessary. So
+next time try running:
+
+$ bpkg build libpkgconf
+
+But if you don't want to use the package manager, then you can also build this
+package manually using the standard build2 build system.

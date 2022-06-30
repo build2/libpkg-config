@@ -1,0 +1,6 @@
+# file      : tests/basic/buildfile
+# license   : ISC; see accompanying COPYING file
+
+import libs = libpkgconf%lib{pkgconf}
+
+exe{driver}: {h c}{*} $libs testscript

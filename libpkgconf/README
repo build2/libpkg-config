@@ -1,0 +1,20 @@
+libpkgconf is a C library which helps to configure compiler and linker flags
+for development frameworks. It provides most of the pkgconf's functionality,
+which itself is similar to pkg-config. For more information see:
+
+https://git.sr.ht/~kaniini/pkgconf
+
+This package contains the original libpkgconf library source code overlaid with
+the build2-based build system and packaged for the build2 package manager
+(bpkg).
+
+See the INSTALL file for the prerequisites and installation instructions.
+
+Post questions, bug reports, or any other feedback about the library itself at
+https://todo.sr.ht/~kaniini/pkgconf. Send build system and packaging-related
+feedback to the packaging@build2.org mailing list (see
+https://lists.build2.org for posting guidelines, etc).
+
+The packaging of libpkgconf for build2 is tracked in a Git repository at:
+
+https://git.build2.org/cgit/packaging/pkgconf/

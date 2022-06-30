@@ -1,0 +1,73 @@
+# file      : tests/basic/testscript
+# license   : ISC; see accompanying COPYING file
+
+test.options = --with-path $~
+
++cat <<EOI >=openssl.pc
+prefix=/usr
+exec_prefix=${prefix}
+libdir=${exec_prefix}/lib64
+includedir=${prefix}/include
+
+Name: OpenSSL
+Description: Secure Sockets Layer and cryptography libraries and tools
+Version: 1.0.2g
+Requires: libssl libcrypto
+EOI
+
++cat <<EOI >=libssl.pc
+prefix=/usr
+exec_prefix=${prefix}
+libdir=${exec_prefix}/lib64
+includedir=${prefix}/include
+
+Name: OpenSSL-libssl
+Description: Secure Sockets Layer and cryptography libraries
+Version: 1.0.2g
+Requires.private: libcrypto
+Libs: -L${libdir} -lssl
+Libs.private: -ldl -lz -lgssapi_krb5 -lkrb5 -lcom_err -lk5crypto
+Cflags: -I${includedir} -I/usr/include
+EOI
+
++cat <<EOI >=libcrypto.pc
+prefix=/usr
+exec_prefix=${prefix}
+libdir=${exec_prefix}/lib64
+includedir=${prefix}/include
+
+Name: OpenSSL-libcrypto
+Description: OpenSSL cryptography library
+Version: 1.0.2g
+Requires:
+Libs: -L${libdir} -lcrypto
+Libs.private: -ldl -lz
+Cflags: -I${includedir}
+EOI
+
++cat <<EOI >=libfaulty.pc
+Name: faulty
+Description: Faulty library
+Version: 1.0
+Requires: non-existent
+EOI
+
+: cflags
+:
+$* --cflags openssl >'-I/usr/include '
+
+: libs
+:
+$* --libs openssl >'-L/usr/lib64 -lssl -lcrypto '
+
+: libs-static
+:
+$* --libs --static openssl >'-L/usr/lib64 -lssl -ldl -lz -lgssapi_krb5 -lkrb5 -lcom_err -lk5crypto -L/usr/lib64 -ldl -lz -lcrypto -ldl -lz '
+
+: non-existent
+:
+$* non-existent 2>"package 'non-existent' not found" == 1
+
+: faulty
+:
+$* --cflags libfaulty 2>- == 1

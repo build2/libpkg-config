@@ -1,0 +1,173 @@
+# file      : tests/api/testscript
+# license   : ISC; see accompanying COPYING file
+
+: double-quoted
+:
+{
+  +cat <<EOI >=libfoo.pc
+    prefix="C:\\Program   Files\\Foo"
+    exec_prefix=${prefix}
+    var="A\"B" 'C\'D'
+    Name: libfoo
+    Description: Foo library
+    Version: 1.0
+    Libs: "-LC:\\Program   Files\\Foo" "-lC:\\Program   Files\\Foo\\foo"
+    Cflags: "-IC:\\Program   Files\\Foo"
+    EOI
+
+  f = $~/libfoo.pc
+
+  : cflags
+  :
+  $* --cflags $f >>EOO
+    I C:\Program   Files\Foo
+    EOO
+
+  : libs
+  :
+  $* --libs $f >>EOO
+    L C:\Program   Files\Foo
+    l C:\Program   Files\Foo\foo
+    EOO
+
+  : vars
+  :
+  $* --vars $f >>EOO
+    var A"B 'C\'D'
+    exec_prefix C:\\Program   Files\\Foo
+    prefix C:\\Program   Files\\Foo
+    EOO
+}
+
+: single-quoted
+{
+  +cat <<EOI >=libfoo.pc
+    prefix='C:\Program   Files\Foo'
+    exec_prefix=${prefix}
+    var='A\'B' "C\"D"
+    Name: libfoo
+    Description: Foo library
+    Version: 1.0
+    Libs: '-LC:\Program   Files\Foo' '-lC:\Program   Files\Foo\foo'
+    Cflags: '-IC:\Program   Files\Foo'
+    EOI
+
+  f = $~/libfoo.pc
+
+  : cflags
+  :
+  $* --cflags $f >>EOO
+    I C:\Program   Files\Foo
+    EOO
+
+  : libs
+  :
+  $* --libs $f >>EOO
+    L C:\Program   Files\Foo
+    l C:\Program   Files\Foo\foo
+    EOO
+
+  : vars
+  :
+  $* --vars $f >>EOO
+    var A'B "C\"D"
+    exec_prefix C:\Program   Files\Foo
+    prefix C:\Program   Files\Foo
+    EOO
+}
+
+: unquoted
+:
+{
+  +cat <<EOI >=libfoo.pc
+    prefix=C:\\Program\ \ \ Files\\Foo
+    exec_prefix=${prefix}
+    var=X A\'B' "C\"D"
+    Name: libfoo
+    Description: Foo library
+    Version: 1.0
+    Libs: -LC:\\Program\ \ \ Files\\Foo -lC:\\Program\ \ \ Files\\Foo\\foo
+    Cflags: -IC:\\Program\ \ \ Files\\Foo
+    EOI
+
+  f = $~/libfoo.pc
+
+  : cflags
+  :
+  $* --cflags $f >>EOO
+    I C:\Program   Files\Foo
+    EOO
+
+  : libs
+  :
+  $* --libs $f >>EOO
+    L C:\Program   Files\Foo
+    l C:\Program   Files\Foo\foo
+    EOO
+
+  : vars
+  :
+  $* --vars $f >>EOO
+    var X A\'B' "C\"D"
+    exec_prefix C:\\Program\ \ \ Files\\Foo
+    prefix C:\\Program\ \ \ Files\\Foo
+    EOO
+}
+
+: no-merge
+:
+: Test that the -framework options are not merged into a single fragment.
+:
+{
+  +cat <<EOI >=libfoo.pc
+    Name: libfoo
+    Description: Foo library
+    Version: 1.0
+    Libs: -L/Users/build/install/lib -lcurl
+    Libs.private: -lssl -lcrypto -lz -framework CoreFoundation -framework Security
+    EOI
+
+  f = $~/libfoo.pc
+
+  : libs
+  :
+  $* --libs $f >>EOO
+    L /Users/build/install/lib
+    l curl
+    l ssl
+    l crypto
+    l z
+      -framework
+      CoreFoundation
+      -framework
+      Security
+    EOO
+}
+
+: no-drop
+:
+: Test that the -framework options are not dropped.
+:
+{
+  +cat <<EOI >=libfoo.pc
+    Name: libfoo
+    Description: Foo library
+    Version: 1.0
+    Libs: -L/Users/build/install/lib -lcurl -framework Cocoa -framework IOKit -framework CoreFoundation
+    EOI
+
+  f = $~/libfoo.pc
+
+  : libs
+  :
+  $* --libs $f >>EOO
+    L /Users/build/install/lib
+    l curl
+      -framework
+      Cocoa
+      -framework
+      IOKit
+      -framework
+      CoreFoundation
+    EOO
+}

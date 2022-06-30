@@ -1,0 +1,149 @@
+# file      : libpkgconf/buildfile
+# license   : ISC; see accompanying COPYING file
+
+lib{pkgconf}: {h c}{* -config} {h}{config}
+
+tclass = $c.target.class
+
+bsd     = ($tclass == 'bsd')
+macos   = ($tclass == 'macos')
+windows = ($tclass == 'windows')
+
+msvc_runtime = ($c.target.system == 'win32-msvc')
+
+msvc       = ($c.class == 'msvc')
+clang_msvc = ($c.id == 'clang' && $msvc_runtime)
+
+# Assign variables for the PKG_DEFAULT_PATH, SYSTEM_INCLUDEDIR, and
+# SYSTEM_LIBDIR macro definitions. The whole idea feels utterly broken (hello
+# cross-compilation) so we will just do bare minimum and wait and see.
+#
+# There is also PERSONALITY_PATH macro added in 1.5.1. It looks like the
+# personality files are invented to fix cross-compilation but are unlikely to
+# have any noticeable distribution yet. Normally these files are located in
+# the personality.d/ subdirectory of the .pc files directory.
+#
+# @@ We should probably allow to configure these macros via configuration
+#    variables config.pkgconfig.pkg_default_path and alike.
+#
+if! $windows
+{
+  inc_dirs = "/usr/include"
+  lib_dirs = "/usr/lib"
+
+  if ($install.root != [null])
+  {
+    def_dirs = "$install.resolve($install.pkgconfig)"
+    personality_dirs = "$def_dirs/personality.d"
+  }
+  else
+  {
+    def_dirs = ""
+    personality_dirs = ""
+  }
+}
+else
+{
+  inc_dirs = ""
+  lib_dirs = ""
+
+  # Note that on Windows PKG_DEFAULT_PATH macros is internally redefined as
+  # "../lib/pkgconfig;../share/pkgconfig" and is used as a fallback. Normally
+  # the default path is relative to the program's (that link the library)
+  # directory and has the following format:
+  #
+  # <dir>/../lib/pkgconfig;<dir>/../share/pkgconfig
+  #
+  # So we keep the macros empty.
+  #
+  def_dirs = ""
+  personality_dirs = ""
+}
+
+# The config header is internal (is only included from C files), so we don't
+# distribute nor install it (see below).
+#
+h{config}: in{config}
+{
+  PACKAGE_VERSION = "$version.project_id"
+
+  # Escape backslashes and quotes in the directory paths prior to representing
+  # them as C string literals.
+  #
+  SYSTEM_INCLUDEDIR = $regex.replace($inc_dirs, '(\\|")', '\\\1')
+  SYSTEM_LIBDIR     = $regex.replace($lib_dirs, '(\\|")', '\\\1')
+  PKG_DEFAULT_PATH  = $regex.replace($def_dirs, '(\\|")', '\\\1')
+  PERSONALITY_PATH  = $regex.replace($personality_dirs, '(\\|")', '\\\1')
+}
+
+# Build options.
+#
+# Note that we have to add "-I$src_root" for the headers auto-generating
+# machinery to work properly.
+#
+c.poptions =+ "-I$out_root" "-I$src_root"
+
+# Disable warnings.
+#
+if $msvc
+  c.coptions += /wd4996 /wd4267
+elif $clang_msvc
+  c.coptions += -Wno-deprecated-declarations -Wno-unused-function
+
+# Note: this should go last as it adds obj target-specific poptions.
+#
+if! $windows
+{
+  # The upstream package compiles the source files with -std=gnu99 option to
+  # allow some GNU deviations from the ISO C99 standard. We will compile with
+  # the -std=c99 option (via c.std=99 in root.build) and define
+  # _POSIX_C_SOURCE=200809L for all as well as _GNU_SOURCE for some source
+  # files (those that require GNU extension). These macros also re-enable
+  # definitions of POSIX macros (specifically PATH_MAX) that are disabled by
+  # -std=c99.
+  #
+  # Note that on FreeBSD and MacOS -D_POSIX_C_SOURCE disables declarations of
+  # strlcpy() and alike which are not POSIX. Not very consistent given that
+  # they are also not C99. Luckily, -std=c99 doesn't disable PATH_MAX on these
+  # platforms, so we just don't define this macro for them.
+  #
+  if! ($bsd || $macos)
+    c.poptions += -D_POSIX_C_SOURCE=200809L
+
+  obj{client fragment path personality pkg queue tuple}: \
+    c.poptions += -D_GNU_SOURCE
+}
+else
+{
+  # See libpkgconf-api.h for details.
+  #
+  objs{*}: c.poptions += -DLIBPKGCONF_EXPORT
+  obja{*}: c.poptions += -DPKGCONFIG_IS_STATIC
+
+  c.libs += ($msvc_runtime ? advapi32.lib : -ladvapi32)
+}
+
+# Export options.
+#
+lib{pkgconf}:  cc.export.poptions = "-I$src_root"
+liba{pkgconf}: cc.export.poptions += -DPKGCONFIG_IS_STATIC
+
+# See bootstrap.build for details.
+#
+if $version.pre_release
+  lib{pkgconf}: bin.lib.version = @"-$version.project_id"
+else
+  lib{pkgconf}: bin.lib.version = @"-$release_num"
+
+# Install into the pkgconf/libpkgconf/ subdirectory of, say, /usr/include/.
+# Also make sure Cflags is properly set in .pc files to pkgconfig/.
+#
+h{*}: install = include/libpkgconf/
+install.include = $install.include/pkgconf/
+
+# Implementation details.
+#
+h{config}: install = false
+
+for h: stdinc win-dirent
+  h{$h}@./: install = false

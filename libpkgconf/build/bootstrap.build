@@ -1,0 +1,29 @@
+# file      : build/bootstrap.build
+# license   : ISC; see accompanying COPYING file
+
+project = libpkgconf
+
+using version
+using config
+using test
+using install
+using dist
+
+# The versioning scheme (after 0.9.12) assumes that each [major?] release has
+# it's own number (starting with 2). In any case, for the 1.3.90 to 1.4.0
+# release version increment the version in the library file name changed from
+# 2 to 3 (libpkgconf.so.2.0.0 -> libpkgconf.so.3.0.0). This probably means
+# that the first two release version components constitute a major version,
+# and the release number increments each time this version changes. So we just
+# need to watch their Makefile.am for any changes.
+#
+# See also: http://kaniini.dereferenced.org/2015/07/20/pkgconf-0-9-12-and-future.html
+#
+# Note that the upstream project didn't increment the release number (3) for
+# the 1.5 library version despite the ABI-breaking changes (issue #15 is
+# reported).
+#
+if ($version.major == 1 && $version.minor == 6)
+  release_num = 4
+else
+  fail "increment the release number?"
