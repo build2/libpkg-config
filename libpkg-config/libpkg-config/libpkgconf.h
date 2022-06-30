@@ -19,8 +19,8 @@
  * OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-#ifndef LIBPKGCONF__LIBPKGCONF_H
-#define LIBPKGCONF__LIBPKGCONF_H
+#ifndef LIBPKG_CONFIG_LIBPKGCONF_H
+#define LIBPKG_CONFIG_LIBPKGCONF_H
 
 #include <stdio.h>
 #include <stdarg.h>
@@ -399,4 +399,4 @@ PKGCONF_API void pkgconf_path_copy_list(pkgconf_list_t *dst, const pkgconf_list_
 }
 #endif
 
-#endif
+#endif /* LIBPKG_CONFIG_LIBPKGCONF_H */

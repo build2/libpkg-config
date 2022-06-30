@@ -19,8 +19,8 @@
  * OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-#ifndef LIBPKGCONF_STDINC_H
-#define LIBPKGCONF_STDINC_H
+#ifndef LIBPKG_CONFIG_STDINC_H
+#define LIBPKG_CONFIG_STDINC_H
 
 #include <ctype.h>
 #include <stdio.h>
@@ -82,4 +82,4 @@
 # endif
 #endif
 
-#endif
+#endif /* LIBPKG_CONFIG_STDINC_H */

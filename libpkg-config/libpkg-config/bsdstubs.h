@@ -19,8 +19,8 @@
  * OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-#ifndef LIBPKGCONF_BSDSTUBS_H
-#define LIBPKGCONF_BSDSTUBS_H
+#ifndef LIBPKG_CONFIG_BSDSTUBS_H
+#define LIBPKG_CONFIG_BSDSTUBS_H
 
 #include <libpkg-config/libpkgconf-api.h>
 
@@ -36,4 +36,4 @@ PKGCONF_API extern char *pkgconf_strndup(const char *src, size_t len);
 }
 #endif
 
-#endif
+#endif /* LIBPKG_CONFIG_BSDSTUBS_H */

@@ -1,8 +1,8 @@
 /* file      : libpkg-config/config.h.in -*- C -*-
  * license   : ISC; see accompanying COPYING file
  */
-#ifndef LIBPKGCONF_CONFIG_H
-#define LIBPKGCONF_CONFIG_H
+#ifndef LIBPKG_CONFIG_CONFIG_H
+#define LIBPKG_CONFIG_CONFIG_H
 
 /*
  * For the semantics of the following macros refer to config.h.meson.orig
@@ -54,4 +54,4 @@
 #define SYSTEM_INCLUDEDIR "$SYSTEM_INCLUDEDIR$"
 #define SYSTEM_LIBDIR     "$SYSTEM_LIBDIR$"
 
-#endif /* LIBPKGCONF_CONFIG_H */
+#endif /* LIBPKG_CONFIG_CONFIG_H */
