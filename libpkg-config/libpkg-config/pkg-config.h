@@ -263,6 +263,8 @@ typedef void (*pkgconf_parser_warn_func_t)(void *data, const char *fmt, ...);
 LIBPKG_CONFIG_SYMEXPORT void pkgconf_parser_parse(FILE *f, void *data, const pkgconf_parser_operand_func_t *ops, const pkgconf_parser_warn_func_t warnfunc, const char *filename);
 
 /* pkg.c */
+/* Note that if the library is build with LIBPKG_CONFIG_NTRACE, tracing will
+   be disabled at compile time. */
 LIBPKG_CONFIG_SYMEXPORT bool pkgconf_error(const pkgconf_client_t *client, const char *format, ...) LIBPKG_CONFIG_PRINTFLIKE(2, 3);
 LIBPKG_CONFIG_SYMEXPORT bool pkgconf_warn(const pkgconf_client_t *client, const char *format, ...) LIBPKG_CONFIG_PRINTFLIKE(2, 3);
 LIBPKG_CONFIG_SYMEXPORT bool pkgconf_trace(const pkgconf_client_t *client, const char *filename, size_t lineno, const char *funcname, const char *format, ...) LIBPKG_CONFIG_PRINTFLIKE(5, 6);

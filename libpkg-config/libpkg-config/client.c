@@ -39,6 +39,7 @@
  * thread boundaries.
  */
 
+#ifndef LIBPKG_CONFIG_NTRACE
 static void
 trace_path_list(const pkgconf_client_t *client, const char *desc, pkgconf_list_t *list)
 {
@@ -52,6 +53,7 @@ trace_path_list(const pkgconf_client_t *client, const char *desc, pkgconf_list_t
 		PKGCONF_TRACE(client, "  - '%s'", p->path);
 	}
 }
+#endif
 
 /*
  * !doc
@@ -103,14 +105,8 @@ pkgconf_client_dir_list_build(pkgconf_client_t *client, const pkgconf_cross_pers
 void
 pkgconf_client_init(pkgconf_client_t *client, pkgconf_error_handler_func_t error_handler, void *error_handler_data, const pkgconf_cross_personality_t *personality)
 {
-	client->error_handler_data = error_handler_data;
-	client->error_handler = error_handler;
 	client->auditf = NULL;
-
-#ifndef PKGCONF_LITE
-	if (client->trace_handler == NULL)
-		pkgconf_client_set_trace_handler(client, NULL, NULL);
-#endif
+	client->trace_handler = NULL;
 
 	pkgconf_client_set_error_handler(client, error_handler, error_handler_data);
 	pkgconf_client_set_warn_handler(client, NULL, NULL);
@@ -147,8 +143,10 @@ pkgconf_client_init(pkgconf_client_t *client, pkgconf_error_handler_func_t error
 
 	PKGCONF_TRACE(client, "initialized client @%p", client);
 
+#ifndef LIBPKG_CONFIG_NTRACE
 	trace_path_list(client, "filtered library paths", &client->filter_libdirs);
 	trace_path_list(client, "filtered include paths", &client->filter_includedirs);
+#endif
 }
 
 /*
@@ -371,18 +369,20 @@ pkgconf_warn(const pkgconf_client_t *client, const char *format, ...)
  *    :param size_t lineno: The line number currently being executed.
  *    :param char* funcname: The function name to use.
  *    :param char* format: A printf-style format string to use for formatting the trace message.
- *    :return: true if the trace handler processed the message, else false.
+ *    :return: true if the trace handler processed the message, else false. Note: false is returned if there is no handler.
  *    :rtype: bool
  */
 bool
 pkgconf_trace(const pkgconf_client_t *client, const char *filename, size_t lineno, const char *funcname, const char *format, ...)
 {
-	char errbuf[PKGCONF_BUFSIZE];
-	size_t len;
-	va_list va;
-
 	if (client == NULL || client->trace_handler == NULL)
 		return false;
+
+#ifndef LIBPKG_CONFIG_NTRACE
+
+        char errbuf[PKGCONF_BUFSIZE];
+	size_t len;
+	va_list va;
 
 	len = snprintf(errbuf, sizeof errbuf, "%s:" SIZE_FMT_SPECIFIER " [%s]: ", filename, lineno, funcname);
 
@@ -393,6 +393,15 @@ pkgconf_trace(const pkgconf_client_t *client, const char *filename, size_t linen
 	pkgconf_strlcat(errbuf, "\n", sizeof errbuf);
 
 	return client->trace_handler(errbuf, client, client->trace_handler_data);
+#else
+        (void) client;
+        (void) filename;
+        (void) lineno;
+        (void) funcname;
+        (void) format;
+
+        return true;
+#endif
 }
 
 /*
@@ -577,7 +586,6 @@ pkgconf_client_set_error_handler(pkgconf_client_t *client, pkgconf_error_handler
 	}
 }
 
-#ifndef PKGCONF_LITE
 /*
  * !doc
  *
@@ -611,11 +619,4 @@ pkgconf_client_set_trace_handler(pkgconf_client_t *client, pkgconf_error_handler
 {
 	client->trace_handler = trace_handler;
 	client->trace_handler_data = trace_handler_data;
-
-	if (client->trace_handler == NULL)
-	{
-		client->trace_handler = pkgconf_default_error_handler;
-		PKGCONF_TRACE(client, "installing default trace handler");
-	}
 }
-#endif

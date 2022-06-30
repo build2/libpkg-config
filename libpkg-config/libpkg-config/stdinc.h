@@ -37,18 +37,18 @@
 
 #define PKGCONF_ARRAY_SIZE(x) (sizeof(x) / sizeof(*(x)))
 
-#ifndef PKGCONF_LITE
+#ifndef LIBPKG_CONFIG_NTRACE
 #if defined(__GNUC__) || defined(__INTEL_COMPILER)
 #define PKGCONF_TRACE(client, ...) do { \
 		pkgconf_trace(client, __FILE__, __LINE__, __PRETTY_FUNCTION__, __VA_ARGS__); \
-	} while (0);
+	} while (0)
 #else
 #define PKGCONF_TRACE(client, ...) do { \
 		pkgconf_trace(client, __FILE__, __LINE__, __func__, __VA_ARGS__); \
-	} while (0);
+	} while (0)
 #endif
 #else
-#define PKGCONF_TRACE(client, ...)
+#define PKGCONF_TRACE(client, ...) do {} while (0)
 #endif
 
 #ifdef _WIN32

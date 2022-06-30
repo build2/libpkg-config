@@ -48,6 +48,7 @@ typedef enum {
 
 #define DEBUG_PARSE 0
 
+#ifndef LIBPKG_CONFIG_NTRACE
 static const char *
 dependency_to_str(const pkgconf_dependency_t *dep, char *buf, size_t buflen)
 {
@@ -62,6 +63,7 @@ dependency_to_str(const pkgconf_dependency_t *dep, char *buf, size_t buflen)
 
 	return buf;
 }
+#endif
 
 /* find a colliding dependency that is coloured differently */
 static inline pkgconf_dependency_t *
@@ -86,14 +88,19 @@ find_colliding_dependency(const pkgconf_dependency_t *dep, const pkgconf_list_t 
 static inline pkgconf_dependency_t *
 add_or_replace_dependency_node(const pkgconf_client_t *client, pkgconf_dependency_t *dep, pkgconf_list_t *list)
 {
+#ifndef LIBPKG_CONFIG_NTRACE
 	char depbuf[PKGCONF_ITEM_SIZE];
+#else
+        (void) client;
+#endif
 	pkgconf_dependency_t *dep2 = find_colliding_dependency(dep, list);
 
 	/* there is already a node in the graph which describes this dependency */
 	if (dep2 != NULL)
 	{
+#ifndef LIBPKG_CONFIG_NTRACE
 		char depbuf2[PKGCONF_ITEM_SIZE];
-
+#endif
 		PKGCONF_TRACE(client, "dependency collision: [%s/%x] -- [%s/%x]",
 			      dependency_to_str(dep, depbuf, sizeof depbuf), dep->flags,
 			      dependency_to_str(dep2, depbuf2, sizeof depbuf2), dep2->flags);
