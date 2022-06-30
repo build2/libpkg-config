@@ -33,7 +33,7 @@ static void
 frags_print_and_free (pkgconf_list_t* list)
 {
   pkgconf_node_t *node;
-  PKGCONF_FOREACH_LIST_ENTRY(list->head, node)
+  LIBPKG_CONFIG_FOREACH_LIST_ENTRY(list->head, node)
   {
     pkgconf_fragment_t* frag = node->data;
     printf("%c %s\n", frag->type != '\0' ? frag->type : ' ', frag->data);
@@ -46,7 +46,7 @@ static void
 tuples_print (pkgconf_list_t *list)
 {
   pkgconf_node_t *node;
-  PKGCONF_FOREACH_LIST_ENTRY(list->head, node)
+  LIBPKG_CONFIG_FOREACH_LIST_ENTRY(list->head, node)
   {
     pkgconf_tuple_t *tuple = node->data;
 
@@ -126,14 +126,14 @@ main (int argc, const char* argv[])
   int r = 1;
   int max_depth = 2000;
 
-  const int pkgconf_flags = PKGCONF_PKG_PKGF_DONT_MERGE_SPECIAL_FRAGMENTS;
+  const int pkgconf_flags = LIBPKG_CONFIG_PKG_PKGF_DONT_MERGE_SPECIAL_FRAGMENTS;
 
   pkgconf_client_set_flags (c, pkgconf_flags);
   pkgconf_pkg_t* p = pkgconf_pkg_find (c, path);
 
   if (p != NULL)
   {
-    int e = PKGCONF_PKG_ERRF_OK;
+    unsigned int e = LIBPKG_CONFIG_PKG_ERRF_OK;
 
     switch (mode)
     {
@@ -141,12 +141,12 @@ main (int argc, const char* argv[])
       {
         pkgconf_client_set_flags (c,
                                   pkgconf_flags |
-                                  PKGCONF_PKG_PKGF_SEARCH_PRIVATE);
+                                  LIBPKG_CONFIG_PKG_PKGF_SEARCH_PRIVATE);
 
-        pkgconf_list_t list = PKGCONF_LIST_INITIALIZER;
+        pkgconf_list_t list = LIBPKG_CONFIG_LIST_INITIALIZER;
         e = pkgconf_pkg_cflags (c, p, &list, max_depth);
 
-        if (e == PKGCONF_PKG_ERRF_OK)
+        if (e == LIBPKG_CONFIG_PKG_ERRF_OK)
           frags_print_and_free (&list);
 
         pkgconf_client_set_flags (c, 0); /* Restore. */
@@ -156,13 +156,13 @@ main (int argc, const char* argv[])
       {
         pkgconf_client_set_flags (c,
                                   pkgconf_flags                   |
-                                  PKGCONF_PKG_PKGF_SEARCH_PRIVATE |
-                                  PKGCONF_PKG_PKGF_MERGE_PRIVATE_FRAGMENTS);
+                                  LIBPKG_CONFIG_PKG_PKGF_SEARCH_PRIVATE |
+                                  LIBPKG_CONFIG_PKG_PKGF_MERGE_PRIVATE_FRAGMENTS);
 
-        pkgconf_list_t list = PKGCONF_LIST_INITIALIZER;
+        pkgconf_list_t list = LIBPKG_CONFIG_LIST_INITIALIZER;
         e = pkgconf_pkg_libs (c, p, &list, max_depth);
 
-        if (e == PKGCONF_PKG_ERRF_OK)
+        if (e == LIBPKG_CONFIG_PKG_ERRF_OK)
           frags_print_and_free (&list);
 
         pkgconf_client_set_flags (c, 0); /* Restore. */
@@ -179,7 +179,7 @@ main (int argc, const char* argv[])
       }
     }
 
-    if (e == PKGCONF_PKG_ERRF_OK)
+    if (e == LIBPKG_CONFIG_PKG_ERRF_OK)
       r = 0;
 
     pkgconf_pkg_unref (c, p);

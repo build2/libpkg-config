@@ -45,7 +45,7 @@ trace_path_list(const pkgconf_client_t *client, const char *desc, pkgconf_list_t
 	const pkgconf_node_t *n;
 
 	PKGCONF_TRACE(client, "%s:", desc);
-	PKGCONF_FOREACH_LIST_ENTRY(list->head, n)
+	LIBPKG_CONFIG_FOREACH_LIST_ENTRY(list->head, n)
 	{
 		const pkgconf_path_t *p = n->data;
 
@@ -58,7 +58,7 @@ trace_path_list(const pkgconf_client_t *client, const char *desc, pkgconf_list_t
  *
  * .. c:function:: void pkgconf_client_dir_list_build(pkgconf_client_t *client)
  *
- *    Bootstraps the package search paths.  If the ``PKGCONF_PKG_PKGF_ENV_ONLY`` `flag` is set on the client,
+ *    Bootstraps the package search paths.  If the ``LIBPKG_CONFIG_PKG_PKGF_ENV_ONLY`` `flag` is set on the client,
  *    then only the ``PKG_CONFIG_PATH`` environment variable will be used, otherwise both the
  *    ``PKG_CONFIG_PATH`` and ``PKG_CONFIG_LIBDIR`` environment variables will be used.
  *
@@ -70,9 +70,9 @@ pkgconf_client_dir_list_build(pkgconf_client_t *client, const pkgconf_cross_pers
 {
 	pkgconf_path_build_from_environ("PKG_CONFIG_PATH", NULL, &client->dir_list, true);
 
-	if (!(client->flags & PKGCONF_PKG_PKGF_ENV_ONLY))
+	if (!(client->flags & LIBPKG_CONFIG_PKG_PKGF_ENV_ONLY))
 	{
-		pkgconf_list_t dir_list = PKGCONF_LIST_INITIALIZER;
+		pkgconf_list_t dir_list = LIBPKG_CONFIG_LIST_INITIALIZER;
 		const pkgconf_list_t *prepend_list = &personality->dir_list;
 
 		if (getenv("PKG_CONFIG_LIBDIR") != NULL)

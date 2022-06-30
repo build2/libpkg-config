@@ -38,7 +38,16 @@ typedef struct {
 	size_t length;
 } pkgconf_list_t;
 
-#define PKGCONF_LIST_INITIALIZER		{ NULL, NULL, 0 }
+#define LIBPKG_CONFIG_LIST_INITIALIZER { NULL, NULL, 0 }
+
+#define LIBPKG_CONFIG_FOREACH_LIST_ENTRY(head, value) \
+	for ((value) = (head); (value) != NULL; (value) = (value)->next)
+
+#define LIBPKG_CONFIG_FOREACH_LIST_ENTRY_SAFE(head, nextiter, value) \
+	for ((value) = (head), (nextiter) = (head) != NULL ? (head)->next : NULL; (value) != NULL; (value) = (nextiter), (nextiter) = (nextiter) != NULL ? (nextiter)->next : NULL)
+
+#define LIBPKG_CONFIG_FOREACH_LIST_ENTRY_REVERSE(tail, value) \
+	for ((value) = (tail); (value) != NULL; (value) = (value)->prev)
 
 static inline void
 pkgconf_node_insert(pkgconf_node_t *node, void *data, pkgconf_list_t *list)

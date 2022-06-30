@@ -55,7 +55,7 @@ pkgconf_cache_lookup(pkgconf_client_t *client, const char *id)
 {
 	pkgconf_node_t *node;
 
-	PKGCONF_FOREACH_LIST_ENTRY(client->pkg_cache.head, node)
+	LIBPKG_CONFIG_FOREACH_LIST_ENTRY(client->pkg_cache.head, node)
 	{
 		pkgconf_pkg_t *pkg = node->data;
 
@@ -94,7 +94,7 @@ pkgconf_cache_add(pkgconf_client_t *client, pkgconf_pkg_t *pkg)
 	PKGCONF_TRACE(client, "added @%p to cache", pkg);
 
 	/* mark package as cached */
-	pkg->flags |= PKGCONF_PKG_PROPF_CACHED;
+	pkg->flags |= LIBPKG_CONFIG_PKG_PROPF_CACHED;
 }
 
 /*
@@ -114,7 +114,7 @@ pkgconf_cache_remove(pkgconf_client_t *client, pkgconf_pkg_t *pkg)
 	if (pkg == NULL)
 		return;
 
-	if (!(pkg->flags & PKGCONF_PKG_PROPF_CACHED))
+	if (!(pkg->flags & LIBPKG_CONFIG_PKG_PROPF_CACHED))
 		return;
 
 	PKGCONF_TRACE(client, "removed @%p from cache", pkg);
@@ -138,7 +138,7 @@ pkgconf_cache_free(pkgconf_client_t *client)
 {
 	pkgconf_node_t *iter, *iter2;
 
-	PKGCONF_FOREACH_LIST_ENTRY_SAFE(client->pkg_cache.head, iter2, iter)
+	LIBPKG_CONFIG_FOREACH_LIST_ENTRY_SAFE(client->pkg_cache.head, iter2, iter)
 	{
 		pkgconf_pkg_t *pkg = iter->data;
 		pkgconf_pkg_unref(client, pkg);

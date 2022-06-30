@@ -180,7 +180,7 @@ static const pkgconf_parser_operand_func_t personality_parser_ops[] = {
 	[':'] = (pkgconf_parser_operand_func_t) personality_keyword_set
 };
 
-static void personality_warn_func(void *p, const char *fmt, ...) PRINTFLIKE(2, 3);
+static void personality_warn_func(void *p, const char *fmt, ...) LIBPKG_CONFIG_PRINTFLIKE(2, 3);
 
 static void
 personality_warn_func(void *p, const char *fmt, ...)
@@ -232,7 +232,7 @@ load_personality_with_path(const char *path, const char *triplet)
 pkgconf_cross_personality_t *
 pkgconf_cross_personality_find(const char *triplet)
 {
-	pkgconf_list_t plist = PKGCONF_LIST_INITIALIZER;
+	pkgconf_list_t plist = LIBPKG_CONFIG_LIST_INITIALIZER;
 	pkgconf_node_t *n;
 	pkgconf_cross_personality_t *out = NULL;
 
@@ -245,7 +245,7 @@ pkgconf_cross_personality_find(const char *triplet)
 
 	pkgconf_path_split(PERSONALITY_PATH, &plist, true);
 
-	PKGCONF_FOREACH_LIST_ENTRY(plist.head, n)
+	LIBPKG_CONFIG_FOREACH_LIST_ENTRY(plist.head, n)
 	{
 		pkgconf_path_t *pn = n->data;
 

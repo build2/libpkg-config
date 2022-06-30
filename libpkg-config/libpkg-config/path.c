@@ -43,7 +43,7 @@ path_list_contains_entry(const char *text, pkgconf_list_t *dirlist)
 {
 	pkgconf_node_t *n;
 
-	PKGCONF_FOREACH_LIST_ENTRY(dirlist->head, n)
+	LIBPKG_CONFIG_FOREACH_LIST_ENTRY(dirlist->head, n)
 	{
 		pkgconf_path_t *pn = n->data;
 
@@ -154,7 +154,7 @@ pkgconf_path_split(const char *text, pkgconf_list_t *dirlist, bool filter)
 		return 0;
 
 	iter = workbuf = strdup(text);
-	while ((p = strtok(iter, PKG_CONFIG_PATH_SEP_S)) != NULL)
+	while ((p = strtok(iter, LIBPKG_CONFIG_PATH_SEP_S)) != NULL)
 	{
 		pkgconf_path_add(p, dirlist, filter);
 
@@ -219,7 +219,7 @@ pkgconf_path_match_list(const char *path, const pkgconf_list_t *dirlist)
 	if (pkgconf_path_relocate(relocated, sizeof relocated))
 		cpath = relocated;
 
-	PKGCONF_FOREACH_LIST_ENTRY(dirlist->head, n)
+	LIBPKG_CONFIG_FOREACH_LIST_ENTRY(dirlist->head, n)
 	{
 		pkgconf_path_t *pnode = n->data;
 
@@ -246,7 +246,7 @@ pkgconf_path_copy_list(pkgconf_list_t *dst, const pkgconf_list_t *src)
 {
 	pkgconf_node_t *n;
 
-	PKGCONF_FOREACH_LIST_ENTRY(src->head, n)
+	LIBPKG_CONFIG_FOREACH_LIST_ENTRY(src->head, n)
 	{
 		pkgconf_path_t *srcpath = n->data, *path;
 
@@ -277,7 +277,7 @@ pkgconf_path_free(pkgconf_list_t *dirlist)
 {
 	pkgconf_node_t *n, *tn;
 
-	PKGCONF_FOREACH_LIST_ENTRY_SAFE(dirlist->head, tn, n)
+	LIBPKG_CONFIG_FOREACH_LIST_ENTRY_SAFE(dirlist->head, tn, n)
 	{
 		pkgconf_path_t *pnode = n->data;
 

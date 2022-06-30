@@ -35,24 +35,26 @@
 extern "C" {
 #endif
 
+/* @@ TODO */
+#define LIBPKGCONF_VERSION	10603
+#define LIBPKGCONF_VERSION_STR	"1.6.3"
+
 /* pkg-config uses ';' on win32 as ':' is part of path */
 #ifdef _WIN32
-#define PKG_CONFIG_PATH_SEP_S   ";"
+#define LIBPKG_CONFIG_PATH_SEP_S   ";"
 #else
-#define PKG_CONFIG_PATH_SEP_S   ":"
+#define LIBPKG_CONFIG_PATH_SEP_S   ":"
 #endif
 
 #ifdef _WIN32
-#define PKG_DIR_SEP_S   '\\'
+#define LIBPKG_CONFIG_DIR_SEP_S   '\\'
 #else
-#define PKG_DIR_SEP_S   '/'
+#define LIBPKG_CONFIG_DIR_SEP_S   '/'
 #endif
 
 #ifdef _WIN32
 #define realpath(N,R) _fullpath((R),(N),_MAX_PATH)
 #endif
-
-#define PKGCONF_BUFSIZE	(65535)
 
 typedef enum {
 	PKGCONF_CMP_NOT_EQUAL,
@@ -64,8 +66,6 @@ typedef enum {
 	PKGCONF_CMP_GREATER_THAN_EQUAL
 } pkgconf_pkg_comparator_t;
 
-#define PKGCONF_CMP_COUNT 7
-
 typedef struct pkgconf_pkg_ pkgconf_pkg_t;
 typedef struct pkgconf_dependency_ pkgconf_dependency_t;
 typedef struct pkgconf_tuple_ pkgconf_tuple_t;
@@ -73,20 +73,6 @@ typedef struct pkgconf_fragment_ pkgconf_fragment_t;
 typedef struct pkgconf_path_ pkgconf_path_t;
 typedef struct pkgconf_client_ pkgconf_client_t;
 typedef struct pkgconf_cross_personality_ pkgconf_cross_personality_t;
-
-#define PKGCONF_ARRAY_SIZE(x) (sizeof(x) / sizeof(*(x)))
-
-#define PKGCONF_FOREACH_LIST_ENTRY(head, value) \
-	for ((value) = (head); (value) != NULL; (value) = (value)->next)
-
-#define PKGCONF_FOREACH_LIST_ENTRY_SAFE(head, nextiter, value) \
-	for ((value) = (head), (nextiter) = (head) != NULL ? (head)->next : NULL; (value) != NULL; (value) = (nextiter), (nextiter) = (nextiter) != NULL ? (nextiter)->next : NULL)
-
-#define PKGCONF_FOREACH_LIST_ENTRY_REVERSE(tail, value) \
-	for ((value) = (tail); (value) != NULL; (value) = (value)->prev)
-
-#define LIBPKGCONF_VERSION	10603
-#define LIBPKGCONF_VERSION_STR	"1.6.3"
 
 struct pkgconf_fragment_ {
 	pkgconf_node_t iter;
@@ -106,8 +92,10 @@ struct pkgconf_dependency_ {
 	pkgconf_pkg_t *parent;
 	pkgconf_pkg_t *match;
 
-	unsigned int flags;
+        unsigned int flags; /* LIBPKG_CONFIG_PKG_DEPF_* */
 };
+
+#define LIBPKG_CONFIG_PKG_DEPF_INTERNAL 0x1
 
 struct pkgconf_tuple_ {
 	pkgconf_node_t iter;
@@ -123,13 +111,6 @@ struct pkgconf_path_ {
 	void *handle_path;
 	void *handle_device;
 };
-
-#define PKGCONF_PKG_PROPF_NONE			0x00
-#define PKGCONF_PKG_PROPF_STATIC		0x01
-#define PKGCONF_PKG_PROPF_CACHED		0x02
-#define PKGCONF_PKG_PROPF_SEEN			0x04
-#define PKGCONF_PKG_PROPF_UNINSTALLED		0x08
-#define PKGCONF_PKG_PROPF_VIRTUAL		0x10
 
 struct pkgconf_pkg_ {
 	pkgconf_node_t cache_iter;
@@ -155,7 +136,7 @@ struct pkgconf_pkg_ {
 
 	pkgconf_list_t vars;
 
-	unsigned int flags;
+        unsigned int flags; /* LIBPKG_CONFIG_PKG_PROPF_* */
 
 	pkgconf_client_t *owner;
 
@@ -165,6 +146,13 @@ struct pkgconf_pkg_ {
 	pkgconf_tuple_t *orig_prefix;
 	pkgconf_tuple_t *prefix;
 };
+
+#define LIBPKG_CONFIG_PKG_PROPF_NONE            0x00
+#define LIBPKG_CONFIG_PKG_PROPF_STATIC		0x01
+#define LIBPKG_CONFIG_PKG_PROPF_CACHED		0x02
+#define LIBPKG_CONFIG_PKG_PROPF_SEEN		0x04
+#define LIBPKG_CONFIG_PKG_PROPF_UNINSTALLED	0x08
+#define LIBPKG_CONFIG_PKG_PROPF_VIRTUAL		0x10
 
 typedef bool (*pkgconf_pkg_iteration_func_t)(const pkgconf_pkg_t *pkg, void *data);
 typedef void (*pkgconf_pkg_traverse_func_t)(pkgconf_client_t *client, pkgconf_pkg_t *pkg, void *data);
@@ -193,12 +181,29 @@ struct pkgconf_client_ {
 	char *sysroot_dir;
 	char *buildroot_dir;
 
-	unsigned int flags;
+        unsigned int flags; /* LIBPKG_CONFIG_PKG_PKGF_* */
 
 	char *prefix_varname;
 
 	bool already_sent_notice;
 };
+
+#define LIBPKG_CONFIG_PKG_PKGF_NONE				0x0000
+#define LIBPKG_CONFIG_PKG_PKGF_SEARCH_PRIVATE			0x0001
+#define LIBPKG_CONFIG_PKG_PKGF_ENV_ONLY				0x0002
+#define LIBPKG_CONFIG_PKG_PKGF_NO_UNINSTALLED			0x0004
+#define LIBPKG_CONFIG_PKG_PKGF_SKIP_ROOT_VIRTUAL		0x0008
+#define LIBPKG_CONFIG_PKG_PKGF_MERGE_PRIVATE_FRAGMENTS		0x0010
+#define LIBPKG_CONFIG_PKG_PKGF_SKIP_CONFLICTS			0x0020
+#define LIBPKG_CONFIG_PKG_PKGF_NO_CACHE				0x0040
+#define LIBPKG_CONFIG_PKG_PKGF_SKIP_ERRORS			0x0080
+#define LIBPKG_CONFIG_PKG_PKGF_ITER_PKG_IS_PRIVATE		0x0100
+#define LIBPKG_CONFIG_PKG_PKGF_SKIP_PROVIDES			0x0200
+#define LIBPKG_CONFIG_PKG_PKGF_REDEFINE_PREFIX			0x0400
+#define LIBPKG_CONFIG_PKG_PKGF_DONT_RELOCATE_PATHS		0x0800
+#define LIBPKG_CONFIG_PKG_PKGF_SIMPLIFY_ERRORS			0x1000
+#define LIBPKG_CONFIG_PKG_PKGF_DONT_FILTER_INTERNAL_CFLAGS	0x2000
+#define LIBPKG_CONFIG_PKG_PKGF_DONT_MERGE_SPECIAL_FRAGMENTS	0x4000
 
 struct pkgconf_cross_personality_ {
 	const char *name;
@@ -236,50 +241,19 @@ LIBPKG_CONFIG_SYMEXPORT void pkgconf_client_dir_list_build(pkgconf_client_t *cli
 LIBPKG_CONFIG_SYMEXPORT pkgconf_cross_personality_t *pkgconf_cross_personality_default(void);
 LIBPKG_CONFIG_SYMEXPORT pkgconf_cross_personality_t *pkgconf_cross_personality_find(const char *triplet);
 
-#define PKGCONF_IS_MODULE_SEPARATOR(c) ((c) == ',' || isspace ((unsigned int)(c)))
-#define PKGCONF_IS_OPERATOR_CHAR(c) ((c) == '<' || (c) == '>' || (c) == '!' || (c) == '=')
-
-#define PKGCONF_PKG_PKGF_NONE				0x0000
-#define PKGCONF_PKG_PKGF_SEARCH_PRIVATE			0x0001
-#define PKGCONF_PKG_PKGF_ENV_ONLY			0x0002
-#define PKGCONF_PKG_PKGF_NO_UNINSTALLED			0x0004
-#define PKGCONF_PKG_PKGF_SKIP_ROOT_VIRTUAL		0x0008
-#define PKGCONF_PKG_PKGF_MERGE_PRIVATE_FRAGMENTS	0x0010
-#define PKGCONF_PKG_PKGF_SKIP_CONFLICTS			0x0020
-#define PKGCONF_PKG_PKGF_NO_CACHE			0x0040
-#define PKGCONF_PKG_PKGF_SKIP_ERRORS			0x0080
-#define PKGCONF_PKG_PKGF_ITER_PKG_IS_PRIVATE		0x0100
-#define PKGCONF_PKG_PKGF_SKIP_PROVIDES			0x0200
-#define PKGCONF_PKG_PKGF_REDEFINE_PREFIX		0x0400
-#define PKGCONF_PKG_PKGF_DONT_RELOCATE_PATHS		0x0800
-#define PKGCONF_PKG_PKGF_SIMPLIFY_ERRORS		0x1000
-#define PKGCONF_PKG_PKGF_DONT_FILTER_INTERNAL_CFLAGS	0x2000
-#define PKGCONF_PKG_PKGF_DONT_MERGE_SPECIAL_FRAGMENTS	0x4000
-
-#define PKGCONF_PKG_DEPF_INTERNAL		0x1
-
-#define PKGCONF_PKG_ERRF_OK			0x0
-#define PKGCONF_PKG_ERRF_PACKAGE_NOT_FOUND	0x1
-#define PKGCONF_PKG_ERRF_PACKAGE_VER_MISMATCH	0x2
-#define PKGCONF_PKG_ERRF_PACKAGE_CONFLICT	0x4
-#define PKGCONF_PKG_ERRF_DEPGRAPH_BREAK		0x8
-
 /* Note that MinGW's printf() format semantics have changed starting GCC 10
  * (see stdinc.h for details).
  */
 #if defined(__GNUC__) || defined(__INTEL_COMPILER)
 # if defined (_WIN32) && defined(__GNUC__) && __GNUC__ >= 10
-#  define PRINTFLIKE(fmtarg, firstvararg) \
+#  define LIBPKG_CONFIG_PRINTFLIKE(fmtarg, firstvararg) \
           __attribute__((__format__ (gnu_printf, fmtarg, firstvararg)))
 # else
-#  define PRINTFLIKE(fmtarg, firstvararg) \
+#  define LIBPKG_CONFIG_PRINTFLIKE(fmtarg, firstvararg) \
           __attribute__((__format__ (__printf__, fmtarg, firstvararg)))
-#endif
-#define DEPRECATED \
-        __attribute__((deprecated))
+# endif
 #else
-#define PRINTFLIKE(fmtarg, firstvararg)
-#define DEPRECATED
+#define LIBPKG_CONFIG_PRINTFLIKE(fmtarg, firstvararg)
 #endif /* defined(__INTEL_COMPILER) || defined(__GNUC__) */
 
 /* parser.c */
@@ -289,24 +263,17 @@ typedef void (*pkgconf_parser_warn_func_t)(void *data, const char *fmt, ...);
 LIBPKG_CONFIG_SYMEXPORT void pkgconf_parser_parse(FILE *f, void *data, const pkgconf_parser_operand_func_t *ops, const pkgconf_parser_warn_func_t warnfunc, const char *filename);
 
 /* pkg.c */
-LIBPKG_CONFIG_SYMEXPORT bool pkgconf_error(const pkgconf_client_t *client, const char *format, ...) PRINTFLIKE(2, 3);
-LIBPKG_CONFIG_SYMEXPORT bool pkgconf_warn(const pkgconf_client_t *client, const char *format, ...) PRINTFLIKE(2, 3);
-LIBPKG_CONFIG_SYMEXPORT bool pkgconf_trace(const pkgconf_client_t *client, const char *filename, size_t lineno, const char *funcname, const char *format, ...) PRINTFLIKE(5, 6);
+LIBPKG_CONFIG_SYMEXPORT bool pkgconf_error(const pkgconf_client_t *client, const char *format, ...) LIBPKG_CONFIG_PRINTFLIKE(2, 3);
+LIBPKG_CONFIG_SYMEXPORT bool pkgconf_warn(const pkgconf_client_t *client, const char *format, ...) LIBPKG_CONFIG_PRINTFLIKE(2, 3);
+LIBPKG_CONFIG_SYMEXPORT bool pkgconf_trace(const pkgconf_client_t *client, const char *filename, size_t lineno, const char *funcname, const char *format, ...) LIBPKG_CONFIG_PRINTFLIKE(5, 6);
 LIBPKG_CONFIG_SYMEXPORT bool pkgconf_default_error_handler(const char *msg, const pkgconf_client_t *client, const void *data);
 
-#ifndef PKGCONF_LITE
-#if defined(__GNUC__) || defined(__INTEL_COMPILER)
-#define PKGCONF_TRACE(client, ...) do { \
-		pkgconf_trace(client, __FILE__, __LINE__, __PRETTY_FUNCTION__, __VA_ARGS__); \
-	} while (0);
-#else
-#define PKGCONF_TRACE(client, ...) do { \
-		pkgconf_trace(client, __FILE__, __LINE__, __func__, __VA_ARGS__); \
-	} while (0);
-#endif
-#else
-#define PKGCONF_TRACE(client, ...)
-#endif
+/* Errors/flags that are either returned or set; see eflags arguments. */
+#define LIBPKG_CONFIG_PKG_ERRF_OK			0x0
+#define LIBPKG_CONFIG_PKG_ERRF_PACKAGE_NOT_FOUND	0x1
+#define LIBPKG_CONFIG_PKG_ERRF_PACKAGE_VER_MISMATCH	0x2
+#define LIBPKG_CONFIG_PKG_ERRF_PACKAGE_CONFLICT		0x4
+#define LIBPKG_CONFIG_PKG_ERRF_DEPGRAPH_BREAK		0x8
 
 LIBPKG_CONFIG_SYMEXPORT pkgconf_pkg_t *pkgconf_pkg_ref(pkgconf_client_t *client, pkgconf_pkg_t *pkg);
 LIBPKG_CONFIG_SYMEXPORT void pkgconf_pkg_unref(pkgconf_client_t *client, pkgconf_pkg_t *pkg);
@@ -384,7 +351,7 @@ LIBPKG_CONFIG_SYMEXPORT void pkgconf_cache_free(pkgconf_client_t *client);
 
 /* audit.c */
 LIBPKG_CONFIG_SYMEXPORT void pkgconf_audit_set_log(pkgconf_client_t *client, FILE *auditf);
-LIBPKG_CONFIG_SYMEXPORT void pkgconf_audit_log(pkgconf_client_t *client, const char *format, ...) PRINTFLIKE(2, 3);
+LIBPKG_CONFIG_SYMEXPORT void pkgconf_audit_log(pkgconf_client_t *client, const char *format, ...) LIBPKG_CONFIG_PRINTFLIKE(2, 3);
 LIBPKG_CONFIG_SYMEXPORT void pkgconf_audit_log_dependency(pkgconf_client_t *client, const pkgconf_pkg_t *dep, const pkgconf_dependency_t *depnode);
 
 /* path.c */

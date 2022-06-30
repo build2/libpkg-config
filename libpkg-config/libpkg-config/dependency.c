@@ -34,6 +34,9 @@
  * `dependency nodes` which store dependency information.
  */
 
+#define PKGCONF_IS_MODULE_SEPARATOR(c) ((c) == ',' || isspace ((unsigned int)(c)))
+#define PKGCONF_IS_OPERATOR_CHAR(c) ((c) == '<' || (c) == '>' || (c) == '!' || (c) == '=')
+
 typedef enum {
 	OUTSIDE_MODULE = 0,
 	INSIDE_MODULE_NAME = 1,
@@ -66,7 +69,7 @@ find_colliding_dependency(const pkgconf_dependency_t *dep, const pkgconf_list_t 
 {
 	const pkgconf_node_t *n;
 
-	PKGCONF_FOREACH_LIST_ENTRY(list->head, n)
+	LIBPKG_CONFIG_FOREACH_LIST_ENTRY(list->head, n)
 	{
 		pkgconf_dependency_t *dep2 = n->data;
 
@@ -200,7 +203,7 @@ pkgconf_dependency_free(pkgconf_list_t *list)
 {
 	pkgconf_node_t *node, *next;
 
-	PKGCONF_FOREACH_LIST_ENTRY_SAFE(list->head, next, node)
+	LIBPKG_CONFIG_FOREACH_LIST_ENTRY_SAFE(list->head, next, node)
 	{
 		pkgconf_dependency_t *dep = node->data;
 

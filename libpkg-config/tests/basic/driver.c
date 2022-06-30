@@ -84,8 +84,8 @@ main (int argc, const char* argv[])
     else if (strcmp (o, "--libs") == 0)
       libs = true;
     else if (strcmp (o, "--static") == 0)
-      client_flags = PKGCONF_PKG_PKGF_SEARCH_PRIVATE |
-                     PKGCONF_PKG_PKGF_MERGE_PRIVATE_FRAGMENTS;
+      client_flags = LIBPKG_CONFIG_PKG_PKGF_SEARCH_PRIVATE |
+                     LIBPKG_CONFIG_PKG_PKGF_MERGE_PRIVATE_FRAGMENTS;
     else if (strcmp (o, "--with-path") == 0)
     {
       ++i;
@@ -115,7 +115,7 @@ main (int argc, const char* argv[])
 
   if (p != NULL)
   {
-    int e = PKGCONF_PKG_ERRF_OK;
+    unsigned int e = LIBPKG_CONFIG_PKG_ERRF_OK;
 
     /* Print C flags.
      */
@@ -123,12 +123,12 @@ main (int argc, const char* argv[])
     {
       pkgconf_client_set_flags (
         c,
-        client_flags | PKGCONF_PKG_PKGF_SEARCH_PRIVATE);
+        client_flags | LIBPKG_CONFIG_PKG_PKGF_SEARCH_PRIVATE);
 
-      pkgconf_list_t list = PKGCONF_LIST_INITIALIZER;
+      pkgconf_list_t list = LIBPKG_CONFIG_LIST_INITIALIZER;
       e = pkgconf_pkg_cflags (c, p, &list, max_depth);
 
-      if (e == PKGCONF_PKG_ERRF_OK)
+      if (e == LIBPKG_CONFIG_PKG_ERRF_OK)
         print_and_free (&list);
 
       pkgconf_client_set_flags (c, client_flags); /* Restore. */
@@ -136,16 +136,16 @@ main (int argc, const char* argv[])
 
     /* Print libs.
      */
-    if (libs && e == PKGCONF_PKG_ERRF_OK)
+    if (libs && e == LIBPKG_CONFIG_PKG_ERRF_OK)
     {
-      pkgconf_list_t list = PKGCONF_LIST_INITIALIZER;
+      pkgconf_list_t list = LIBPKG_CONFIG_LIST_INITIALIZER;
       e = pkgconf_pkg_libs (c, p, &list, max_depth);
 
-      if (e == PKGCONF_PKG_ERRF_OK)
+      if (e == LIBPKG_CONFIG_PKG_ERRF_OK)
         print_and_free (&list);
     }
 
-    if (e == PKGCONF_PKG_ERRF_OK)
+    if (e == LIBPKG_CONFIG_PKG_ERRF_OK)
     {
       r = 0;
 

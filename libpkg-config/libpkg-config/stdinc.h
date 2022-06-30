@@ -1,6 +1,7 @@
 /*
  * stdinc.h
- * pull in standard headers (including portability hacks)
+ * Pull in standard headers (including portability hacks). Plus internal
+ * constants, etc.
  *
  * ISC License
  *
@@ -31,6 +32,24 @@
 #include <string.h>
 #include <sys/types.h>
 #include <stdint.h>
+
+#define PKGCONF_BUFSIZE	(65535)
+
+#define PKGCONF_ARRAY_SIZE(x) (sizeof(x) / sizeof(*(x)))
+
+#ifndef PKGCONF_LITE
+#if defined(__GNUC__) || defined(__INTEL_COMPILER)
+#define PKGCONF_TRACE(client, ...) do { \
+		pkgconf_trace(client, __FILE__, __LINE__, __PRETTY_FUNCTION__, __VA_ARGS__); \
+	} while (0);
+#else
+#define PKGCONF_TRACE(client, ...) do { \
+		pkgconf_trace(client, __FILE__, __LINE__, __func__, __VA_ARGS__); \
+	} while (0);
+#endif
+#else
+#define PKGCONF_TRACE(client, ...)
+#endif
 
 #ifdef _WIN32
 # define WIN32_LEAN_AND_MEAN
@@ -66,7 +85,9 @@
 # include <dirent.h>
 # endif
 # define PKGCONF_ITEM_SIZE (_MAX_PATH + 1024)
-#else
+
+#else /* _WIN32 */
+
 # define PATH_DEV_NULL	"/dev/null"
 # define SIZE_FMT_SPECIFIER	"%zu"
 # ifdef __HAIKU__

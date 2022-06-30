@@ -73,7 +73,7 @@ pkgconf_tuple_find_global(const pkgconf_client_t *client, const char *key)
 {
 	pkgconf_node_t *node;
 
-	PKGCONF_FOREACH_LIST_ENTRY(client->global_vars.head, node)
+	LIBPKG_CONFIG_FOREACH_LIST_ENTRY(client->global_vars.head, node)
 	{
 		pkgconf_tuple_t *tuple = node->data;
 
@@ -132,7 +132,7 @@ pkgconf_tuple_find_delete(pkgconf_list_t *list, const char *key)
 {
 	pkgconf_node_t *node, *next;
 
-	PKGCONF_FOREACH_LIST_ENTRY_SAFE(list->head, next, node)
+	LIBPKG_CONFIG_FOREACH_LIST_ENTRY_SAFE(list->head, next, node)
 	{
 		pkgconf_tuple_t *tuple = node->data;
 
@@ -231,7 +231,7 @@ pkgconf_tuple_find(const pkgconf_client_t *client, pkgconf_list_t *list, const c
 	if ((res = pkgconf_tuple_find_global(client, key)) != NULL)
 		return res;
 
-	PKGCONF_FOREACH_LIST_ENTRY(list->head, node)
+	LIBPKG_CONFIG_FOREACH_LIST_ENTRY(list->head, node)
 	{
 		pkgconf_tuple_t *tuple = node->data;
 
@@ -384,6 +384,6 @@ pkgconf_tuple_free(pkgconf_list_t *list)
 {
 	pkgconf_node_t *node, *next;
 
-	PKGCONF_FOREACH_LIST_ENTRY_SAFE(list->head, next, node)
+	LIBPKG_CONFIG_FOREACH_LIST_ENTRY_SAFE(list->head, next, node)
 		pkgconf_tuple_free_entry(node->data, list);
 }

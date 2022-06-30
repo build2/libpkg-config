@@ -79,7 +79,7 @@ pkgconf_queue_compile(pkgconf_client_t *client, pkgconf_pkg_t *world, pkgconf_li
 {
 	pkgconf_node_t *iter;
 
-	PKGCONF_FOREACH_LIST_ENTRY(list->head, iter)
+	LIBPKG_CONFIG_FOREACH_LIST_ENTRY(list->head, iter)
 	{
 		pkgconf_queue_t *pkgq;
 
@@ -105,7 +105,7 @@ pkgconf_queue_free(pkgconf_list_t *list)
 {
 	pkgconf_node_t *node, *tnode;
 
-	PKGCONF_FOREACH_LIST_ENTRY_SAFE(list->head, tnode, node)
+	LIBPKG_CONFIG_FOREACH_LIST_ENTRY_SAFE(list->head, tnode, node)
 	{
 		pkgconf_queue_t *pkgq = node->data;
 
@@ -118,7 +118,7 @@ static inline unsigned int
 pkgconf_queue_verify(pkgconf_client_t *client, pkgconf_pkg_t *world, pkgconf_list_t *list, int maxdepth)
 {
 	if (!pkgconf_queue_compile(client, world, list))
-		return PKGCONF_PKG_ERRF_DEPGRAPH_BREAK;
+		return LIBPKG_CONFIG_PKG_ERRF_DEPGRAPH_BREAK;
 
 	return pkgconf_pkg_verify_graph(client, world, maxdepth);
 }
@@ -145,14 +145,14 @@ pkgconf_queue_apply(pkgconf_client_t *client, pkgconf_list_t *list, pkgconf_queu
 	pkgconf_pkg_t world = {
 		.id = "virtual:world",
 		.realname = "virtual world package",
-		.flags = PKGCONF_PKG_PROPF_STATIC | PKGCONF_PKG_PROPF_VIRTUAL,
+		.flags = LIBPKG_CONFIG_PKG_PROPF_STATIC | LIBPKG_CONFIG_PKG_PROPF_VIRTUAL,
 	};
 
 	/* if maxdepth is one, then we will not traverse deeper than our virtual package. */
 	if (!maxdepth)
 		maxdepth = -1;
 
-	if (pkgconf_queue_verify(client, &world, list, maxdepth) != PKGCONF_PKG_ERRF_OK)
+	if (pkgconf_queue_verify(client, &world, list, maxdepth) != LIBPKG_CONFIG_PKG_ERRF_OK)
 		return false;
 
 	if (!func(client, &world, data, maxdepth))
@@ -186,14 +186,14 @@ pkgconf_queue_validate(pkgconf_client_t *client, pkgconf_list_t *list, int maxde
 	pkgconf_pkg_t world = {
 		.id = "virtual:world",
 		.realname = "virtual world package",
-		.flags = PKGCONF_PKG_PROPF_STATIC | PKGCONF_PKG_PROPF_VIRTUAL,
+		.flags = LIBPKG_CONFIG_PKG_PROPF_STATIC | LIBPKG_CONFIG_PKG_PROPF_VIRTUAL,
 	};
 
 	/* if maxdepth is one, then we will not traverse deeper than our virtual package. */
 	if (!maxdepth)
 		maxdepth = -1;
 
-	if (pkgconf_queue_verify(client, &world, list, maxdepth) != PKGCONF_PKG_ERRF_OK)
+	if (pkgconf_queue_verify(client, &world, list, maxdepth) != LIBPKG_CONFIG_PKG_ERRF_OK)
 		retval = false;
 
 	pkgconf_pkg_free(client, &world);

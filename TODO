@@ -4,4 +4,4 @@ For new release:
 
   - Consider redefining PKGCONF_BUFSIZE from the current 65535 bytes to
     something smaller, given it is used to allocate buffers on the stack
-    (sometimes several of them).
+    (sometimes several of them). See also PKGCONF_ITEM_SIZE.

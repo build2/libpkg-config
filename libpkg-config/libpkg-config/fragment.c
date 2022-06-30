@@ -113,7 +113,7 @@ pkgconf_fragment_munge(const pkgconf_client_t *client, char *buf, size_t buflen,
 
 	pkgconf_strlcat(buf, source, buflen);
 
-	if (*buf == '/' && !(client->flags & PKGCONF_PKG_PKGF_DONT_RELOCATE_PATHS))
+	if (*buf == '/' && !(client->flags & LIBPKG_CONFIG_PKG_PKGF_DONT_RELOCATE_PATHS))
 		pkgconf_path_relocate(buf, buflen);
 }
 
@@ -159,7 +159,7 @@ pkgconf_fragment_add(const pkgconf_client_t *client, pkgconf_list_t *list, const
 		char mungebuf[PKGCONF_ITEM_SIZE];
 
 		if (list->tail != NULL && list->tail->data != NULL &&
-		    !(client->flags & PKGCONF_PKG_PKGF_DONT_MERGE_SPECIAL_FRAGMENTS))
+		    !(client->flags & LIBPKG_CONFIG_PKG_PKGF_DONT_MERGE_SPECIAL_FRAGMENTS))
 		{
 			pkgconf_fragment_t *parent = list->tail->data;
 
@@ -212,7 +212,7 @@ pkgconf_fragment_lookup(pkgconf_list_t *list, const pkgconf_fragment_t *base)
 {
 	pkgconf_node_t *node;
 
-	PKGCONF_FOREACH_LIST_ENTRY_REVERSE(list->tail, node)
+	LIBPKG_CONFIG_FOREACH_LIST_ENTRY_REVERSE(list->tail, node)
 	{
 		pkgconf_fragment_t *frag = node->data;
 
@@ -349,7 +349,7 @@ pkgconf_fragment_copy(const pkgconf_client_t *client, pkgconf_list_t *list, cons
 {
 	pkgconf_fragment_t *frag;
 
-  if (!(client->flags & PKGCONF_PKG_PKGF_DONT_MERGE_SPECIAL_FRAGMENTS))
+  if (!(client->flags & LIBPKG_CONFIG_PKG_PKGF_DONT_MERGE_SPECIAL_FRAGMENTS))
   {
     if ((frag = pkgconf_fragment_exists(list, base, client->flags, is_private)) != NULL)
     {
@@ -388,7 +388,7 @@ pkgconf_fragment_copy_list(const pkgconf_client_t *client, pkgconf_list_t *list,
 {
 	pkgconf_node_t *node;
 
-	PKGCONF_FOREACH_LIST_ENTRY(base->head, node)
+	LIBPKG_CONFIG_FOREACH_LIST_ENTRY(base->head, node)
 	{
 		pkgconf_fragment_t *frag = node->data;
 
@@ -415,7 +415,7 @@ pkgconf_fragment_filter(const pkgconf_client_t *client, pkgconf_list_t *dest, pk
 {
 	pkgconf_node_t *node;
 
-	PKGCONF_FOREACH_LIST_ENTRY(src->head, node)
+	LIBPKG_CONFIG_FOREACH_LIST_ENTRY(src->head, node)
 	{
 		pkgconf_fragment_t *frag = node->data;
 
@@ -489,7 +489,7 @@ fragment_render_len(const pkgconf_list_t *list, bool escape)
 	size_t out = 1;		/* trailing nul */
 	pkgconf_node_t *node;
 
-	PKGCONF_FOREACH_LIST_ENTRY(list->head, node)
+	LIBPKG_CONFIG_FOREACH_LIST_ENTRY(list->head, node)
 	{
 		const pkgconf_fragment_t *frag = node->data;
 		out += pkgconf_fragment_len(frag);
@@ -508,7 +508,7 @@ fragment_render_buf(const pkgconf_list_t *list, char *buf, size_t buflen, bool e
 
 	memset(buf, 0, buflen);
 
-	PKGCONF_FOREACH_LIST_ENTRY(list->head, node)
+	LIBPKG_CONFIG_FOREACH_LIST_ENTRY(list->head, node)
 	{
 		const pkgconf_fragment_t *frag = node->data;
 		size_t buf_remaining = buflen - (bptr - buf);
@@ -649,7 +649,7 @@ pkgconf_fragment_free(pkgconf_list_t *list)
 {
 	pkgconf_node_t *node, *next;
 
-	PKGCONF_FOREACH_LIST_ENTRY_SAFE(list->head, next, node)
+	LIBPKG_CONFIG_FOREACH_LIST_ENTRY_SAFE(list->head, next, node)
 	{
 		pkgconf_fragment_t *frag = node->data;
 
