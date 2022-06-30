@@ -412,6 +412,22 @@ pkgconf_pkg_new_from_file(pkgconf_client_t *client, const char *filename, FILE *
   pkgconf_tuple_add(client, &pkg->vars, "pcfiledir", pc_filedir_value, true);
   free(pc_filedir_value);
 
+  /* If pc_filedir is outside of sysroot_dir, clear pc_filedir
+   * See https://github.com/pkgconf/pkgconf/issues/213
+   */
+  /* The implementation does not match the comment and seems wrong. But let's
+     keep for posterity in case we want to fix this properly ourselves (though
+     feels like if one sets sysroot but has files outside sysroot the problem
+     if with the setup). */
+#if 0
+  if (client->sysroot_dir && strncmp(pkg->pc_filedir, client->sysroot_dir, strlen(client->sysroot_dir)))
+  {
+    free(client->sysroot_dir);
+    client->sysroot_dir = NULL;
+    pkgconf_client_set_sysroot_dir(client, NULL);
+  }
+#endif
+
 	/* make module id */
 	if ((idptr = strrchr(pkg->filename, LIBPKG_CONFIG_DIR_SEP_S)) != NULL)
 		idptr++;
