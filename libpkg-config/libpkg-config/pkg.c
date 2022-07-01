@@ -153,7 +153,6 @@ static const pkgconf_pkg_parser_keyword_pair_t pkgconf_pkg_parser_keyword_funcs[
 	{"LIBS", pkgconf_pkg_parser_fragment_func, offsetof(pkgconf_pkg_t, libs)},
 	{"LIBS.private", pkgconf_pkg_parser_fragment_func, offsetof(pkgconf_pkg_t, libs_private)},
 	{"Name", pkgconf_pkg_parser_tuple_func, offsetof(pkgconf_pkg_t, realname)},
-	{"Provides", pkgconf_pkg_parser_dependency_func, offsetof(pkgconf_pkg_t, provides)},
 	{"Requires", pkgconf_pkg_parser_dependency_func, offsetof(pkgconf_pkg_t, required)},
 	{"Requires.internal", pkgconf_pkg_parser_internal_dependency_func, offsetof(pkgconf_pkg_t, requires_private)},
 	{"Requires.private", pkgconf_pkg_parser_dependency_func, offsetof(pkgconf_pkg_t, requires_private)},
@@ -448,8 +447,6 @@ pkgconf_pkg_new_from_file(pkgconf_client_t *client, const char *filename, FILE *
 		return NULL;
 	}
 
-	pkgconf_dependency_add(client, &pkg->provides, pkg->id, pkg->version, PKGCONF_CMP_EQUAL, 0);
-
 	return pkgconf_pkg_ref(client, pkg);
 }
 
@@ -478,7 +475,6 @@ pkgconf_pkg_free(pkgconf_client_t *client, pkgconf_pkg_t *pkg)
 	pkgconf_dependency_free(&pkg->required);
 	pkgconf_dependency_free(&pkg->requires_private);
 	pkgconf_dependency_free(&pkg->conflicts);
-	pkgconf_dependency_free(&pkg->provides);
 
 	pkgconf_fragment_free(&pkg->cflags);
 	pkgconf_fragment_free(&pkg->cflags_private);
@@ -589,90 +585,6 @@ pkgconf_pkg_try_specific_path(pkgconf_client_t *client, const char *path, const 
 	}
 
 	return pkg;
-}
-
-static pkgconf_pkg_t *
-pkgconf_pkg_scan_dir(pkgconf_client_t *client, const char *path, void *data, pkgconf_pkg_iteration_func_t func)
-{
-	DIR *dir;
-	struct dirent *dirent;
-	pkgconf_pkg_t *outpkg = NULL;
-
-	dir = opendir(path);
-	if (dir == NULL)
-		return NULL;
-
-	PKGCONF_TRACE(client, "scanning dir [%s]", path);
-
-	for (dirent = readdir(dir); dirent != NULL; dirent = readdir(dir))
-	{
-		char filebuf[PKGCONF_ITEM_SIZE];
-		pkgconf_pkg_t *pkg;
-		FILE *f;
-
-		pkgconf_strlcpy(filebuf, path, sizeof filebuf);
-		pkgconf_strlcat(filebuf, "/", sizeof filebuf);
-		pkgconf_strlcat(filebuf, dirent->d_name, sizeof filebuf);
-
-		if (!str_has_suffix(filebuf, PKG_CONFIG_EXT))
-			continue;
-
-		PKGCONF_TRACE(client, "trying file [%s]", filebuf);
-
-		f = fopen(filebuf, "r");
-		if (f == NULL)
-			continue;
-
-		pkg = pkgconf_pkg_new_from_file(client, filebuf, f);
-		if (pkg != NULL)
-		{
-			if (func(pkg, data))
-			{
-				outpkg = pkg;
-				goto out;
-			}
-
-			pkgconf_pkg_unref(client, pkg);
-		}
-	}
-
-out:
-	closedir(dir);
-	return outpkg;
-}
-
-/*
- * !doc
- *
- * .. c:function:: pkgconf_pkg_t *pkgconf_scan_all(pkgconf_client_t *client, void *data, pkgconf_pkg_iteration_func_t func)
- *
- *    Iterates over all packages found in the `package directory list`, running ``func`` on them.  If ``func`` returns true,
- *    then stop iteration and return the last iterated package.
- *
- *    :param pkgconf_client_t* client: The pkgconf client object to use for dependency resolution.
- *    :param void* data: An opaque pointer to data to provide the iteration function with.
- *    :param pkgconf_pkg_iteration_func_t func: A function which is called for each package to determine if the package matches,
- *        always return ``false`` to iterate over all packages.
- *    :return: A package object reference if one is found by the scan function, else ``NULL``.
- *    :rtype: pkgconf_pkg_t *
- */
-pkgconf_pkg_t *
-pkgconf_scan_all(pkgconf_client_t *client, void *data, pkgconf_pkg_iteration_func_t func)
-{
-	pkgconf_node_t *n;
-	pkgconf_pkg_t *pkg;
-
-	LIBPKG_CONFIG_FOREACH_LIST_ENTRY(client->dir_list.head, n)
-	{
-		pkgconf_path_t *pnode = n->data;
-
-		PKGCONF_TRACE(client, "scanning directory: %s", pnode->path);
-
-		if ((pkg = pkgconf_pkg_scan_dir(client, pnode->path, data, func)) != NULL)
-			return pkg;
-	}
-
-	return NULL;
 }
 
 #ifdef _WIN32
@@ -1085,14 +997,6 @@ static bool pkgconf_pkg_comparator_any(const char *a, const char *b)
 	return true;
 }
 
-static bool pkgconf_pkg_comparator_none(const char *a, const char *b)
-{
-	(void) a;
-	(void) b;
-
-	return false;
-}
-
 static const pkgconf_vercmp_res_func_t pkgconf_pkg_comparator_impls[] = {
 	[PKGCONF_CMP_ANY]			= pkgconf_pkg_comparator_any,
 	[PKGCONF_CMP_LESS_THAN]			= pkgconf_pkg_comparator_lt,
@@ -1145,186 +1049,6 @@ pkgconf_pkg_comparator_lookup_by_name(const char *name)
 	return (p != NULL) ? p->compare : PKGCONF_CMP_ANY;
 }
 
-typedef struct {
-	pkgconf_dependency_t *pkgdep;
-} pkgconf_pkg_scan_providers_ctx_t;
-
-#define PKGCONF_CMP_COUNT 7
-
-typedef struct {
-	const pkgconf_vercmp_res_func_t rulecmp[PKGCONF_CMP_COUNT];
-	const pkgconf_vercmp_res_func_t depcmp[PKGCONF_CMP_COUNT];
-} pkgconf_pkg_provides_vermatch_rule_t;
-
-static const pkgconf_pkg_provides_vermatch_rule_t pkgconf_pkg_provides_vermatch_rules[] = {
-	[PKGCONF_CMP_ANY] = {
-		.rulecmp = {
-			[PKGCONF_CMP_ANY]			= pkgconf_pkg_comparator_none,
-                },
-		.depcmp = {
-			[PKGCONF_CMP_ANY]			= pkgconf_pkg_comparator_none,
-                },
-	},
-	[PKGCONF_CMP_LESS_THAN] = {
-		.rulecmp = {
-			[PKGCONF_CMP_ANY]			= pkgconf_pkg_comparator_none,
-			[PKGCONF_CMP_LESS_THAN]			= pkgconf_pkg_comparator_lt,
-			[PKGCONF_CMP_GREATER_THAN]		= pkgconf_pkg_comparator_gt,
-			[PKGCONF_CMP_LESS_THAN_EQUAL]		= pkgconf_pkg_comparator_lte,
-			[PKGCONF_CMP_GREATER_THAN_EQUAL]	= pkgconf_pkg_comparator_gte,
-		},
-		.depcmp = {
-			[PKGCONF_CMP_GREATER_THAN]		= pkgconf_pkg_comparator_lt,
-			[PKGCONF_CMP_GREATER_THAN_EQUAL]	= pkgconf_pkg_comparator_lt,
-			[PKGCONF_CMP_EQUAL]			= pkgconf_pkg_comparator_lt,
-			[PKGCONF_CMP_NOT_EQUAL]			= pkgconf_pkg_comparator_gte,
-		},
-	},
-	[PKGCONF_CMP_GREATER_THAN] = {
-		.rulecmp = {
-			[PKGCONF_CMP_ANY]			= pkgconf_pkg_comparator_none,
-			[PKGCONF_CMP_LESS_THAN]			= pkgconf_pkg_comparator_lt,
-			[PKGCONF_CMP_GREATER_THAN]		= pkgconf_pkg_comparator_gt,
-			[PKGCONF_CMP_LESS_THAN_EQUAL]		= pkgconf_pkg_comparator_lte,
-			[PKGCONF_CMP_GREATER_THAN_EQUAL]	= pkgconf_pkg_comparator_gte,
-		},
-		.depcmp = {
-			[PKGCONF_CMP_LESS_THAN]			= pkgconf_pkg_comparator_gt,
-			[PKGCONF_CMP_LESS_THAN_EQUAL]		= pkgconf_pkg_comparator_gt,
-			[PKGCONF_CMP_EQUAL]			= pkgconf_pkg_comparator_gt,
-			[PKGCONF_CMP_NOT_EQUAL]			= pkgconf_pkg_comparator_lte,
-		},
-	},
-	[PKGCONF_CMP_LESS_THAN_EQUAL] = {
-		.rulecmp = {
-			[PKGCONF_CMP_ANY]			= pkgconf_pkg_comparator_none,
-			[PKGCONF_CMP_LESS_THAN]			= pkgconf_pkg_comparator_lt,
-			[PKGCONF_CMP_GREATER_THAN]		= pkgconf_pkg_comparator_gt,
-			[PKGCONF_CMP_LESS_THAN_EQUAL]		= pkgconf_pkg_comparator_lte,
-			[PKGCONF_CMP_GREATER_THAN_EQUAL]	= pkgconf_pkg_comparator_gte,
-		},
-		.depcmp = {
-			[PKGCONF_CMP_GREATER_THAN]		= pkgconf_pkg_comparator_lte,
-			[PKGCONF_CMP_GREATER_THAN_EQUAL]	= pkgconf_pkg_comparator_lte,
-			[PKGCONF_CMP_EQUAL]			= pkgconf_pkg_comparator_lte,
-			[PKGCONF_CMP_NOT_EQUAL]			= pkgconf_pkg_comparator_gt,
-		},
-	},
-	[PKGCONF_CMP_GREATER_THAN_EQUAL] = {
-		.rulecmp = {
-			[PKGCONF_CMP_ANY]			= pkgconf_pkg_comparator_none,
-			[PKGCONF_CMP_LESS_THAN]			= pkgconf_pkg_comparator_lt,
-			[PKGCONF_CMP_GREATER_THAN]		= pkgconf_pkg_comparator_gt,
-			[PKGCONF_CMP_LESS_THAN_EQUAL]		= pkgconf_pkg_comparator_lte,
-			[PKGCONF_CMP_GREATER_THAN_EQUAL]	= pkgconf_pkg_comparator_gte,
-		},
-		.depcmp = {
-			[PKGCONF_CMP_LESS_THAN]			= pkgconf_pkg_comparator_gte,
-			[PKGCONF_CMP_LESS_THAN_EQUAL]		= pkgconf_pkg_comparator_gte,
-			[PKGCONF_CMP_EQUAL]			= pkgconf_pkg_comparator_gte,
-			[PKGCONF_CMP_NOT_EQUAL]			= pkgconf_pkg_comparator_lt,
-		},
-	},
-	[PKGCONF_CMP_EQUAL] = {
-		.rulecmp = {
-			[PKGCONF_CMP_ANY]			= pkgconf_pkg_comparator_none,
-			[PKGCONF_CMP_LESS_THAN]			= pkgconf_pkg_comparator_lt,
-			[PKGCONF_CMP_GREATER_THAN]		= pkgconf_pkg_comparator_gt,
-			[PKGCONF_CMP_LESS_THAN_EQUAL]		= pkgconf_pkg_comparator_lte,
-			[PKGCONF_CMP_GREATER_THAN_EQUAL]	= pkgconf_pkg_comparator_gte,
-			[PKGCONF_CMP_EQUAL]			= pkgconf_pkg_comparator_eq,
-			[PKGCONF_CMP_NOT_EQUAL]			= pkgconf_pkg_comparator_ne
-		},
-		.depcmp = {
-			[PKGCONF_CMP_ANY]			= pkgconf_pkg_comparator_none,
-                },
-	},
-	[PKGCONF_CMP_NOT_EQUAL] = {
-		.rulecmp = {
-			[PKGCONF_CMP_ANY]			= pkgconf_pkg_comparator_none,
-			[PKGCONF_CMP_LESS_THAN]			= pkgconf_pkg_comparator_gte,
-			[PKGCONF_CMP_GREATER_THAN]		= pkgconf_pkg_comparator_lte,
-			[PKGCONF_CMP_LESS_THAN_EQUAL]		= pkgconf_pkg_comparator_gt,
-			[PKGCONF_CMP_GREATER_THAN_EQUAL]	= pkgconf_pkg_comparator_lt,
-			[PKGCONF_CMP_EQUAL]			= pkgconf_pkg_comparator_ne,
-			[PKGCONF_CMP_NOT_EQUAL]			= pkgconf_pkg_comparator_eq
-		},
-		.depcmp = {
-			[PKGCONF_CMP_ANY]			= pkgconf_pkg_comparator_none,
-                },
-	},
-};
-
-/*
- * pkgconf_pkg_scan_provides_vercmp(pkgdep, provider)
- *
- * compare a provides node against the requested dependency node.
- *
- * XXX: maybe handle PKGCONF_CMP_ANY in a versioned comparison
- */
-static bool
-pkgconf_pkg_scan_provides_vercmp(const pkgconf_dependency_t *pkgdep, const pkgconf_dependency_t *provider)
-{
-	const pkgconf_pkg_provides_vermatch_rule_t *rule = &pkgconf_pkg_provides_vermatch_rules[pkgdep->compare];
-
-	if (rule->depcmp[provider->compare] != NULL &&
-	    !rule->depcmp[provider->compare](provider->version, pkgdep->version))
-		return false;
-
-	if (rule->rulecmp[provider->compare] != NULL &&
-	    !rule->rulecmp[provider->compare](pkgdep->version, provider->version))
-		return false;
-
-	return true;
-}
-
-/*
- * pkgconf_pkg_scan_provides_entry(pkg, ctx)
- *
- * attempt to match a single package's Provides rules against the requested dependency node.
- */
-static bool
-pkgconf_pkg_scan_provides_entry(const pkgconf_pkg_t *pkg, const pkgconf_pkg_scan_providers_ctx_t *ctx)
-{
-	const pkgconf_dependency_t *pkgdep = ctx->pkgdep;
-	pkgconf_node_t *node;
-
-	LIBPKG_CONFIG_FOREACH_LIST_ENTRY(pkg->provides.head, node)
-	{
-		const pkgconf_dependency_t *provider = node->data;
-		if (!strcmp(provider->package, pkgdep->package))
-			return pkgconf_pkg_scan_provides_vercmp(pkgdep, provider);
-	}
-
-	return false;
-}
-
-/*
- * pkgconf_pkg_scan_providers(client, pkgdep, eflags)
- *
- * scan all available packages to see if a Provides rule matches the pkgdep.
- */
-static pkgconf_pkg_t *
-pkgconf_pkg_scan_providers(pkgconf_client_t *client, pkgconf_dependency_t *pkgdep, unsigned int *eflags)
-{
-	pkgconf_pkg_t *pkg;
-	pkgconf_pkg_scan_providers_ctx_t ctx = {
-		.pkgdep = pkgdep,
-	};
-
-	pkg = pkgconf_scan_all(client, &ctx, (pkgconf_pkg_iteration_func_t) pkgconf_pkg_scan_provides_entry);
-	if (pkg != NULL)
-	{
-		pkgdep->match = pkgconf_pkg_ref(client, pkg);
-		return pkg;
-	}
-
-	if (eflags != NULL)
-		*eflags |= LIBPKG_CONFIG_PKG_ERRF_PACKAGE_NOT_FOUND;
-
-	return NULL;
-}
-
 /*
  * !doc
  *
@@ -1358,15 +1082,9 @@ pkgconf_pkg_verify_dependency(pkgconf_client_t *client, pkgconf_dependency_t *pk
 	pkg = pkgconf_pkg_find(client, pkgdep->package);
 	if (pkg == NULL)
 	{
-		if (client->flags & LIBPKG_CONFIG_PKG_PKGF_SKIP_PROVIDES)
-		{
-			if (eflags != NULL)
-				*eflags |= LIBPKG_CONFIG_PKG_ERRF_PACKAGE_NOT_FOUND;
-
-			return NULL;
-		}
-
-		return pkgconf_pkg_scan_providers(client, pkgdep, eflags);
+                if (eflags != NULL)
+                        *eflags |= LIBPKG_CONFIG_PKG_ERRF_PACKAGE_NOT_FOUND;
+                return NULL;
 	}
 
 	if (pkg->id == NULL)

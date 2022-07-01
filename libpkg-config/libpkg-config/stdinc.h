@@ -97,18 +97,12 @@
 # endif
 #  define ssize_t SSIZE_T
 # endif
-# ifndef __MINGW32__
-#  include "win-dirent.h"
-# else
-# include <dirent.h>
-# endif
 # define PKGCONF_ITEM_SIZE (_MAX_PATH + 1024)
 
 #else /* _WIN32 */
 
 # define PATH_DEV_NULL	"/dev/null"
 # define SIZE_FMT_SPECIFIER	"%zu"
-# include <dirent.h>
 # include <unistd.h>
 # include <limits.h>
 # ifdef PATH_MAX

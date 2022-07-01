@@ -131,7 +131,6 @@ struct pkgconf_pkg_ {
 	pkgconf_list_t required;		/* this used to be requires but that is now a reserved keyword */
 	pkgconf_list_t requires_private;
 	pkgconf_list_t conflicts;
-	pkgconf_list_t provides;
 
 	pkgconf_list_t vars;
 
@@ -197,13 +196,12 @@ struct pkgconf_client_ {
 #define LIBPKG_CONFIG_PKG_PKGF_NO_CACHE				0x0040
 #define LIBPKG_CONFIG_PKG_PKGF_SKIP_ERRORS			0x0080
 #define LIBPKG_CONFIG_PKG_PKGF_ITER_PKG_IS_PRIVATE		0x0100
-#define LIBPKG_CONFIG_PKG_PKGF_SKIP_PROVIDES			0x0200
-#define LIBPKG_CONFIG_PKG_PKGF_REDEFINE_PREFIX			0x0400
-#define LIBPKG_CONFIG_PKG_PKGF_DONT_RELOCATE_PATHS		0x0800
-#define LIBPKG_CONFIG_PKG_PKGF_SIMPLIFY_ERRORS			0x1000
-#define LIBPKG_CONFIG_PKG_PKGF_DONT_FILTER_INTERNAL_CFLAGS	0x2000
-#define LIBPKG_CONFIG_PKG_PKGF_DONT_MERGE_SPECIAL_FRAGMENTS	0x4000
-#define LIBPKG_CONFIG_PKG_PKGF_FDO_SYSROOT_RULES		0x8000
+#define LIBPKG_CONFIG_PKG_PKGF_REDEFINE_PREFIX			0x0200
+#define LIBPKG_CONFIG_PKG_PKGF_DONT_RELOCATE_PATHS		0x0400
+#define LIBPKG_CONFIG_PKG_PKGF_SIMPLIFY_ERRORS			0x0800
+#define LIBPKG_CONFIG_PKG_PKGF_DONT_FILTER_INTERNAL_CFLAGS	0x1000
+#define LIBPKG_CONFIG_PKG_PKGF_DONT_MERGE_SPECIAL_FRAGMENTS	0x2000
+#define LIBPKG_CONFIG_PKG_PKGF_FDO_SYSROOT_RULES		0x4000
 
 /* client.c */
 LIBPKG_CONFIG_SYMEXPORT void pkgconf_client_init(pkgconf_client_t *client, pkgconf_error_handler_func_t error_handler, void *error_handler_data);

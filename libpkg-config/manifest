@@ -2,7 +2,7 @@
 name: libpkg-config
 version: 0.1.0-a.0.z
 summary: C library for retrieving compiler/linker flags and other metadata
-license: ISC AND MIT
+license: ISC
 topics: pkg-config, library, build system
 description-file: README
 url: https://github.com/build2/libpkg-config
