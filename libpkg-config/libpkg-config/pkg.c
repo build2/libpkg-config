@@ -35,11 +35,6 @@
  * routines.
  */
 
-#ifdef _WIN32
-#	define strncasecmp _strnicmp
-#	define strcasecmp _stricmp
-#endif
-
 static inline bool
 str_has_suffix(const char *str, const char *suffix)
 {

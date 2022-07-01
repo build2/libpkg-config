@@ -72,6 +72,9 @@
 # include <malloc.h>
 # define PATH_DEV_NULL	"nul"
 
+# define strncasecmp _strnicmp
+# define strcasecmp _stricmp
+
 /* Note that MinGW's printf() format semantics have changed starting GCC 10.
  * In particular, GCC 10 complains about MSVC's 'I64' length modifier but now
  * accepts the standard (C99) 'z' modifier.
