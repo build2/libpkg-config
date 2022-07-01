@@ -69,7 +69,8 @@ typedef struct {
 	const ptrdiff_t offset;
 } pkgconf_pkg_parser_keyword_pair_t;
 
-static int pkgconf_pkg_parser_keyword_pair_cmp(const void *key, const void *ptr)
+static int
+pkgconf_pkg_parser_keyword_pair_cmp(const void *key, const void *ptr)
 {
 	const pkgconf_pkg_parser_keyword_pair_t *pair = ptr;
 	return strcasecmp(key, pair->keyword);
@@ -338,7 +339,8 @@ static const pkgconf_parser_operand_func_t pkg_parser_funcs[256] = {
 	['='] = pkgconf_pkg_parser_value_set
 };
 
-static void pkg_warn_func(pkgconf_pkg_t *pkg, const char *fmt, ...) LIBPKG_CONFIG_PRINTFLIKE(2, 3);
+static void
+pkg_warn_func(pkgconf_pkg_t *pkg, const char *fmt, ...) LIBPKG_CONFIG_PRINTFLIKE(2, 3);
 
 static void
 pkg_warn_func(pkgconf_pkg_t *pkg, const char *fmt, ...)
@@ -467,9 +469,6 @@ pkgconf_pkg_free(pkgconf_client_t *client, pkgconf_pkg_t *pkg)
 	if (pkg == NULL)
 		return;
 
-	if (pkg->flags & LIBPKG_CONFIG_PKG_PROPF_STATIC && !(pkg->flags & LIBPKG_CONFIG_PKG_PROPF_VIRTUAL))
-		return;
-
 	pkgconf_cache_remove(client, pkg);
 
 	pkgconf_dependency_free(&pkg->required);
@@ -482,9 +481,6 @@ pkgconf_pkg_free(pkgconf_client_t *client, pkgconf_pkg_t *pkg)
 	pkgconf_fragment_free(&pkg->libs_private);
 
 	pkgconf_tuple_free(&pkg->vars);
-
-	if (pkg->flags & LIBPKG_CONFIG_PKG_PROPF_VIRTUAL)
-		return;
 
 	if (pkg->id != NULL)
 		free(pkg->id);
@@ -515,7 +511,7 @@ pkgconf_pkg_free(pkgconf_client_t *client, pkgconf_pkg_t *pkg)
  *
  * .. c:function:: pkgconf_pkg_t *pkgconf_pkg_ref(const pkgconf_client_t *client, pkgconf_pkg_t *pkg)
  *
- *    Adds an additional reference to the package object.
+ *    Adds an additional reference to the package object (unless it is static).
  *
  *    :param pkgconf_client_t* client: The pkgconf client object which owns the package being referenced.
  *    :param pkgconf_pkg_t* pkg: The package object being referenced.
@@ -525,11 +521,16 @@ pkgconf_pkg_free(pkgconf_client_t *client, pkgconf_pkg_t *pkg)
 pkgconf_pkg_t *
 pkgconf_pkg_ref(pkgconf_client_t *client, pkgconf_pkg_t *pkg)
 {
-	if (pkg->owner != NULL && pkg->owner != client)
-		PKGCONF_TRACE(client, "WTF: client %p refers to package %p owned by other client %p", client, pkg, pkg->owner);
+        if (pkg->refcount >= 0)
+        {
+		assert ((pkg->flags & LIBPKG_CONFIG_PKG_PROPF_CONST) == 0);
 
-	pkg->refcount++;
-	PKGCONF_TRACE(client, "refcount@%p: %d", pkg, pkg->refcount);
+		if (pkg->owner != NULL && pkg->owner != client)
+			PKGCONF_TRACE(client, "WTF: client %p refers to package %p owned by other client %p", client, pkg, pkg->owner);
+
+		pkg->refcount++;
+		PKGCONF_TRACE(client, "refcount@%p: %d", pkg, pkg->refcount);
+  	}
 
 	return pkg;
 }
@@ -539,7 +540,7 @@ pkgconf_pkg_ref(pkgconf_client_t *client, pkgconf_pkg_t *pkg)
  *
  * .. c:function:: void pkgconf_pkg_unref(pkgconf_client_t *client, pkgconf_pkg_t *pkg)
  *
- *    Releases a reference on the package object.  If the reference count is 0, then also free the package.
+ *    Releases a reference on the package object (unless it is static).  If the reference count is 0, then also free the package.
  *
  *    :param pkgconf_client_t* client: The pkgconf client object which owns the package being dereferenced.
  *    :param pkgconf_pkg_t* pkg: The package object being dereferenced.
@@ -548,14 +549,20 @@ pkgconf_pkg_ref(pkgconf_client_t *client, pkgconf_pkg_t *pkg)
 void
 pkgconf_pkg_unref(pkgconf_client_t *client, pkgconf_pkg_t *pkg)
 {
-	if (pkg->owner != NULL && pkg->owner != client)
-		PKGCONF_TRACE(client, "WTF: client %p unrefs package %p owned by other client %p", client, pkg, pkg->owner);
+	if (pkg->refcount >= 0)
+        {
+          	assert ((pkg->flags & LIBPKG_CONFIG_PKG_PROPF_CONST) == 0 &&
+                        pkg->refcount != 0);
 
-	pkg->refcount--;
-	PKGCONF_TRACE(pkg->owner, "refcount@%p: %d", pkg, pkg->refcount);
+		if (pkg->owner != NULL && pkg->owner != client)
+			PKGCONF_TRACE(client, "WTF: client %p unrefs package %p owned by other client %p", client, pkg, pkg->owner);
 
-	if (pkg->refcount <= 0)
-		pkgconf_pkg_free(pkg->owner, pkg);
+		pkg->refcount--;
+		PKGCONF_TRACE(pkg->owner, "refcount@%p: %d", pkg, pkg->refcount);
+
+		if (pkg->refcount == 0)
+			pkgconf_pkg_free(pkg->owner, pkg);
+        }
 }
 
 static inline pkgconf_pkg_t *
@@ -613,8 +620,6 @@ pkgconf_pkg_find(pkgconf_client_t *client, const char *name)
 	{
 		if ((f = fopen(name, "r")) != NULL)
 		{
-			pkgconf_pkg_t *pkg;
-
 			PKGCONF_TRACE(client, "%s is a file", name);
 
 			pkg = pkgconf_pkg_new_from_file(client, name, f);
@@ -627,7 +632,7 @@ pkgconf_pkg_find(pkgconf_client_t *client, const char *name)
 	}
 
 	/* check builtins */
-	if ((pkg = pkgconf_builtin_pkg_get(name)) != NULL)
+	if ((pkg = (pkgconf_pkg_t *)pkgconf_builtin_pkg_get(name)) != NULL)
 	{
 		PKGCONF_TRACE(client, "%s is a builtin", name);
 		return pkg;
@@ -792,13 +797,14 @@ pkgconf_compare_version(const char *a, const char *b)
 	return 1;
 }
 
-static pkgconf_pkg_t pkg_config_virtual = {
+static const pkgconf_pkg_t pkg_config_virtual = {
+	.refcount = -1,  /* Static. */
 	.id = "pkg-config",
 	.realname = "pkg-config",
 	.description = "virtual package defining pkg-config API version supported",
 	.url = PACKAGE_BUGREPORT,
 	.version = PACKAGE_VERSION,
-	.flags = LIBPKG_CONFIG_PKG_PROPF_STATIC,
+	.flags = LIBPKG_CONFIG_PKG_PROPF_CONST,
 	.vars = {
 		.head = &(pkgconf_node_t){
 			.next = &(pkgconf_node_t){
@@ -822,13 +828,14 @@ static pkgconf_pkg_t pkg_config_virtual = {
 	}
 };
 
-static pkgconf_pkg_t pkgconf_virtual = {
+static const pkgconf_pkg_t pkgconf_virtual = {
+  	.refcount = -1,  /* Static. */
 	.id = "pkgconf",
 	.realname = "pkgconf",
 	.description = "virtual package defining pkgconf API version supported",
 	.url = PACKAGE_BUGREPORT,
 	.version = PACKAGE_VERSION,
-	.flags = LIBPKG_CONFIG_PKG_PROPF_STATIC,
+	.flags = LIBPKG_CONFIG_PKG_PROPF_CONST,
 	.vars = {
 		.head = &(pkgconf_node_t){
 			.next = &(pkgconf_node_t){
@@ -854,7 +861,7 @@ static pkgconf_pkg_t pkgconf_virtual = {
 
 typedef struct {
 	const char *name;
-	pkgconf_pkg_t *pkg;
+	const pkgconf_pkg_t *pkg;
 } pkgconf_builtin_pkg_pair_t;
 
 /* keep these in alphabetical order */
@@ -880,7 +887,7 @@ static int pkgconf_builtin_pkg_pair_cmp(const void *key, const void *ptr)
  *    :return: the built-in package if present, else ``NULL``.
  *    :rtype: pkgconf_pkg_t *
  */
-pkgconf_pkg_t *
+const pkgconf_pkg_t *
 pkgconf_builtin_pkg_get(const char *name)
 {
 	const pkgconf_builtin_pkg_pair_t *pair = bsearch(name, pkgconf_builtin_pkg_pair_set,
@@ -1042,7 +1049,10 @@ pkgconf_pkg_verify_dependency(pkgconf_client_t *client, pkgconf_dependency_t *pk
 	}
 
 	if (pkg->id == NULL)
-		pkg->id = strdup(pkgdep->package);
+        {
+        	assert ((pkg->flags & LIBPKG_CONFIG_PKG_PROPF_CONST) == 0);
+        	pkg->id = strdup(pkgdep->package);
+        }
 
 	if (pkgconf_pkg_comparator_impls[pkgdep->compare](pkg->version, pkgdep->version) != true)
 	{
@@ -1076,7 +1086,7 @@ pkgconf_pkg_verify_graph(pkgconf_client_t *client, pkgconf_pkg_t *root, int dept
 }
 
 static unsigned int
-pkgconf_pkg_report_graph_error(pkgconf_client_t *client, pkgconf_pkg_t *parent, pkgconf_pkg_t *pkg, pkgconf_dependency_t *node, unsigned int eflags)
+pkgconf_pkg_report_graph_error(pkgconf_client_t *client, const pkgconf_pkg_t *parent, pkgconf_pkg_t *pkg, const pkgconf_dependency_t *node, unsigned int eflags)
 {
 	if (eflags & LIBPKG_CONFIG_PKG_ERRF_PACKAGE_NOT_FOUND)
 	{
@@ -1153,9 +1163,14 @@ pkgconf_pkg_walk_list(pkgconf_client_t *client,
 
 		pkgconf_audit_log_dependency(client, pkgdep, depnode);
 
-		pkgdep->flags |= LIBPKG_CONFIG_PKG_PROPF_SEEN;
+                if ((pkgdep->flags & LIBPKG_CONFIG_PKG_PROPF_CONST) == 0)
+			pkgdep->flags |= LIBPKG_CONFIG_PKG_PROPF_SEEN;
+
 		eflags |= pkgconf_pkg_traverse(client, pkgdep, func, data, depth - 1, skip_flags);
-		pkgdep->flags &= ~LIBPKG_CONFIG_PKG_PROPF_SEEN;
+
+                if ((pkgdep->flags & LIBPKG_CONFIG_PKG_PROPF_CONST) == 0)
+			pkgdep->flags &= ~LIBPKG_CONFIG_PKG_PROPF_SEEN;
+
 		pkgconf_pkg_unref(client, pkgdep);
 	}
 
@@ -1164,7 +1179,8 @@ pkgconf_pkg_walk_list(pkgconf_client_t *client,
 
 static inline unsigned int
 pkgconf_pkg_walk_conflicts_list(pkgconf_client_t *client,
-	pkgconf_pkg_t *root, pkgconf_list_t *deplist)
+                                const pkgconf_pkg_t *root,
+                                const pkgconf_list_t *deplist)
 {
 	unsigned int eflags;
 	pkgconf_node_t *node, *childnode;
@@ -1240,11 +1256,8 @@ pkgconf_pkg_traverse(pkgconf_client_t *client,
 
 	PKGCONF_TRACE(client, "%s: level %d", root->id, maxdepth);
 
-	if ((root->flags & LIBPKG_CONFIG_PKG_PROPF_VIRTUAL) != LIBPKG_CONFIG_PKG_PROPF_VIRTUAL || (client->flags & LIBPKG_CONFIG_PKG_PKGF_SKIP_ROOT_VIRTUAL) != LIBPKG_CONFIG_PKG_PKGF_SKIP_ROOT_VIRTUAL)
-	{
-		if (func != NULL)
-			func(client, root, data);
-	}
+	if (func != NULL)
+		func(client, root, data);
 
 	if (!(client->flags & LIBPKG_CONFIG_PKG_PKGF_SKIP_CONFLICTS))
 	{

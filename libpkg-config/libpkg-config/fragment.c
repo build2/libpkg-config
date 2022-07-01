@@ -40,28 +40,28 @@ struct pkgconf_fragment_check {
 	size_t len;
 };
 
+static const struct pkgconf_fragment_check check_fragments[] = {
+	{"-framework", 10},
+	{"-isystem", 8},
+	{"-idirafter", 10},
+	{"-pthread", 8},
+	{"-Wa,", 4},
+	{"-Wl,", 4},
+	{"-Wp,", 4},
+	{"-trigraphs", 10},
+	{"-pedantic", 9},
+	{"-ansi", 5},
+	{"-std=", 5},
+	{"-stdlib=", 8},
+	{"-include", 8},
+	{"-nostdinc", 9},
+	{"-nostdlibinc", 12},
+	{"-nobuiltininc", 13}
+};
+
 static inline bool
 pkgconf_fragment_is_unmergeable(const char *string)
 {
-	static const struct pkgconf_fragment_check check_fragments[] = {
-		{"-framework", 10},
-		{"-isystem", 8},
-		{"-idirafter", 10},
-		{"-pthread", 8},
-		{"-Wa,", 4},
-		{"-Wl,", 4},
-		{"-Wp,", 4},
-		{"-trigraphs", 10},
-		{"-pedantic", 9},
-		{"-ansi", 5},
-		{"-std=", 5},
-		{"-stdlib=", 8},
-		{"-include", 8},
-		{"-nostdinc", 9},
-		{"-nostdlibinc", 12},
-		{"-nobuiltininc", 13},
-	};
-
 	if (*string != '-')
 		return true;
 

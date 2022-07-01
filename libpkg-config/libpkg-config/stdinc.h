@@ -25,13 +25,14 @@
 
 #include <ctype.h>
 #include <stdio.h>
+#include <assert.h>
 #include <stdlib.h>
 #include <stddef.h>
-#include <stdbool.h>
 #include <stdarg.h>
 #include <string.h>
-#include <sys/types.h>
 #include <stdint.h>
+#include <stdbool.h>
+#include <sys/types.h>
 
 #define PKGCONF_BUFSIZE	(65535)
 

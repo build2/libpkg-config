@@ -114,7 +114,7 @@ struct pkgconf_path_ {
 struct pkgconf_pkg_ {
 	pkgconf_node_t cache_iter;
 
-	int refcount;
+        int refcount; /* Negative means static object. */
 	char *id;
 	char *filename;
 	char *realname;
@@ -146,15 +146,13 @@ struct pkgconf_pkg_ {
 };
 
 #define LIBPKG_CONFIG_PKG_PROPF_NONE            0x00
-#define LIBPKG_CONFIG_PKG_PROPF_STATIC		0x01
+#define LIBPKG_CONFIG_PKG_PROPF_CONST		0x01
 #define LIBPKG_CONFIG_PKG_PROPF_CACHED		0x02
 #define LIBPKG_CONFIG_PKG_PROPF_SEEN		0x04
 #define LIBPKG_CONFIG_PKG_PROPF_UNINSTALLED	0x08
-#define LIBPKG_CONFIG_PKG_PROPF_VIRTUAL		0x10
 
 typedef bool (*pkgconf_pkg_iteration_func_t)(const pkgconf_pkg_t *pkg, void *data);
 typedef void (*pkgconf_pkg_traverse_func_t)(pkgconf_client_t *client, pkgconf_pkg_t *pkg, void *data);
-typedef bool (*pkgconf_queue_apply_func_t)(pkgconf_client_t *client, pkgconf_pkg_t *world, void *data, int maxdepth);
 typedef bool (*pkgconf_error_handler_func_t)(const char *msg, const pkgconf_client_t *client, const void *data);
 
 struct pkgconf_client_ {
@@ -190,18 +188,17 @@ struct pkgconf_client_ {
 #define LIBPKG_CONFIG_PKG_PKGF_SEARCH_PRIVATE			0x0001
 #define LIBPKG_CONFIG_PKG_PKGF_ENV_ONLY				0x0002
 #define LIBPKG_CONFIG_PKG_PKGF_NO_UNINSTALLED			0x0004
-#define LIBPKG_CONFIG_PKG_PKGF_SKIP_ROOT_VIRTUAL		0x0008
-#define LIBPKG_CONFIG_PKG_PKGF_MERGE_PRIVATE_FRAGMENTS		0x0010
-#define LIBPKG_CONFIG_PKG_PKGF_SKIP_CONFLICTS			0x0020
-#define LIBPKG_CONFIG_PKG_PKGF_NO_CACHE				0x0040
-#define LIBPKG_CONFIG_PKG_PKGF_SKIP_ERRORS			0x0080
-#define LIBPKG_CONFIG_PKG_PKGF_ITER_PKG_IS_PRIVATE		0x0100
-#define LIBPKG_CONFIG_PKG_PKGF_REDEFINE_PREFIX			0x0200
-#define LIBPKG_CONFIG_PKG_PKGF_DONT_RELOCATE_PATHS		0x0400
-#define LIBPKG_CONFIG_PKG_PKGF_SIMPLIFY_ERRORS			0x0800
-#define LIBPKG_CONFIG_PKG_PKGF_DONT_FILTER_INTERNAL_CFLAGS	0x1000
-#define LIBPKG_CONFIG_PKG_PKGF_DONT_MERGE_SPECIAL_FRAGMENTS	0x2000
-#define LIBPKG_CONFIG_PKG_PKGF_FDO_SYSROOT_RULES		0x4000
+#define LIBPKG_CONFIG_PKG_PKGF_MERGE_PRIVATE_FRAGMENTS		0x0008
+#define LIBPKG_CONFIG_PKG_PKGF_SKIP_CONFLICTS			0x0010
+#define LIBPKG_CONFIG_PKG_PKGF_NO_CACHE				0x0020
+#define LIBPKG_CONFIG_PKG_PKGF_SKIP_ERRORS			0x0040
+#define LIBPKG_CONFIG_PKG_PKGF_ITER_PKG_IS_PRIVATE		0x0080
+#define LIBPKG_CONFIG_PKG_PKGF_REDEFINE_PREFIX			0x0100
+#define LIBPKG_CONFIG_PKG_PKGF_DONT_RELOCATE_PATHS		0x0200
+#define LIBPKG_CONFIG_PKG_PKGF_SIMPLIFY_ERRORS			0x0400
+#define LIBPKG_CONFIG_PKG_PKGF_DONT_FILTER_INTERNAL_CFLAGS	0x0800
+#define LIBPKG_CONFIG_PKG_PKGF_DONT_MERGE_SPECIAL_FRAGMENTS	0x1000
+#define LIBPKG_CONFIG_PKG_PKGF_FDO_SYSROOT_RULES		0x2000
 
 /* client.c */
 LIBPKG_CONFIG_SYMEXPORT void pkgconf_client_init(pkgconf_client_t *client, pkgconf_error_handler_func_t error_handler, void *error_handler_data);
@@ -271,7 +268,7 @@ LIBPKG_CONFIG_SYMEXPORT const char *pkgconf_pkg_get_comparator(const pkgconf_dep
 LIBPKG_CONFIG_SYMEXPORT unsigned int pkgconf_pkg_cflags(pkgconf_client_t *client, pkgconf_pkg_t *root, pkgconf_list_t *list, int maxdepth);
 LIBPKG_CONFIG_SYMEXPORT unsigned int pkgconf_pkg_libs(pkgconf_client_t *client, pkgconf_pkg_t *root, pkgconf_list_t *list, int maxdepth);
 LIBPKG_CONFIG_SYMEXPORT pkgconf_pkg_comparator_t pkgconf_pkg_comparator_lookup_by_name(const char *name);
-LIBPKG_CONFIG_SYMEXPORT pkgconf_pkg_t *pkgconf_builtin_pkg_get(const char *name);
+LIBPKG_CONFIG_SYMEXPORT const pkgconf_pkg_t *pkgconf_builtin_pkg_get(const char *name);
 
 LIBPKG_CONFIG_SYMEXPORT int pkgconf_compare_version(const char *a, const char *b);
 LIBPKG_CONFIG_SYMEXPORT pkgconf_pkg_t *pkgconf_scan_all(pkgconf_client_t *client, void *ptr, pkgconf_pkg_iteration_func_t func);
@@ -320,13 +317,6 @@ LIBPKG_CONFIG_SYMEXPORT void pkgconf_tuple_add_global(pkgconf_client_t *client, 
 LIBPKG_CONFIG_SYMEXPORT char *pkgconf_tuple_find_global(const pkgconf_client_t *client, const char *key);
 LIBPKG_CONFIG_SYMEXPORT void pkgconf_tuple_free_global(pkgconf_client_t *client);
 LIBPKG_CONFIG_SYMEXPORT void pkgconf_tuple_define_global(pkgconf_client_t *client, const char *kv);
-
-/* queue.c */
-LIBPKG_CONFIG_SYMEXPORT void pkgconf_queue_push(pkgconf_list_t *list, const char *package);
-LIBPKG_CONFIG_SYMEXPORT bool pkgconf_queue_compile(pkgconf_client_t *client, pkgconf_pkg_t *world, pkgconf_list_t *list);
-LIBPKG_CONFIG_SYMEXPORT void pkgconf_queue_free(pkgconf_list_t *list);
-LIBPKG_CONFIG_SYMEXPORT bool pkgconf_queue_apply(pkgconf_client_t *client, pkgconf_list_t *list, pkgconf_queue_apply_func_t func, int maxdepth, void *data);
-LIBPKG_CONFIG_SYMEXPORT bool pkgconf_queue_validate(pkgconf_client_t *client, pkgconf_list_t *list, int maxdepth);
 
 /* cache.c */
 LIBPKG_CONFIG_SYMEXPORT pkgconf_pkg_t *pkgconf_cache_lookup(pkgconf_client_t *client, const char *id);

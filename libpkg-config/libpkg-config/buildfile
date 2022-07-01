@@ -101,7 +101,7 @@ if! $windows
   if! ($bsd || $macos)
     c.poptions += -D_POSIX_C_SOURCE=200809L
 
-  obj{client fragment path pkg queue tuple}: c.poptions += -D_GNU_SOURCE
+  obj{client fragment path pkg tuple}: c.poptions += -D_GNU_SOURCE
 }
 else
 {
