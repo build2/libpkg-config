@@ -42,7 +42,6 @@
 #define PACKAGE_BUGREPORT "https://todo.sr.ht/~kaniini/pkgconf"
 
 #define PKG_DEFAULT_PATH  "$PKG_DEFAULT_PATH$"
-#define PERSONALITY_PATH  "$PERSONALITY_PATH$"
 #define SYSTEM_INCLUDEDIR "$SYSTEM_INCLUDEDIR$"
 #define SYSTEM_LIBDIR     "$SYSTEM_LIBDIR$"
 

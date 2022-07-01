@@ -18,11 +18,6 @@ clang_msvc = ($c.id == 'clang' && $msvc_runtime)
 # SYSTEM_LIBDIR macro definitions. The whole idea feels utterly broken (hello
 # cross-compilation) so we will just do bare minimum and wait and see.
 #
-# There is also PERSONALITY_PATH macro added in 1.5.1. It looks like the
-# personality files are invented to fix cross-compilation but are unlikely to
-# have any noticeable distribution yet. Normally these files are located in
-# the personality.d/ subdirectory of the .pc files directory.
-#
 # @@ We should probably allow to configure these macros via configuration
 #    variables config.pkgconfig.pkg_default_path and alike.
 #
@@ -34,12 +29,10 @@ if! $windows
   if ($install.root != [null])
   {
     def_dirs = "$install.resolve($install.pkgconfig)"
-    personality_dirs = "$def_dirs/personality.d"
   }
   else
   {
     def_dirs = ""
-    personality_dirs = ""
   }
 }
 else
@@ -54,10 +47,9 @@ else
   #
   # <dir>/../lib/pkgconfig;<dir>/../share/pkgconfig
   #
-  # So we keep the macros empty.
+  # So we keep the macro empty.
   #
   def_dirs = ""
-  personality_dirs = ""
 }
 
 # The config header is internal (is only included from C files), so we don't
@@ -73,7 +65,6 @@ h{config}: in{config}
   SYSTEM_INCLUDEDIR = $regex.replace($inc_dirs, '(\\|")', '\\\1')
   SYSTEM_LIBDIR     = $regex.replace($lib_dirs, '(\\|")', '\\\1')
   PKG_DEFAULT_PATH  = $regex.replace($def_dirs, '(\\|")', '\\\1')
-  PERSONALITY_PATH  = $regex.replace($personality_dirs, '(\\|")', '\\\1')
 }
 
 # Build options.
@@ -110,8 +101,7 @@ if! $windows
   if! ($bsd || $macos)
     c.poptions += -D_POSIX_C_SOURCE=200809L
 
-  obj{client fragment path personality pkg queue tuple}: \
-    c.poptions += -D_GNU_SOURCE
+  obj{client fragment path pkg queue tuple}: c.poptions += -D_GNU_SOURCE
 }
 else
 {

@@ -59,6 +59,14 @@
 #endif
 
 #ifdef _WIN32
+#	define PKG_CONFIG_REG_KEY "Software\\pkgconfig\\PKG_CONFIG_PATH"
+#	undef PKG_DEFAULT_PATH
+#	define PKG_DEFAULT_PATH "../lib/pkgconfig;../share/pkgconfig"
+#endif
+
+#define PKG_CONFIG_EXT ".pc"
+
+#ifdef _WIN32
 # define WIN32_LEAN_AND_MEAN
 # include <windows.h>
 # include <malloc.h>

@@ -63,9 +63,7 @@ int
 main (int argc, const char* argv[])
 {
   pkgconf_client_t* c =
-    pkgconf_client_new (error_handler,
-                        NULL /* error_handler_data */,
-                        pkgconf_cross_personality_default ());
+    pkgconf_client_new (error_handler, NULL /* error_handler_data */);
 
   assert (c != NULL);
 
@@ -109,7 +107,7 @@ main (int argc, const char* argv[])
   /* Bootstrap the package search default paths if not specified explicitly.
    */
   if (default_dirs)
-    pkgconf_client_dir_list_build (c, pkgconf_cross_personality_default ());
+    pkgconf_client_dir_list_build (c);
 
   pkgconf_pkg_t* p = pkgconf_pkg_find (c, name);
 

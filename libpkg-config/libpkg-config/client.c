@@ -55,6 +55,54 @@ trace_path_list(const pkgconf_client_t *client, const char *desc, pkgconf_list_t
 }
 #endif
 
+static inline void
+build_default_search_path(pkgconf_list_t* dirlist)
+{
+#ifdef _WIN32
+	char namebuf[MAX_PATH];
+	char outbuf[MAX_PATH];
+	char *p;
+
+	int sizepath = GetModuleFileName(NULL, namebuf, sizeof namebuf);
+	char * winslash;
+	namebuf[sizepath] = '\0';
+	while ((winslash = strchr (namebuf, '\\')) != NULL)
+	{
+		*winslash = '/';
+	}
+	p = strrchr(namebuf, '/');
+	if (p == NULL)
+		pkgconf_path_split(PKG_DEFAULT_PATH, dirlist, true);
+
+	*p = '\0';
+	pkgconf_strlcpy(outbuf, namebuf, sizeof outbuf);
+	pkgconf_strlcat(outbuf, "/", sizeof outbuf);
+	pkgconf_strlcat(outbuf, "../lib/pkgconfig", sizeof outbuf);
+	pkgconf_path_add(outbuf, dirlist, true);
+	pkgconf_strlcpy(outbuf, namebuf, sizeof outbuf);
+	pkgconf_strlcat(outbuf, "/", sizeof outbuf);
+	pkgconf_strlcat(outbuf, "../share/pkgconfig", sizeof outbuf);
+	pkgconf_path_add(outbuf, dirlist, true);
+#elif __HAIKU__
+	char **paths;
+	size_t count;
+	if (find_paths(B_FIND_PATH_DEVELOP_LIB_DIRECTORY, "pkgconfig", &paths, &count) == B_OK) {
+		for (size_t i = 0; i < count; i++)
+			pkgconf_path_add(paths[i], dirlist, true);
+		free(paths);
+		paths = NULL;
+	}
+	if (find_paths(B_FIND_PATH_DATA_DIRECTORY, "pkgconfig", &paths, &count) == B_OK) {
+		for (size_t i = 0; i < count; i++)
+			pkgconf_path_add(paths[i], dirlist, true);
+		free(paths);
+		paths = NULL;
+	}
+#else
+	pkgconf_path_split(PKG_DEFAULT_PATH, dirlist, true);
+#endif
+}
+
 /*
  * !doc
  *
@@ -68,23 +116,23 @@ trace_path_list(const pkgconf_client_t *client, const char *desc, pkgconf_list_t
  *    :return: nothing
  */
 void
-pkgconf_client_dir_list_build(pkgconf_client_t *client, const pkgconf_cross_personality_t *personality)
+pkgconf_client_dir_list_build(pkgconf_client_t *client)
 {
 	pkgconf_path_build_from_environ("PKG_CONFIG_PATH", NULL, &client->dir_list, true);
 
 	if (!(client->flags & LIBPKG_CONFIG_PKG_PKGF_ENV_ONLY))
 	{
 		pkgconf_list_t dir_list = LIBPKG_CONFIG_LIST_INITIALIZER;
-		const pkgconf_list_t *prepend_list = &personality->dir_list;
 
 		if (getenv("PKG_CONFIG_LIBDIR") != NULL)
 		{
 			/* PKG_CONFIG_LIBDIR= should empty the search path entirely. */
 			(void) pkgconf_path_build_from_environ("PKG_CONFIG_LIBDIR", NULL, &dir_list, true);
-			prepend_list = &dir_list;
 		}
+                else
+                        build_default_search_path(&dir_list);
 
-		pkgconf_path_copy_list(&client->dir_list, prepend_list);
+		pkgconf_path_copy_list(&client->dir_list, &dir_list);
 		pkgconf_path_free(&dir_list);
 	}
 }
@@ -92,18 +140,17 @@ pkgconf_client_dir_list_build(pkgconf_client_t *client, const pkgconf_cross_pers
 /*
  * !doc
  *
- * .. c:function:: void pkgconf_client_init(pkgconf_client_t *client, pkgconf_error_handler_func_t error_handler, void *error_handler_data, const pkgconf_cross_personality_t *personality)
+ * .. c:function:: void pkgconf_client_init(pkgconf_client_t *client, pkgconf_error_handler_func_t error_handler, void *error_handler_data)
  *
  *    Initialise a pkgconf client object.
  *
  *    :param pkgconf_client_t* client: The client to initialise.
  *    :param pkgconf_error_handler_func_t error_handler: An optional error handler to use for logging errors.
  *    :param void* error_handler_data: user data passed to optional error handler
- *    :param pkgconf_cross_personality_t* personality: the cross-compile personality to use for defaults
  *    :return: nothing
  */
 void
-pkgconf_client_init(pkgconf_client_t *client, pkgconf_error_handler_func_t error_handler, void *error_handler_data, const pkgconf_cross_personality_t *personality)
+pkgconf_client_init(pkgconf_client_t *client, pkgconf_error_handler_func_t error_handler, void *error_handler_data)
 {
 	client->auditf = NULL;
 	client->trace_handler = NULL;
@@ -111,19 +158,12 @@ pkgconf_client_init(pkgconf_client_t *client, pkgconf_error_handler_func_t error
 	pkgconf_client_set_error_handler(client, error_handler, error_handler_data);
 	pkgconf_client_set_warn_handler(client, NULL, NULL);
 
-	pkgconf_client_set_sysroot_dir(client, personality->sysroot_dir);
+	pkgconf_client_set_sysroot_dir(client, NULL);
 	pkgconf_client_set_buildroot_dir(client, NULL);
 	pkgconf_client_set_prefix_varname(client, NULL);
 
-	if(getenv("PKG_CONFIG_SYSTEM_LIBRARY_PATH") == NULL)
-		pkgconf_path_copy_list(&client->filter_libdirs, &personality->filter_libdirs);
-	else
-		pkgconf_path_build_from_environ("PKG_CONFIG_SYSTEM_LIBRARY_PATH", NULL, &client->filter_libdirs, false);
-
-	if(getenv("PKG_CONFIG_SYSTEM_INCLUDE_PATH") == NULL)
-		pkgconf_path_copy_list(&client->filter_includedirs, &personality->filter_includedirs);
-	else
-		pkgconf_path_build_from_environ("PKG_CONFIG_SYSTEM_INCLUDE_PATH", NULL, &client->filter_includedirs, false);
+        pkgconf_path_build_from_environ("PKG_CONFIG_SYSTEM_LIBRARY_PATH", SYSTEM_LIBDIR, &client->filter_libdirs, false);
+	pkgconf_path_build_from_environ("PKG_CONFIG_SYSTEM_INCLUDE_PATH", SYSTEM_INCLUDEDIR, &client->filter_includedirs, false);
 
 	/* GCC uses these environment variables to define system include paths, so we should check them. */
 #ifdef __HAIKU__
@@ -152,21 +192,20 @@ pkgconf_client_init(pkgconf_client_t *client, pkgconf_error_handler_func_t error
 /*
  * !doc
  *
- * .. c:function:: pkgconf_client_t* pkgconf_client_new(pkgconf_error_handler_func_t error_handler, void *error_handler_data, const pkgconf_cross_personality_t *personality)
+ * .. c:function:: pkgconf_client_t* pkgconf_client_new(pkgconf_error_handler_func_t error_handler, void *error_handler_data)
  *
  *    Allocate and initialise a pkgconf client object.
  *
  *    :param pkgconf_error_handler_func_t error_handler: An optional error handler to use for logging errors.
  *    :param void* error_handler_data: user data passed to optional error handler
- *    :param pkgconf_cross_personality_t* personality: cross-compile personality to use
  *    :return: A pkgconf client object.
  *    :rtype: pkgconf_client_t*
  */
 pkgconf_client_t *
-pkgconf_client_new(pkgconf_error_handler_func_t error_handler, void *error_handler_data, const pkgconf_cross_personality_t *personality)
+pkgconf_client_new(pkgconf_error_handler_func_t error_handler, void *error_handler_data)
 {
 	pkgconf_client_t *out = calloc(sizeof(pkgconf_client_t), 1);
-	pkgconf_client_init(out, error_handler, error_handler_data, personality);
+	pkgconf_client_init(out, error_handler, error_handler_data);
 	return out;
 }
 

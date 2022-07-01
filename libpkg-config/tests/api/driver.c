@@ -117,9 +117,7 @@ main (int argc, const char* argv[])
   assert (n > 3 && strcmp (path + n - 3, ".pc") == 0);
 
   pkgconf_client_t* c =
-    pkgconf_client_new (error_handler,
-                        NULL /* error_handler_data */,
-                        pkgconf_cross_personality_default ());
+    pkgconf_client_new (error_handler, NULL /* error_handler_data */);
 
   assert (c != NULL);
 

@@ -72,7 +72,6 @@ typedef struct pkgconf_tuple_ pkgconf_tuple_t;
 typedef struct pkgconf_fragment_ pkgconf_fragment_t;
 typedef struct pkgconf_path_ pkgconf_path_t;
 typedef struct pkgconf_client_ pkgconf_client_t;
-typedef struct pkgconf_cross_personality_ pkgconf_cross_personality_t;
 
 struct pkgconf_fragment_ {
 	pkgconf_node_t iter;
@@ -206,20 +205,9 @@ struct pkgconf_client_ {
 #define LIBPKG_CONFIG_PKG_PKGF_DONT_MERGE_SPECIAL_FRAGMENTS	0x4000
 #define LIBPKG_CONFIG_PKG_PKGF_FDO_SYSROOT_RULES		0x8000
 
-struct pkgconf_cross_personality_ {
-	const char *name;
-
-	pkgconf_list_t dir_list;
-
-	pkgconf_list_t filter_libdirs;
-	pkgconf_list_t filter_includedirs;
-
-	char *sysroot_dir;
-};
-
 /* client.c */
-LIBPKG_CONFIG_SYMEXPORT void pkgconf_client_init(pkgconf_client_t *client, pkgconf_error_handler_func_t error_handler, void *error_handler_data, const pkgconf_cross_personality_t *personality);
-LIBPKG_CONFIG_SYMEXPORT pkgconf_client_t * pkgconf_client_new(pkgconf_error_handler_func_t error_handler, void *error_handler_data, const pkgconf_cross_personality_t *personality);
+LIBPKG_CONFIG_SYMEXPORT void pkgconf_client_init(pkgconf_client_t *client, pkgconf_error_handler_func_t error_handler, void *error_handler_data);
+LIBPKG_CONFIG_SYMEXPORT pkgconf_client_t * pkgconf_client_new(pkgconf_error_handler_func_t error_handler, void *error_handler_data);
 LIBPKG_CONFIG_SYMEXPORT void pkgconf_client_deinit(pkgconf_client_t *client);
 LIBPKG_CONFIG_SYMEXPORT void pkgconf_client_free(pkgconf_client_t *client);
 LIBPKG_CONFIG_SYMEXPORT const char *pkgconf_client_get_sysroot_dir(const pkgconf_client_t *client);
@@ -236,11 +224,7 @@ LIBPKG_CONFIG_SYMEXPORT pkgconf_error_handler_func_t pkgconf_client_get_error_ha
 LIBPKG_CONFIG_SYMEXPORT void pkgconf_client_set_error_handler(pkgconf_client_t *client, pkgconf_error_handler_func_t error_handler, void *error_handler_data);
 LIBPKG_CONFIG_SYMEXPORT pkgconf_error_handler_func_t pkgconf_client_get_trace_handler(const pkgconf_client_t *client);
 LIBPKG_CONFIG_SYMEXPORT void pkgconf_client_set_trace_handler(pkgconf_client_t *client, pkgconf_error_handler_func_t trace_handler, void *trace_handler_data);
-LIBPKG_CONFIG_SYMEXPORT void pkgconf_client_dir_list_build(pkgconf_client_t *client, const pkgconf_cross_personality_t *personality);
-
-/* personality.c */
-LIBPKG_CONFIG_SYMEXPORT pkgconf_cross_personality_t *pkgconf_cross_personality_default(void);
-LIBPKG_CONFIG_SYMEXPORT pkgconf_cross_personality_t *pkgconf_cross_personality_find(const char *triplet);
+LIBPKG_CONFIG_SYMEXPORT void pkgconf_client_dir_list_build(pkgconf_client_t *client);
 
 /* Note that MinGW's printf() format semantics have changed starting GCC 10
  * (see stdinc.h for details).
