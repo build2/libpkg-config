@@ -59,7 +59,6 @@
 #endif
 
 #ifdef _WIN32
-#	define PKG_CONFIG_REG_KEY "Software\\pkgconfig\\PKG_CONFIG_PATH"
 #	undef PKG_DEFAULT_PATH
 #	define PKG_DEFAULT_PATH "../lib/pkgconfig;../share/pkgconfig"
 #endif
@@ -68,7 +67,7 @@
 
 #ifdef _WIN32
 # define WIN32_LEAN_AND_MEAN
-# include <windows.h>
+# include <windows.h> /* @@ I wonder if we still need it? */
 # include <malloc.h>
 # define PATH_DEV_NULL	"nul"
 
