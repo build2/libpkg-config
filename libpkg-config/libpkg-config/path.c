@@ -276,6 +276,8 @@ pkgconf_path_free(pkgconf_list_t *dirlist)
 		free(pnode->path);
 		free(pnode);
 	}
+
+  pkgconf_list_zero(dirlist);
 }
 
 static char *

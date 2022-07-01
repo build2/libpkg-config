@@ -398,4 +398,6 @@ pkgconf_tuple_free(pkgconf_list_t *list)
 
 	LIBPKG_CONFIG_FOREACH_LIST_ENTRY_SAFE(list->head, next, node)
 		pkgconf_tuple_free_entry(node->data, list);
+
+  pkgconf_list_zero(list);
 }
