@@ -37,6 +37,13 @@
 
 #define PKGCONF_ARRAY_SIZE(x) (sizeof(x) / sizeof(*(x)))
 
+/* Hook NTRACE to NDEBUG. This both feels natural and gives us a way to
+ * test this mode (since we have NDEBUG configurations on CI).
+ */
+#if !defined(LIBPKG_CONFIG_NTRACE) && defined(NDEBUG)
+#  define LIBPKG_CONFIG_NTRACE
+#endif
+
 #ifndef LIBPKG_CONFIG_NTRACE
 #if defined(__GNUC__) || defined(__INTEL_COMPILER)
 #define PKGCONF_TRACE(client, ...) do { \
