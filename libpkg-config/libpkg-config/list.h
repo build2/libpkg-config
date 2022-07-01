@@ -50,6 +50,14 @@ typedef struct {
 	for ((value) = (tail); (value) != NULL; (value) = (value)->prev)
 
 static inline void
+pkgconf_list_zero(pkgconf_list_t *list)
+{
+  list->head = NULL;
+  list->tail = NULL;
+  list->length = 0;
+}
+
+static inline void
 pkgconf_node_insert(pkgconf_node_t *node, void *data, pkgconf_list_t *list)
 {
 	pkgconf_node_t *tnode;
