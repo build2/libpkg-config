@@ -108,9 +108,6 @@
 
 # define PATH_DEV_NULL	"/dev/null"
 # define SIZE_FMT_SPECIFIER	"%zu"
-# ifdef __HAIKU__
-#  include <FindDirectory.h>
-# endif
 # include <dirent.h>
 # include <unistd.h>
 # include <limits.h>

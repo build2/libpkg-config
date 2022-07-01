@@ -83,21 +83,6 @@ build_default_search_path(pkgconf_list_t* dirlist)
 	pkgconf_strlcat(outbuf, "/", sizeof outbuf);
 	pkgconf_strlcat(outbuf, "../share/pkgconfig", sizeof outbuf);
 	pkgconf_path_add(outbuf, dirlist, true);
-#elif __HAIKU__
-	char **paths;
-	size_t count;
-	if (find_paths(B_FIND_PATH_DEVELOP_LIB_DIRECTORY, "pkgconfig", &paths, &count) == B_OK) {
-		for (size_t i = 0; i < count; i++)
-			pkgconf_path_add(paths[i], dirlist, true);
-		free(paths);
-		paths = NULL;
-	}
-	if (find_paths(B_FIND_PATH_DATA_DIRECTORY, "pkgconfig", &paths, &count) == B_OK) {
-		for (size_t i = 0; i < count; i++)
-			pkgconf_path_add(paths[i], dirlist, true);
-		free(paths);
-		paths = NULL;
-	}
 #else
 	pkgconf_path_split(PKG_DEFAULT_PATH, dirlist, true);
 #endif
@@ -166,11 +151,7 @@ pkgconf_client_init(pkgconf_client_t *client, pkgconf_error_handler_func_t error
 	pkgconf_path_build_from_environ("PKG_CONFIG_SYSTEM_INCLUDE_PATH", SYSTEM_INCLUDEDIR, &client->filter_includedirs, false);
 
 	/* GCC uses these environment variables to define system include paths, so we should check them. */
-#ifdef __HAIKU__
-	pkgconf_path_build_from_environ("BELIBRARIES", NULL, &client->filter_libdirs, false);
-#else
 	pkgconf_path_build_from_environ("LIBRARY_PATH", NULL, &client->filter_libdirs, false);
-#endif
 	pkgconf_path_build_from_environ("CPATH", NULL, &client->filter_includedirs, false);
 	pkgconf_path_build_from_environ("C_INCLUDE_PATH", NULL, &client->filter_includedirs, false);
 	pkgconf_path_build_from_environ("CPLUS_INCLUDE_PATH", NULL, &client->filter_includedirs, false);
