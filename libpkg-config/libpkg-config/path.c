@@ -25,7 +25,7 @@
 #include <libpkg-config/stdinc.h>
 #include <libpkg-config/bsdstubs.h>
 
-#if defined(HAVE_SYS_STAT_H) && !defined(_WIN32)
+#ifndef _WIN32
 # include <sys/stat.h>
 # define PKGCONF_CACHE_INODES
 #endif
