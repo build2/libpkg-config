@@ -1,6 +1,3 @@
-/*	$OpenBSD: strlcpy.c,v 1.10 2005/08/08 08:05:37 espie Exp $	*/
-/*	$OpenBSD: strlcat.c,v 1.12 2005/03/30 20:13:52 otto Exp $	*/
-
 /*
  * Copyright (c) 1998 Todd C. Miller <Todd.Miller@courtesan.com>
  *
@@ -17,11 +14,10 @@
  * OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-#include <libpkg-config/bsdstubs.h>
+#include <libpkg-config/stdinc.h>
 
 #include <stdlib.h>
 #include <string.h>
-#include <sys/types.h>
 
 #include <libpkg-config/config.h>
 
@@ -94,18 +90,6 @@ strlcat(char *dst, const char *src, size_t siz)
 	return(dlen + (s - src));	/* count does not include NUL */
 }
 #endif
-
-/*
- * Copyright (c) 2012 William Pitcock <nenolod@dereferenced.org>.
- *
- * Permission to use, copy, modify, and/or distribute this software for any
- * purpose with or without fee is hereby granted, provided that the above
- * copyright notice and this permission notice appear in all copies.
- *
- * This software is provided 'as is' and without any warranty, express or
- * implied.  In no event shall the authors be liable for any damages arising
- * from the use of this software.
- */
 
 #ifndef HAVE_STRNDUP
 /*

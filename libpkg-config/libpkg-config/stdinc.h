@@ -34,38 +34,6 @@
 #include <stdbool.h>
 #include <sys/types.h>
 
-#define PKGCONF_BUFSIZE	(65535)
-
-#define PKGCONF_ARRAY_SIZE(x) (sizeof(x) / sizeof(*(x)))
-
-/* Hook NTRACE to NDEBUG. This both feels natural and gives us a way to
- * test this mode (since we have NDEBUG configurations on CI).
- */
-#if !defined(LIBPKG_CONFIG_NTRACE) && defined(NDEBUG)
-#  define LIBPKG_CONFIG_NTRACE
-#endif
-
-#ifndef LIBPKG_CONFIG_NTRACE
-#if defined(__GNUC__) || defined(__INTEL_COMPILER)
-#define PKGCONF_TRACE(client, ...) do { \
-		pkgconf_trace(client, __FILE__, __LINE__, __PRETTY_FUNCTION__, __VA_ARGS__); \
-	} while (0)
-#else
-#define PKGCONF_TRACE(client, ...) do { \
-		pkgconf_trace(client, __FILE__, __LINE__, __func__, __VA_ARGS__); \
-	} while (0)
-#endif
-#else
-#define PKGCONF_TRACE(client, ...) do {} while (0)
-#endif
-
-#ifdef _WIN32
-#	undef PKG_DEFAULT_PATH
-#	define PKG_DEFAULT_PATH "../lib/pkgconfig;../share/pkgconfig"
-#endif
-
-#define PKG_CONFIG_EXT ".pc"
-
 #ifdef _WIN32
 # define WIN32_LEAN_AND_MEAN
 # include <windows.h> /* @@ I wonder if we still need it? */
@@ -111,5 +79,41 @@
 #  define PKGCONF_ITEM_SIZE (4096 + 1024)
 # endif
 #endif
+
+#define PKGCONF_BUFSIZE	(65535)
+
+#define PKGCONF_ARRAY_SIZE(x) (sizeof(x) / sizeof(*(x)))
+
+/* Hook NTRACE to NDEBUG. This both feels natural and gives us a way to
+ * test this mode (since we have NDEBUG configurations on CI).
+ */
+#if !defined(LIBPKG_CONFIG_NTRACE) && defined(NDEBUG)
+#  define LIBPKG_CONFIG_NTRACE
+#endif
+
+#ifndef LIBPKG_CONFIG_NTRACE
+#if defined(__GNUC__) || defined(__INTEL_COMPILER)
+#define PKGCONF_TRACE(client, ...) do { \
+		pkgconf_trace(client, __FILE__, __LINE__, __PRETTY_FUNCTION__, __VA_ARGS__); \
+	} while (0)
+#else
+#define PKGCONF_TRACE(client, ...) do { \
+		pkgconf_trace(client, __FILE__, __LINE__, __func__, __VA_ARGS__); \
+	} while (0)
+#endif
+#else
+#define PKGCONF_TRACE(client, ...) do {} while (0)
+#endif
+
+#ifdef _WIN32
+#	undef PKG_DEFAULT_PATH
+#	define PKG_DEFAULT_PATH "../lib/pkgconfig;../share/pkgconfig"
+#endif
+
+#define PKG_CONFIG_EXT ".pc"
+
+extern size_t pkgconf_strlcpy(char *dst, const char *src, size_t siz);
+extern size_t pkgconf_strlcat(char *dst, const char *src, size_t siz);
+extern char *pkgconf_strndup(const char *src, size_t len);
 
 #endif /* LIBPKG_CONFIG_STDINC_H */

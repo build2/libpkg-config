@@ -23,7 +23,6 @@
 
 #include <libpkg-config/config.h>
 #include <libpkg-config/stdinc.h>
-#include <libpkg-config/bsdstubs.h>
 
 /*
  * !doc

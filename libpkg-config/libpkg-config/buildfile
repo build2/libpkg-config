@@ -148,4 +148,4 @@ h{*}: install = include/libpkg-config/
 
 # Don't install private headers.
 #
-h{config} h{bsdstubs}@./ h{stdinc}@./: install = false
+h{config} h{stdinc}@./: install = false

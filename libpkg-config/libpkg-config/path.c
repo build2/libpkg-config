@@ -23,7 +23,6 @@
 
 #include <libpkg-config/config.h>
 #include <libpkg-config/stdinc.h>
-#include <libpkg-config/bsdstubs.h>
 
 #ifndef _WIN32
 # include <sys/stat.h>
