@@ -21,7 +21,7 @@
 #  define HAVE_STRLCAT 1
 #endif
 
-#define PACKAGE_BUGREPORT "https://todo.sr.ht/~kaniini/pkgconf"
+#define LIBPKG_CONFIG_PROJECT_URL "$PROJECT_URL$"
 
 #define PKG_DEFAULT_PATH  "$PKG_DEFAULT_PATH$"
 #define SYSTEM_INCLUDEDIR "$SYSTEM_INCLUDEDIR$"

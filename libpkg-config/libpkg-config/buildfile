@@ -57,6 +57,9 @@ else
 #
 h{config}: in{config}
 {
+
+  PROJECT_URL = $project.url
+
   # Escape backslashes and quotes in the directory paths prior to representing
   # them as C string literals.
   #
