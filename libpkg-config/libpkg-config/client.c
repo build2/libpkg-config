@@ -117,20 +117,23 @@ pkgconf_client_dir_list_build(pkgconf_client_t *client)
 /*
  * !doc
  *
- * .. c:function:: void pkgconf_client_init(pkgconf_client_t *client, pkgconf_error_handler_func_t error_handler, void *error_handler_data)
+ * .. c:function:: void pkgconf_client_init(pkgconf_client_t *client, pkgconf_error_handler_func_t error_handler, void *error_handler_data, bool init_filters)
  *
  *    Initialise a pkgconf client object.
  *
  *    :param pkgconf_client_t* client: The client to initialise.
  *    :param pkgconf_error_handler_func_t error_handler: An optional error handler to use for logging errors.
  *    :param void* error_handler_data: user data passed to optional error handler
+ *    :param bool init_filters: whether two initialize include/lib path filters from environment/defaults
  *    :return: nothing
  */
 void
-pkgconf_client_init(pkgconf_client_t *client, pkgconf_error_handler_func_t error_handler, void *error_handler_data)
+pkgconf_client_init(pkgconf_client_t *client,
+                    pkgconf_error_handler_func_t error_handler,
+                    void *error_handler_data,
+                    bool init_filters)
 {
-	client->auditf = NULL;
-	client->trace_handler = NULL;
+	memset (client, 0, sizeof (pkgconf_client_t));
 
 	pkgconf_client_set_error_handler(client, error_handler, error_handler_data);
 	pkgconf_client_set_warn_handler(client, NULL, NULL);
@@ -139,46 +142,58 @@ pkgconf_client_init(pkgconf_client_t *client, pkgconf_error_handler_func_t error
 	pkgconf_client_set_buildroot_dir(client, NULL);
 	pkgconf_client_set_prefix_varname(client, NULL);
 
-        pkgconf_path_build_from_environ("PKG_CONFIG_SYSTEM_LIBRARY_PATH", SYSTEM_LIBDIR, &client->filter_libdirs, false);
-	pkgconf_path_build_from_environ("PKG_CONFIG_SYSTEM_INCLUDE_PATH", SYSTEM_INCLUDEDIR, &client->filter_includedirs, false);
+        if (init_filters)
+        {
+          pkgconf_path_build_from_environ("PKG_CONFIG_SYSTEM_LIBRARY_PATH", SYSTEM_LIBDIR, &client->filter_libdirs, false);
+          pkgconf_path_build_from_environ("PKG_CONFIG_SYSTEM_INCLUDE_PATH", SYSTEM_INCLUDEDIR, &client->filter_includedirs, false);
 
-	/* GCC uses these environment variables to define system include paths, so we should check them. */
-	pkgconf_path_build_from_environ("LIBRARY_PATH", NULL, &client->filter_libdirs, false);
-	pkgconf_path_build_from_environ("CPATH", NULL, &client->filter_includedirs, false);
-	pkgconf_path_build_from_environ("C_INCLUDE_PATH", NULL, &client->filter_includedirs, false);
-	pkgconf_path_build_from_environ("CPLUS_INCLUDE_PATH", NULL, &client->filter_includedirs, false);
-	pkgconf_path_build_from_environ("OBJC_INCLUDE_PATH", NULL, &client->filter_includedirs, false);
+          /* GCC uses these environment variables to define system include paths, so we should check them. */
+          pkgconf_path_build_from_environ("LIBRARY_PATH", NULL, &client->filter_libdirs, false);
+          pkgconf_path_build_from_environ("CPATH", NULL, &client->filter_includedirs, false);
+          pkgconf_path_build_from_environ("C_INCLUDE_PATH", NULL, &client->filter_includedirs, false);
+          pkgconf_path_build_from_environ("CPLUS_INCLUDE_PATH", NULL, &client->filter_includedirs, false);
+          pkgconf_path_build_from_environ("OBJC_INCLUDE_PATH", NULL, &client->filter_includedirs, false);
 
 #ifdef _WIN32
-	/* also use the path lists that MSVC uses on windows */
-	pkgconf_path_build_from_environ("INCLUDE", NULL, &client->filter_includedirs, false);
+          /* also use the path lists that MSVC uses on windows */
+          pkgconf_path_build_from_environ("INCLUDE", NULL, &client->filter_includedirs, false);
 #endif
+        }
 
 	PKGCONF_TRACE(client, "initialized client @%p", client);
 
 #ifndef LIBPKG_CONFIG_NTRACE
-	trace_path_list(client, "filtered library paths", &client->filter_libdirs);
-	trace_path_list(client, "filtered include paths", &client->filter_includedirs);
+        if (init_filters)
+        {
+          trace_path_list(client, "filtered library paths", &client->filter_libdirs);
+          trace_path_list(client, "filtered include paths", &client->filter_includedirs);
+        }
 #endif
 }
 
 /*
  * !doc
  *
- * .. c:function:: pkgconf_client_t* pkgconf_client_new(pkgconf_error_handler_func_t error_handler, void *error_handler_data)
+ * .. c:function:: pkgconf_client_t* pkgconf_client_new(pkgconf_error_handler_func_t error_handler, void *error_handler_data, bool init_filters)
  *
  *    Allocate and initialise a pkgconf client object.
  *
  *    :param pkgconf_error_handler_func_t error_handler: An optional error handler to use for logging errors.
  *    :param void* error_handler_data: user data passed to optional error handler
+ *    :param bool init_filters: whether two initialize include/lib path filters from environment/defaults
  *    :return: A pkgconf client object.
  *    :rtype: pkgconf_client_t*
  */
 pkgconf_client_t *
-pkgconf_client_new(pkgconf_error_handler_func_t error_handler, void *error_handler_data)
+pkgconf_client_new(pkgconf_error_handler_func_t error_handler,
+                   void *error_handler_data,
+                   bool init_filters)
 {
-	pkgconf_client_t *out = calloc(sizeof(pkgconf_client_t), 1);
-	pkgconf_client_init(out, error_handler, error_handler_data);
+	pkgconf_client_t *out = malloc(sizeof(pkgconf_client_t));
+        if (out != NULL)
+          pkgconf_client_init(out,
+                              error_handler, error_handler_data,
+                              init_filters);
 	return out;
 }
 

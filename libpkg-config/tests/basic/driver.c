@@ -62,8 +62,9 @@ print_and_free (pkgconf_list_t* list)
 int
 main (int argc, const char* argv[])
 {
-  pkgconf_client_t* c =
-    pkgconf_client_new (error_handler, NULL /* error_handler_data */);
+  pkgconf_client_t* c = pkgconf_client_new (error_handler,
+                                            NULL /* error_handler_data */,
+                                            true /* init_filters */);
 
   assert (c != NULL);
 
@@ -89,7 +90,7 @@ main (int argc, const char* argv[])
       ++i;
       assert (i < argc);
 
-      pkgconf_path_add (argv[i], &c->dir_list, /* filter_duplicates */ true);
+      pkgconf_path_add (argv[i], &c->dir_list, true /* filter_duplicates */);
       default_dirs = false;
     }
     else

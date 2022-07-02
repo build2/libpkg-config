@@ -116,8 +116,12 @@ main (int argc, const char* argv[])
   size_t n = strlen (path);
   assert (n > 3 && strcmp (path + n - 3, ".pc") == 0);
 
-  pkgconf_client_t* c =
-    pkgconf_client_new (error_handler, NULL /* error_handler_data */);
+  pkgconf_client_t cs;
+  pkgconf_client_t* c = &cs;
+  pkgconf_client_init (c,
+                       error_handler,
+                       NULL /* error_handler_data */,
+                       true /* init_filters */);
 
   assert (c != NULL);
 
@@ -185,6 +189,6 @@ main (int argc, const char* argv[])
   else
     fprintf (stderr, "package file '%s' not found or invalid\n", path);
 
-  pkgconf_client_free (c);
+  pkgconf_client_deinit (c);
   return r;
 }

@@ -198,8 +198,8 @@ struct pkgconf_client_ {
 #define LIBPKG_CONFIG_PKG_PKGF_FDO_SYSROOT_RULES		0x2000
 
 /* client.c */
-LIBPKG_CONFIG_SYMEXPORT void pkgconf_client_init(pkgconf_client_t *client, pkgconf_error_handler_func_t error_handler, void *error_handler_data);
-LIBPKG_CONFIG_SYMEXPORT pkgconf_client_t * pkgconf_client_new(pkgconf_error_handler_func_t error_handler, void *error_handler_data);
+LIBPKG_CONFIG_SYMEXPORT void pkgconf_client_init(pkgconf_client_t *client, pkgconf_error_handler_func_t error_handler, void *error_handler_data, bool init_filters);
+LIBPKG_CONFIG_SYMEXPORT pkgconf_client_t * pkgconf_client_new(pkgconf_error_handler_func_t error_handler, void *error_handler_data, bool init_filters);
 LIBPKG_CONFIG_SYMEXPORT void pkgconf_client_deinit(pkgconf_client_t *client);
 LIBPKG_CONFIG_SYMEXPORT void pkgconf_client_free(pkgconf_client_t *client);
 LIBPKG_CONFIG_SYMEXPORT const char *pkgconf_client_get_sysroot_dir(const pkgconf_client_t *client);
