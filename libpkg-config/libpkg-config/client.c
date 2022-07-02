@@ -91,9 +91,11 @@ build_default_search_path(pkgconf_list_t* dirlist)
  *
  * .. c:function:: void pkgconf_client_dir_list_build(pkgconf_client_t *client)
  *
- *    Bootstraps the package search paths.  If the ``LIBPKG_CONFIG_PKG_PKGF_ENV_ONLY`` `flag` is set on the client,
- *    then only the ``PKG_CONFIG_PATH`` environment variable will be used, otherwise both the
- *    ``PKG_CONFIG_PATH`` and ``PKG_CONFIG_LIBDIR`` environment variables will be used.
+ *    Bootstraps the package search paths.  If the
+ *    ``LIBPKG_CONFIG_PKG_PKGF_ENV_ONLY`` `flag` is set on the client, then
+ *    only the ``PKG_CONFIG_PATH`` and ``PKG_CONFIG_LIBDIR`` environment
+ *    variables will be used, otherwise both the environment variables and
+ *    the default will be considered.
  *
  *    :param pkgconf_client_t* client: The pkgconf client object to bootstrap.
  *    :return: nothing
@@ -103,21 +105,13 @@ pkgconf_client_dir_list_build(pkgconf_client_t *client)
 {
 	pkgconf_path_build_from_environ("PKG_CONFIG_PATH", NULL, &client->dir_list, true);
 
-	if (!(client->flags & LIBPKG_CONFIG_PKG_PKGF_ENV_ONLY))
+	if (getenv("PKG_CONFIG_LIBDIR") != NULL)
 	{
-		pkgconf_list_t dir_list = LIBPKG_CONFIG_LIST_INITIALIZER;
-
-		if (getenv("PKG_CONFIG_LIBDIR") != NULL)
-		{
-			/* PKG_CONFIG_LIBDIR= should empty the search path entirely. */
-			(void) pkgconf_path_build_from_environ("PKG_CONFIG_LIBDIR", NULL, &dir_list, true);
-		}
-                else
-                        build_default_search_path(&dir_list);
-
-		pkgconf_path_copy_list(&client->dir_list, &dir_list);
-		pkgconf_path_free(&dir_list);
+		/* PKG_CONFIG_LIBDIR= should empty the default search path entirely. */
+		(void) pkgconf_path_build_from_environ("PKG_CONFIG_LIBDIR", NULL, &client->dir_list, true);
 	}
+        else if (!(client->flags & LIBPKG_CONFIG_PKG_PKGF_ENV_ONLY))
+        	build_default_search_path(&client->dir_list);
 }
 
 /*
