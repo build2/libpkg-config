@@ -17,7 +17,7 @@
 #include <string.h>  /* strcmp() */
 #include <stdbool.h> /* bool, true, false */
 
-static bool
+static void
 error_handler (const char* msg, const pkgconf_client_t* c, const void* d)
 {
   (void) c; /* Unused. */
@@ -28,7 +28,6 @@ error_handler (const char* msg, const pkgconf_client_t* c, const void* d)
    *
    */
   fprintf (stderr, "%s", msg);
-  return true;
 }
 
 static void

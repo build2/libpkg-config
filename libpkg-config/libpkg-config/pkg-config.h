@@ -150,7 +150,7 @@ struct pkgconf_pkg_ {
 
 typedef bool (*pkgconf_pkg_iteration_func_t)(const pkgconf_pkg_t *pkg, void *data);
 typedef void (*pkgconf_pkg_traverse_func_t)(pkgconf_client_t *client, pkgconf_pkg_t *pkg, void *data);
-typedef bool (*pkgconf_error_handler_func_t)(const char *msg, const pkgconf_client_t *client, const void *data);
+typedef void (*pkgconf_error_handler_func_t)(const char *msg, const pkgconf_client_t *client, const void *data);
 
 struct pkgconf_client_ {
 	pkgconf_list_t dir_list;
@@ -233,6 +233,12 @@ LIBPKG_CONFIG_SYMEXPORT void pkgconf_client_dir_list_build(pkgconf_client_t *cli
 #define LIBPKG_CONFIG_PRINTFLIKE(fmtarg, firstvararg)
 #endif /* defined(__INTEL_COMPILER) || defined(__GNUC__) */
 
+/* Note that if the library is build with LIBPKG_CONFIG_NTRACE, tracing will
+   be disabled at compile time. */
+LIBPKG_CONFIG_SYMEXPORT void pkgconf_error(const pkgconf_client_t *client, const char *format, ...) LIBPKG_CONFIG_PRINTFLIKE(2, 3);
+LIBPKG_CONFIG_SYMEXPORT void pkgconf_warn(const pkgconf_client_t *client, const char *format, ...) LIBPKG_CONFIG_PRINTFLIKE(2, 3);
+LIBPKG_CONFIG_SYMEXPORT void pkgconf_trace(const pkgconf_client_t *client, const char *filename, size_t lineno, const char *funcname, const char *format, ...) LIBPKG_CONFIG_PRINTFLIKE(5, 6);
+
 /* parser.c */
 typedef void (*pkgconf_parser_operand_func_t)(void *data, const size_t lineno, const char *key, const char *value);
 typedef void (*pkgconf_parser_warn_func_t)(void *data, const char *fmt, ...);
@@ -240,12 +246,6 @@ typedef void (*pkgconf_parser_warn_func_t)(void *data, const char *fmt, ...);
 LIBPKG_CONFIG_SYMEXPORT void pkgconf_parser_parse(FILE *f, void *data, const pkgconf_parser_operand_func_t *ops, const pkgconf_parser_warn_func_t warnfunc, const char *filename);
 
 /* pkg.c */
-/* Note that if the library is build with LIBPKG_CONFIG_NTRACE, tracing will
-   be disabled at compile time. */
-LIBPKG_CONFIG_SYMEXPORT bool pkgconf_error(const pkgconf_client_t *client, const char *format, ...) LIBPKG_CONFIG_PRINTFLIKE(2, 3);
-LIBPKG_CONFIG_SYMEXPORT bool pkgconf_warn(const pkgconf_client_t *client, const char *format, ...) LIBPKG_CONFIG_PRINTFLIKE(2, 3);
-LIBPKG_CONFIG_SYMEXPORT bool pkgconf_trace(const pkgconf_client_t *client, const char *filename, size_t lineno, const char *funcname, const char *format, ...) LIBPKG_CONFIG_PRINTFLIKE(5, 6);
-LIBPKG_CONFIG_SYMEXPORT bool pkgconf_default_error_handler(const char *msg, const pkgconf_client_t *client, const void *data);
 
 /* Errors/flags that are either returned or set; see eflags arguments. */
 #define LIBPKG_CONFIG_PKG_ERRF_OK			0x0

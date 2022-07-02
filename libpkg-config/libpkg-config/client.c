@@ -136,7 +136,6 @@ pkgconf_client_init(pkgconf_client_t *client,
 	memset (client, 0, sizeof (pkgconf_client_t));
 
 	pkgconf_client_set_error_handler(client, error_handler, error_handler_data);
-	pkgconf_client_set_warn_handler(client, NULL, NULL);
 
 	pkgconf_client_set_sysroot_dir(client, NULL);
 	pkgconf_client_set_buildroot_dir(client, NULL);
@@ -337,51 +336,55 @@ pkgconf_client_set_buildroot_dir(pkgconf_client_t *client, const char *buildroot
 /*
  * !doc
  *
- * .. c:function:: bool pkgconf_error(const pkgconf_client_t *client, const char *format, ...)
+ * .. c:function:: void pkgconf_error(const pkgconf_client_t *client, const char *format, ...)
  *
  *    Report an error to a client-registered error handler.
  *
  *    :param pkgconf_client_t* client: The pkgconf client object to report the error to.
  *    :param char* format: A printf-style format string to use for formatting the error message.
- *    :return: true if the error handler processed the message, else false.
- *    :rtype: bool
+ *    :return: nothing
  */
-bool
+void
 pkgconf_error(const pkgconf_client_t *client, const char *format, ...)
 {
-	char errbuf[PKGCONF_BUFSIZE];
-	va_list va;
+  if (client->error_handler != NULL)
+  {
+    char errbuf[PKGCONF_BUFSIZE];
+    va_list va;
 
-	va_start(va, format);
-	vsnprintf(errbuf, sizeof errbuf, format, va);
-	va_end(va);
+    va_start(va, format);
+    vsnprintf(errbuf, sizeof errbuf, format, va);
+    va_end(va);
 
-	return client->error_handler(errbuf, client, client->error_handler_data);
+    client->error_handler(errbuf, client, client->error_handler_data);
+  }
 }
 
 /*
  * !doc
  *
- * .. c:function:: bool pkgconf_warn(const pkgconf_client_t *client, const char *format, ...)
+ * .. c:function:: void pkgconf_warn(const pkgconf_client_t *client, const char *format, ...)
  *
  *    Report an error to a client-registered warn handler.
  *
  *    :param pkgconf_client_t* client: The pkgconf client object to report the error to.
  *    :param char* format: A printf-style format string to use for formatting the warning message.
- *    :return: true if the warn handler processed the message, else false.
- *    :rtype: bool
+ *    :return: nothing
  */
-bool
+void
 pkgconf_warn(const pkgconf_client_t *client, const char *format, ...)
 {
-	char errbuf[PKGCONF_BUFSIZE];
-	va_list va;
+  if (client->warn_handler != NULL)
+  {
+    char errbuf[PKGCONF_BUFSIZE];
+    va_list va;
 
-	va_start(va, format);
-	vsnprintf(errbuf, sizeof errbuf, format, va);
-	va_end(va);
+    va_start(va, format);
+    vsnprintf(errbuf, sizeof errbuf, format, va);
+    va_end(va);
 
-	return client->warn_handler(errbuf, client, client->warn_handler_data);
+    client->warn_handler(errbuf, client, client->warn_handler_data);
+  }
 }
 
 /*
@@ -396,14 +399,13 @@ pkgconf_warn(const pkgconf_client_t *client, const char *format, ...)
  *    :param size_t lineno: The line number currently being executed.
  *    :param char* funcname: The function name to use.
  *    :param char* format: A printf-style format string to use for formatting the trace message.
- *    :return: true if the trace handler processed the message, else false. Note: false is returned if there is no handler.
- *    :rtype: bool
+ *    :return: nothing
  */
-bool
+void
 pkgconf_trace(const pkgconf_client_t *client, const char *filename, size_t lineno, const char *funcname, const char *format, ...)
 {
 	if (client == NULL || client->trace_handler == NULL)
-		return false;
+		return;
 
 #ifndef LIBPKG_CONFIG_NTRACE
 
@@ -419,39 +421,14 @@ pkgconf_trace(const pkgconf_client_t *client, const char *filename, size_t linen
 
 	pkgconf_strlcat(errbuf, "\n", sizeof errbuf);
 
-	return client->trace_handler(errbuf, client, client->trace_handler_data);
+	client->trace_handler(errbuf, client, client->trace_handler_data);
 #else
         (void) client;
         (void) filename;
         (void) lineno;
         (void) funcname;
         (void) format;
-
-        return true;
 #endif
-}
-
-/*
- * !doc
- *
- * .. c:function:: bool pkgconf_default_error_handler(const char *msg, const pkgconf_client_t *client, const void *data)
- *
- *    The default pkgconf error handler.
- *
- *    :param char* msg: The error message to handle.
- *    :param pkgconf_client_t* client: The client object the error originated from.
- *    :param void* data: An opaque pointer to extra data associated with the client for error handling.
- *    :return: true (the function does nothing to process the message)
- *    :rtype: bool
- */
-bool
-pkgconf_default_error_handler(const char *msg, const pkgconf_client_t *client, const void *data)
-{
-	(void) msg;
-	(void) client;
-	(void) data;
-
-	return true;
 }
 
 /*
@@ -564,12 +541,6 @@ pkgconf_client_set_warn_handler(pkgconf_client_t *client, pkgconf_error_handler_
 {
 	client->warn_handler = warn_handler;
 	client->warn_handler_data = warn_handler_data;
-
-	if (client->warn_handler == NULL)
-	{
-		PKGCONF_TRACE(client, "installing default warn handler");
-		client->warn_handler = pkgconf_default_error_handler;
-	}
 }
 
 /*
@@ -605,12 +576,6 @@ pkgconf_client_set_error_handler(pkgconf_client_t *client, pkgconf_error_handler
 {
 	client->error_handler = error_handler;
 	client->error_handler_data = error_handler_data;
-
-	if (client->error_handler == NULL)
-	{
-		PKGCONF_TRACE(client, "installing default error handler");
-		client->error_handler = pkgconf_default_error_handler;
-	}
 }
 
 /*
