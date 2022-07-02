@@ -21,7 +21,6 @@
 
 #include <libpkg-config/pkg-config.h>
 
-#include <libpkg-config/config.h>
 #include <libpkg-config/stdinc.h>
 
 #ifndef _WIN32

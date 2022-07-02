@@ -23,6 +23,8 @@
 #ifndef LIBPKG_CONFIG_STDINC_H
 #define LIBPKG_CONFIG_STDINC_H
 
+#include <libpkg-config/config.h>
+
 #include <ctype.h>
 #include <stdio.h>
 #include <assert.h>
