@@ -1,0 +1,37 @@
+#ifndef LIBPKG_CONFIG_VERSION_H
+#define LIBPKG_CONFIG_VERSION_H
+
+/* The numeric version format is AAAAABBBBBCCCCCDDDE where:
+ *
+ * AAAAA - major version number
+ * BBBBB - minor version number
+ * CCCCC - bugfix version number
+ * DDD   - alpha / beta (DDD + 500) version number
+ * E     - final (0) / snapshot (1)
+ *
+ * When DDDE is not 0, 1 is subtracted from AAAAABBBBBCCCCC. For example:
+ *
+ * Version      AAAAABBBBBCCCCCDDDE
+ *
+ * 0.1.0        0000000001000000000
+ * 0.1.2        0000000001000020000
+ * 1.2.3        0000100002000030000
+ * 2.2.0-a.1    0000200001999990010
+ * 3.0.0-b.2    0000299999999995020
+ * 2.2.0-a.1.z  0000200001999990011
+ */
+#define LIBPKG_CONFIG_VERSION       $libpkg_config.version.project_number$ULL
+#define LIBPKG_CONFIG_VERSION_STR   "$libpkg_config.version.project$"
+#define LIBPKG_CONFIG_VERSION_ID    "$libpkg_config.version.project_id$"
+#define LIBPKG_CONFIG_VERSION_FULL  "$libpkg_config.version$"
+
+#define LIBPKG_CONFIG_VERSION_MAJOR $libpkg_config.version.major$
+#define LIBPKG_CONFIG_VERSION_MINOR $libpkg_config.version.minor$
+#define LIBPKG_CONFIG_VERSION_PATCH $libpkg_config.version.patch$
+
+#define LIBPKG_CONFIG_PRE_RELEASE   $libpkg_config.version.pre_release$
+
+#define LIBPKG_CONFIG_SNAPSHOT_SN   $libpkg_config.version.snapshot_sn$ULL
+#define LIBPKG_CONFIG_SNAPSHOT_ID   "$libpkg_config.version.snapshot_id$"
+
+#endif /* LIBPKG_CONFIG_VERSION_H */

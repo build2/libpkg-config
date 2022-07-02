@@ -1,7 +1,7 @@
 # file      : libpkg-config/buildfile
 # license   : ISC; see accompanying COPYING file
 
-lib{pkg-config}: {h c}{* -config} {h}{config}
+lib{pkg-config}: {h c}{* -config -version} {h}{config version}
 
 tclass = $c.target.class
 
@@ -57,8 +57,6 @@ else
 #
 h{config}: in{config}
 {
-  PACKAGE_VERSION = "$version.project_id"
-
   # Escape backslashes and quotes in the directory paths prior to representing
   # them as C string literals.
   #
@@ -66,6 +64,21 @@ h{config}: in{config}
   SYSTEM_LIBDIR     = $regex.replace($lib_dirs, '(\\|")', '\\\1')
   PKG_DEFAULT_PATH  = $regex.replace($def_dirs, '(\\|")', '\\\1')
 }
+
+# Include the generated version header into the distribution (so that we don't
+# pick up an installed one) and don't remove it when cleaning in src (so that
+# clean results in a state identical to distributed).
+#
+# NOTE: we may want to keep this going forward in case we want to add other
+#       build systems in the future.
+#
+h{version}: in{version} $src_root/manifest
+{
+  dist  = true
+  clean = ($src_root != $out_root)
+}
+
+h{export}@./: c.importable = false
 
 # Build options.
 #
@@ -113,7 +126,7 @@ else
 
 # Export options.
 #
-lib{pkg-config}:  c.export.poptions = "-I$src_root"
+lib{pkg-config}:  c.export.poptions = "-I$out_root" "-I$src_root"
 liba{pkg-config}: c.export.poptions += -DLIBPKG_CONFIG_STATIC
 libs{pkg-config}: c.export.poptions += -DLIBPKG_CONFIG_SHARED
 
@@ -130,9 +143,6 @@ else
 #
 h{*}: install = include/libpkg-config/
 
-# Implementation details.
+# Don't install private headers.
 #
-h{config}: install = false
-
-for h: bsdstubs stdinc
-  h{$h}@./: install = false
+h{config} h{bsdstubs}@./ h{stdinc}@./: install = false

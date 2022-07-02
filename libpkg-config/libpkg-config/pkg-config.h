@@ -29,15 +29,12 @@
 
 #include <libpkg-config/list.h> /* pkgconf_list_t */
 
+#include <libpkg-config/version.h>
 #include <libpkg-config/export.h>
 
 #ifdef __cplusplus
 extern "C" {
 #endif
-
-/* @@ TODO */
-#define LIBPKGCONF_VERSION	10603
-#define LIBPKGCONF_VERSION_STR	"1.6.3"
 
 /* pkg-config uses ';' on win32 as ':' is part of path */
 #ifdef _WIN32
