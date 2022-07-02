@@ -1097,7 +1097,9 @@ pkgconf_pkg_report_graph_error(pkgconf_client_t *client, const pkgconf_pkg_t *pa
 		}
 
 		pkgconf_error(client, "Package '%s', required by '%s', not found\n", node->package, parent->id);
+                /*
 		pkgconf_audit_log(client, "%s NOT-FOUND\n", node->package);
+                */
 	}
 	else if (eflags & LIBPKG_CONFIG_PKG_ERRF_PACKAGE_VER_MISMATCH)
 	{
@@ -1159,7 +1161,9 @@ pkgconf_pkg_walk_list(pkgconf_client_t *client,
 			continue;
 		}
 
+                /*
 		pkgconf_audit_log_dependency(client, pkgdep, depnode);
+                */
 
                 if ((pkgdep->flags & LIBPKG_CONFIG_PKG_PROPF_CONST) == 0)
 			pkgdep->flags |= LIBPKG_CONFIG_PKG_PROPF_SEEN;

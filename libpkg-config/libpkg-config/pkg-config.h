@@ -169,8 +169,6 @@ struct pkgconf_client_ {
 	pkgconf_error_handler_func_t warn_handler;
 	pkgconf_error_handler_func_t trace_handler;
 
-	FILE *auditf;
-
 	char *sysroot_dir;
 	char *buildroot_dir;
 
@@ -320,11 +318,6 @@ LIBPKG_CONFIG_SYMEXPORT pkgconf_pkg_t *pkgconf_cache_lookup(pkgconf_client_t *cl
 LIBPKG_CONFIG_SYMEXPORT void pkgconf_cache_add(pkgconf_client_t *client, pkgconf_pkg_t *pkg);
 LIBPKG_CONFIG_SYMEXPORT void pkgconf_cache_remove(pkgconf_client_t *client, pkgconf_pkg_t *pkg);
 LIBPKG_CONFIG_SYMEXPORT void pkgconf_cache_free(pkgconf_client_t *client);
-
-/* audit.c */
-LIBPKG_CONFIG_SYMEXPORT void pkgconf_audit_set_log(pkgconf_client_t *client, FILE *auditf);
-LIBPKG_CONFIG_SYMEXPORT void pkgconf_audit_log(pkgconf_client_t *client, const char *format, ...) LIBPKG_CONFIG_PRINTFLIKE(2, 3);
-LIBPKG_CONFIG_SYMEXPORT void pkgconf_audit_log_dependency(pkgconf_client_t *client, const pkgconf_pkg_t *dep, const pkgconf_dependency_t *depnode);
 
 /* path.c */
 LIBPKG_CONFIG_SYMEXPORT void pkgconf_path_add(const char *text, pkgconf_list_t *dirlist, bool filter);
