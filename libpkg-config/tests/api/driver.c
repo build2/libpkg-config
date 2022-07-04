@@ -17,15 +17,16 @@
 #include <stdbool.h> /* bool, true, false */
 
 static void
-error_handler (const char* msg, const pkgconf_client_t* c, const void* d)
+error_handler (unsigned int e,
+               const char* msg,
+               const pkgconf_client_t* c,
+               const void* d)
 {
+  (void) e; /* Unused. */
   (void) c; /* Unused. */
   (void) d; /* Unused. */
 
-  /* Seems it always have a trailing newline char. Probably it still a good
-   * idea to check if it is. Let's see if it ever be missed.
-   */
-  fprintf (stderr, "%s", msg);
+  fprintf (stderr, "%s\n", msg);
 }
 
 static void

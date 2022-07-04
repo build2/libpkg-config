@@ -70,7 +70,7 @@ pkgconf_parser_parse (FILE* f,
         warnfunc (
             data,
             "%s:" SIZE_FMT_SPECIFIER
-            ": warning: whitespace encountered while parsing key section\n",
+            ": warning: whitespace encountered while parsing key section",
             filename,
             lineno);
         warned_key_whitespace = true;
@@ -99,7 +99,7 @@ pkgconf_parser_parse (FILE* f,
         warnfunc (data,
                   "%s:" SIZE_FMT_SPECIFIER
                   ": warning: trailing whitespace encountered while parsing "
-                  "value section\n",
+                  "value section",
                   filename,
                   lineno);
         warned_value_whitespace = true;

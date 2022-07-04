@@ -162,7 +162,11 @@ typedef bool (*pkgconf_pkg_iteration_func_t) (const pkgconf_pkg_t* pkg,
 typedef void (*pkgconf_pkg_traverse_func_t) (pkgconf_client_t* client,
                                              pkgconf_pkg_t* pkg,
                                              void* data);
-typedef void (*pkgconf_error_handler_func_t) (const char* msg,
+
+/* The eflag argument is one of LIBPKG_CONFIG_PKG_ERRF_* "flags" for
+   errors and 0 (*_OK) for warnings/traces. */
+typedef void (*pkgconf_error_handler_func_t) (unsigned int eflag,
+                                              const char* msg,
                                               const pkgconf_client_t* client,
                                               const void* data);
 
@@ -190,8 +194,6 @@ struct pkgconf_client_
   unsigned int flags; /* LIBPKG_CONFIG_PKG_PKGF_* */
 
   char* prefix_varname;
-
-  bool already_sent_notice;
 };
 
 #define LIBPKG_CONFIG_PKG_PKGF_NONE                         0x0000
@@ -205,10 +207,9 @@ struct pkgconf_client_
 #define LIBPKG_CONFIG_PKG_PKGF_ITER_PKG_IS_PRIVATE          0x0080
 #define LIBPKG_CONFIG_PKG_PKGF_REDEFINE_PREFIX              0x0100
 #define LIBPKG_CONFIG_PKG_PKGF_DONT_RELOCATE_PATHS          0x0200
-#define LIBPKG_CONFIG_PKG_PKGF_SIMPLIFY_ERRORS              0x0400
-#define LIBPKG_CONFIG_PKG_PKGF_DONT_FILTER_INTERNAL_CFLAGS  0x0800
-#define LIBPKG_CONFIG_PKG_PKGF_DONT_MERGE_SPECIAL_FRAGMENTS 0x1000
-#define LIBPKG_CONFIG_PKG_PKGF_FDO_SYSROOT_RULES            0x2000
+#define LIBPKG_CONFIG_PKG_PKGF_DONT_FILTER_INTERNAL_CFLAGS  0x0400
+#define LIBPKG_CONFIG_PKG_PKGF_DONT_MERGE_SPECIAL_FRAGMENTS 0x0800
+#define LIBPKG_CONFIG_PKG_PKGF_FDO_SYSROOT_RULES            0x1000
 
 /* client.c */
 LIBPKG_CONFIG_SYMEXPORT void
@@ -283,7 +284,8 @@ pkgconf_client_dir_list_build (pkgconf_client_t* client);
    be disabled at compile time. */
 LIBPKG_CONFIG_SYMEXPORT void
 pkgconf_error (const pkgconf_client_t* client,
-               const char* format, ...) LIBPKG_CONFIG_PRINTFLIKE (2, 3);
+               unsigned int eflag,
+               const char* format, ...) LIBPKG_CONFIG_PRINTFLIKE (3, 4);
 LIBPKG_CONFIG_SYMEXPORT void
 pkgconf_warn (const pkgconf_client_t* client,
               const char* format, ...) LIBPKG_CONFIG_PRINTFLIKE (2, 3);

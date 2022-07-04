@@ -122,7 +122,7 @@ pkgconf_pkg_parser_version_func (const pkgconf_client_t* client,
     pkgconf_warn (client,
                   "%s:" SIZE_FMT_SPECIFIER
                   ": warning: malformed version field with whitespace, "
-                  "trimming to [%s]\n",
+                  "trimming to [%s]",
                   pkg->filename,
                   lineno,
                   p);
@@ -147,7 +147,7 @@ pkgconf_pkg_parser_fragment_func (const pkgconf_client_t* client,
     pkgconf_warn (client,
                   "%s:" SIZE_FMT_SPECIFIER
                   ": warning: unable to parse field '%s' into an argument "
-                  "vector, value [%s]\n",
+                  "vector, value [%s]",
                   pkg->filename,
                   lineno,
                   keyword,
@@ -464,7 +464,7 @@ pkgconf_pkg_validate (const pkgconf_client_t* client,
       continue;
 
     pkgconf_warn (client,
-                  "%s: warning: file does not declare a `%s' field\n",
+                  "%s: warning: file does not declare a '%s' field",
                   pkg->filename,
                   pkgconf_pkg_validations[i].field);
     valid = false;
@@ -550,7 +550,7 @@ pkgconf_pkg_new_from_file (pkgconf_client_t* client,
   if (!pkgconf_pkg_validate (client, pkg))
   {
     pkgconf_warn (
-        client, "%s: warning: skipping invalid file\n", pkg->filename);
+        client, "%s: warning: skipping invalid file", pkg->filename);
     pkgconf_pkg_free (client, pkg);
     return NULL;
   }
@@ -1268,23 +1268,9 @@ pkgconf_pkg_report_graph_error (pkgconf_client_t* client,
 {
   if (eflags & LIBPKG_CONFIG_PKG_ERRF_PACKAGE_NOT_FOUND)
   {
-    if (!(client->flags & LIBPKG_CONFIG_PKG_PKGF_SIMPLIFY_ERRORS) &
-        !client->already_sent_notice)
-    {
-      pkgconf_error (
-          client,
-          "Package %s was not found in the pkg-config search path.\n",
-          node->package);
-      pkgconf_error (
-          client,
-          "Perhaps you should add the directory containing `%s.pc'\n",
-          node->package);
-      pkgconf_error (client, "to the PKG_CONFIG_PATH environment variable\n");
-      client->already_sent_notice = true;
-    }
-
     pkgconf_error (client,
-                   "Package '%s', required by '%s', not found\n",
+                   LIBPKG_CONFIG_PKG_ERRF_PACKAGE_NOT_FOUND,
+                   "package '%s' required by '%s' not found",
                    node->package,
                    parent->id);
     /*
@@ -1293,21 +1279,28 @@ pkgconf_pkg_report_graph_error (pkgconf_client_t* client,
   }
   else if (eflags & LIBPKG_CONFIG_PKG_ERRF_PACKAGE_VER_MISMATCH)
   {
-    pkgconf_error (
+    if (pkg == NULL)
+    {
+      pkgconf_error (
         client,
-        "Package dependency requirement '%s %s %s' could not be satisfied.\n",
+        LIBPKG_CONFIG_PKG_ERRF_PACKAGE_VER_MISMATCH,
+        "package version constraint '%s %s %s' could not be satisfied",
         node->package,
         pkgconf_pkg_get_comparator (node),
         node->version);
-
-    if (pkg != NULL)
+    }
+    else
+    {
       pkgconf_error (
-          client,
-          "Package '%s' has version '%s', required version is '%s %s'\n",
-          node->package,
-          pkg->version,
-          pkgconf_pkg_get_comparator (node),
-          node->version);
+        client,
+        LIBPKG_CONFIG_PKG_ERRF_PACKAGE_VER_MISMATCH,
+        "package version constraint '%s %s %s' could not be satisfied, "
+        "available version is '%s'",
+        node->package,
+        pkgconf_pkg_get_comparator (node),
+        node->version,
+        pkg->version);
+    }
   }
 
   if (pkg != NULL)
@@ -1409,8 +1402,9 @@ pkgconf_pkg_walk_conflicts_list (pkgconf_client_t* client,
       if (eflags == LIBPKG_CONFIG_PKG_ERRF_OK)
       {
         pkgconf_error (client,
-                       "Version '%s' of '%s' conflicts with '%s' due to "
-                       "satisfying conflict rule '%s %s%s%s'.\n",
+                       LIBPKG_CONFIG_PKG_ERRF_PACKAGE_CONFLICT,
+                       "version '%s' of '%s' conflicts with '%s' due to "
+                       "conflict rule '%s %s%s%s'",
                        pkgdep->version,
                        pkgdep->realname,
                        root->realname,
@@ -1419,15 +1413,6 @@ pkgconf_pkg_walk_conflicts_list (pkgconf_client_t* client,
                        parentnode->version != NULL ? " " : "",
                        parentnode->version != NULL ? parentnode->version
                                                    : "");
-
-        if (!(client->flags & LIBPKG_CONFIG_PKG_PKGF_SIMPLIFY_ERRORS))
-        {
-          pkgconf_error (client,
-                         "It may be possible to ignore this conflict and "
-                         "continue, try the\n");
-          pkgconf_error (
-              client, "PKG_CONFIG_IGNORE_CONFLICTS environment variable.\n");
-        }
 
         pkgconf_pkg_unref (client, pkgdep);
 
