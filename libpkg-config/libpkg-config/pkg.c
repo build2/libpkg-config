@@ -931,75 +931,32 @@ pkgconf_compare_version (const char* a, const char* b)
 }
 
 static const pkgconf_pkg_t pkg_config_virtual = {
-    .refcount = -1, /* Static. */
-    .id = "pkg-config",
-    .realname = "pkg-config",
-    .description =
-        "virtual package defining pkg-config API version supported",
-    .url = LIBPKG_CONFIG_PROJECT_URL,
-    .version = LIBPKG_CONFIG_VERSION_ID,
-    .flags = LIBPKG_CONFIG_PKG_PROPF_CONST,
-    .vars = {
-        .head =
-            &(pkgconf_node_t) {
-                .next =
-                    &(pkgconf_node_t) {
-                        .next =
-                            &(pkgconf_node_t) {
-                                .data =
-                                    &(pkgconf_tuple_t) {
-                                        .key = "pc_system_libdirs",
-                                        .value = SYSTEM_LIBDIR,
-                                    }},
-                        .data =
-                            &(pkgconf_tuple_t) {
-                                .key = "pc_system_includedirs",
-                                .value = SYSTEM_INCLUDEDIR,
-                            }},
-                .data =
-                    &(pkgconf_tuple_t) {
-                        .key = "pc_path",
-                        .value = PKG_DEFAULT_PATH,
-                    },
-            },
-        .tail = NULL,
-    }};
-
-static const pkgconf_pkg_t pkgconf_virtual = {
-    .refcount = -1, /* Static. */
-    .id = "pkgconf",
-    .realname = "pkgconf",
-    .description = "virtual package defining pkgconf API version supported",
-    .url = LIBPKG_CONFIG_PROJECT_URL,
-    .version = LIBPKG_CONFIG_VERSION_ID,
-    .flags = LIBPKG_CONFIG_PKG_PROPF_CONST,
-    .vars =
-        {
-            .head =
-                &(pkgconf_node_t) {
-                    .next =
-                        &(pkgconf_node_t) {
-                            .next =
-                                &(pkgconf_node_t) {
-                                    .data =
-                                        &(pkgconf_tuple_t) {
-                                            .key = "pc_system_libdirs",
-                                            .value = SYSTEM_LIBDIR,
-                                        }},
-                            .data =
-                                &(pkgconf_tuple_t) {
-                                    .key = "pc_system_includedirs",
-                                    .value = SYSTEM_INCLUDEDIR,
-                                }},
-                    .data =
-                        &(pkgconf_tuple_t) {
-                            .key = "pc_path",
-                            .value = PKG_DEFAULT_PATH,
-                        },
-                },
-            .tail = NULL,
-        },
-};
+  .refcount = -1, /* Static. */
+  .id = "pkg-config",
+  .realname = "pkg-config",
+  .description = "virtual pkg-config package",
+  .url = LIBPKG_CONFIG_PROJECT_URL,
+  .version = LIBPKG_CONFIG_VERSION_ID,
+  .flags = LIBPKG_CONFIG_PKG_PROPF_CONST,
+  .vars = {
+    .head = &(pkgconf_node_t) {
+      .next = &(pkgconf_node_t) {
+        .next = &(pkgconf_node_t) {
+          .data = &(pkgconf_tuple_t) {
+            .key = "pc_system_libdirs",
+            .value = SYSTEM_LIBDIR,
+          }},
+        .data = &(pkgconf_tuple_t) {
+          .key = "pc_system_includedirs",
+          .value = SYSTEM_INCLUDEDIR,
+        }},
+      .data = &(pkgconf_tuple_t) {
+        .key = "pc_path",
+        .value = PKG_DEFAULT_PATH,
+      },
+    },
+    .tail = NULL,
+  }};
 
 typedef struct
 {
@@ -1010,7 +967,6 @@ typedef struct
 /* keep these in alphabetical order */
 static const pkgconf_builtin_pkg_pair_t pkgconf_builtin_pkg_pair_set[] = {
     {"pkg-config", &pkg_config_virtual},
-    {"pkgconf", &pkgconf_virtual},
 };
 
 static int
