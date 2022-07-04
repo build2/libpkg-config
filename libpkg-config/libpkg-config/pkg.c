@@ -286,6 +286,12 @@ pkgconf_pkg_parser_value_set(void *opaque, const size_t lineno, const char *keyw
 
 	(void) lineno;
 
+        if (!(pkg->owner->flags & LIBPKG_CONFIG_PKG_PKGF_REDEFINE_PREFIX))
+        {
+          pkgconf_tuple_add(pkg->owner, &pkg->vars, keyword, value, true);
+          return;
+        }
+
 	pkgconf_strlcpy(canonicalized_value, value, sizeof canonicalized_value);
 	canonicalize_path(canonicalized_value);
 
@@ -293,8 +299,7 @@ pkgconf_pkg_parser_value_set(void *opaque, const size_t lineno, const char *keyw
 	 * which is broken when redefining the prefix. We try to outsmart the
 	 * file and rewrite any directory that starts with the same prefix.
 	 */
-	if (pkg->owner->flags & LIBPKG_CONFIG_PKG_PKGF_REDEFINE_PREFIX && pkg->orig_prefix
-	    && is_path_prefix_equal(canonicalized_value, pkg->orig_prefix->value, strlen(pkg->orig_prefix->value)))
+	if (pkg->orig_prefix && is_path_prefix_equal(canonicalized_value, pkg->orig_prefix->value, strlen(pkg->orig_prefix->value)))
 	{
 		char newvalue[PKGCONF_ITEM_SIZE];
 
@@ -302,7 +307,7 @@ pkgconf_pkg_parser_value_set(void *opaque, const size_t lineno, const char *keyw
 		pkgconf_strlcat(newvalue, canonicalized_value + strlen(pkg->orig_prefix->value), sizeof newvalue);
 		pkgconf_tuple_add(pkg->owner, &pkg->vars, keyword, newvalue, false);
 	}
-	else if (strcmp(keyword, pkg->owner->prefix_varname) || !(pkg->owner->flags & LIBPKG_CONFIG_PKG_PKGF_REDEFINE_PREFIX))
+	else if (strcmp(keyword, pkg->owner->prefix_varname))
 		pkgconf_tuple_add(pkg->owner, &pkg->vars, keyword, value, true);
 	else
 	{
@@ -311,13 +316,13 @@ pkgconf_pkg_parser_value_set(void *opaque, const size_t lineno, const char *keyw
 
 		if (relvalue != NULL)
 		{
-      char *prefix_value = convert_path_to_value(relvalue);
-      pkg->orig_prefix = pkgconf_tuple_add(pkg->owner, &pkg->vars, "orig_prefix", canonicalized_value, true);
-      pkg->prefix = pkgconf_tuple_add(pkg->owner, &pkg->vars, keyword, prefix_value, false);
-      free(prefix_value);
+                  char *prefix_value = convert_path_to_value(relvalue);
+                  pkg->orig_prefix = pkgconf_tuple_add(pkg->owner, &pkg->vars, "orig_prefix", canonicalized_value, true);
+                  pkg->prefix = pkgconf_tuple_add(pkg->owner, &pkg->vars, keyword, prefix_value, false);
+                  free(prefix_value);
 		}
 		else
-			pkgconf_tuple_add(pkg->owner, &pkg->vars, keyword, value, true);
+                  pkgconf_tuple_add(pkg->owner, &pkg->vars, keyword, value, true);
 	}
 }
 
