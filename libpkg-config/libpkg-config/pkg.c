@@ -698,9 +698,27 @@ pkgconf_pkg_try_specific_path (pkgconf_client_t* client,
   pkgconf_pkg_t* pkg = NULL;
   FILE* f;
   char locbuf[PKGCONF_ITEM_SIZE];
-  char uninst_locbuf[PKGCONF_ITEM_SIZE];
 
   PKGCONF_TRACE (client, "trying path: %s for %s", path, name);
+
+  if ((client->flags & LIBPKG_CONFIG_PKG_PKGF_CONSIDER_UNINSTALLED) != 0)
+  {
+    snprintf (locbuf,
+              sizeof locbuf,
+              "%s%c%s-uninstalled" PKG_CONFIG_EXT,
+              path,
+              LIBPKG_CONFIG_DIR_SEP_S,
+              name);
+
+    if ((f = fopen (locbuf, "r")) != NULL)
+    {
+      PKGCONF_TRACE (client, "found (uninstalled): %s", locbuf);
+      pkg = pkgconf_pkg_new_from_file (client, locbuf, f);
+      if (pkg != NULL)
+        pkg->flags |= LIBPKG_CONFIG_PKG_PROPF_UNINSTALLED;
+      return pkg;
+    }
+  }
 
   snprintf (locbuf,
             sizeof locbuf,
@@ -708,22 +726,8 @@ pkgconf_pkg_try_specific_path (pkgconf_client_t* client,
             path,
             LIBPKG_CONFIG_DIR_SEP_S,
             name);
-  snprintf (uninst_locbuf,
-            sizeof uninst_locbuf,
-            "%s%c%s-uninstalled" PKG_CONFIG_EXT,
-            path,
-            LIBPKG_CONFIG_DIR_SEP_S,
-            name);
 
-  if (!(client->flags & LIBPKG_CONFIG_PKG_PKGF_NO_UNINSTALLED) &&
-      (f = fopen (uninst_locbuf, "r")) != NULL)
-  {
-    PKGCONF_TRACE (client, "found (uninstalled): %s", uninst_locbuf);
-    pkg = pkgconf_pkg_new_from_file (client, uninst_locbuf, f);
-    if (pkg != NULL)
-      pkg->flags |= LIBPKG_CONFIG_PKG_PROPF_UNINSTALLED;
-  }
-  else if ((f = fopen (locbuf, "r")) != NULL)
+  if ((f = fopen (locbuf, "r")) != NULL)
   {
     PKGCONF_TRACE (client, "found: %s", locbuf);
     pkg = pkgconf_pkg_new_from_file (client, locbuf, f);
