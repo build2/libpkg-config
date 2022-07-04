@@ -65,7 +65,8 @@ pkgconf_fragment_is_unmergeable (const char* string)
   if (*string != '-')
     return true;
 
-  for (size_t i = 0; i < PKGCONF_ARRAY_SIZE (check_fragments); i++)
+  size_t i;
+  for (i = 0; i < PKGCONF_ARRAY_SIZE (check_fragments); i++)
     if (!strncmp (string, check_fragments[i].token, check_fragments[i].len))
       return true;
 

@@ -3,8 +3,6 @@
 
 using in
 
-c.std = 99 # @@ TMP
-
 using c
 
 h{*}: extension = h
