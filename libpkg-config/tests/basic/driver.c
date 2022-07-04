@@ -70,7 +70,7 @@ main (int argc, const char* argv[])
   bool cflags = false;
   bool libs = false;
   bool default_dirs = true;
-  int client_flags = 0;
+  int client_flags = LIBPKG_CONFIG_PKG_PKGF_MERGE_SPECIAL_FRAGMENTS;
 
   int i = 1;
   for (; i < argc; ++i)
@@ -82,8 +82,8 @@ main (int argc, const char* argv[])
     else if (strcmp (o, "--libs") == 0)
       libs = true;
     else if (strcmp (o, "--static") == 0)
-      client_flags = LIBPKG_CONFIG_PKG_PKGF_SEARCH_PRIVATE |
-                     LIBPKG_CONFIG_PKG_PKGF_MERGE_PRIVATE_FRAGMENTS;
+      client_flags |= LIBPKG_CONFIG_PKG_PKGF_SEARCH_PRIVATE |
+                      LIBPKG_CONFIG_PKG_PKGF_MERGE_PRIVATE_FRAGMENTS;
     else if (strcmp (o, "--with-path") == 0)
     {
       ++i;

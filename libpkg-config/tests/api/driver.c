@@ -128,7 +128,7 @@ main (int argc, const char* argv[])
   int r = 1;
   int max_depth = 2000;
 
-  const int pkgconf_flags = LIBPKG_CONFIG_PKG_PKGF_DONT_MERGE_SPECIAL_FRAGMENTS;
+  const int pkgconf_flags = 0;
 
   pkgconf_client_set_flags (c, pkgconf_flags);
   pkgconf_pkg_t* p = pkgconf_pkg_find (c, path);
