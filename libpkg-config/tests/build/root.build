@@ -1,8 +1,6 @@
 # file      : tests/build/root.build
 # license   : ISC; see accompanying COPYING file
 
-c.std = 99 # @@ TMP
-
 using c
 
 h{*}: extension = h

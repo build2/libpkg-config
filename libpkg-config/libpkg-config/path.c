@@ -304,7 +304,8 @@ normpath (const char* path)
     return NULL;
   char* ptr = copy;
 
-  for (int ii = 0; copy[ii]; ii++)
+  int ii;
+  for (ii = 0; copy[ii]; ii++)
   {
     *ptr++ = path[ii];
     if ('/' == path[ii])

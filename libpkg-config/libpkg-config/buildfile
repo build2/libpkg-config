@@ -97,32 +97,8 @@ if $msvc
 elif $clang_msvc
   c.coptions += -Wno-deprecated-declarations -Wno-unused-function
 
-# Note: this should go last as it adds obj target-specific poptions.
-#
-if! $windows
-{
-  # The upstream package compiles the source files with -std=gnu99 option to
-  # allow some GNU deviations from the ISO C99 standard. We will compile with
-  # the -std=c99 option (via c.std=99 in root.build) and define
-  # _POSIX_C_SOURCE=200809L for all as well as _GNU_SOURCE for some source
-  # files (those that require GNU extension). These macros also re-enable
-  # definitions of POSIX macros (specifically PATH_MAX) that are disabled by
-  # -std=c99.
-  #
-  # Note that on FreeBSD and MacOS -D_POSIX_C_SOURCE disables declarations of
-  # strlcpy() and alike which are not POSIX. Not very consistent given that
-  # they are also not C99. Luckily, -std=c99 doesn't disable PATH_MAX on these
-  # platforms, so we just don't define this macro for them.
-  #
-  if! ($bsd || $macos)
-    c.poptions += -D_POSIX_C_SOURCE=200809L
-
-  obj{client fragment path pkg tuple}: c.poptions += -D_GNU_SOURCE
-}
-else
-{
+if $windows
   c.libs += ($msvc_runtime ? advapi32.lib : -ladvapi32)
-}
 
 {hbmia obja}{*}: c.poptions += -DLIBPKG_CONFIG_STATIC_BUILD
 {hbmis objs}{*}: c.poptions += -DLIBPKG_CONFIG_SHARED_BUILD
