@@ -496,6 +496,10 @@ pkgconf_pkg_new_from_file (pkgconf_client_t* client,
   char* idptr;
 
   pkg = calloc (sizeof (pkgconf_pkg_t), 1);
+
+  if (pkg == NULL)
+    return NULL;
+
   pkg->owner = client;
   pkg->filename = strdup (filename);
   pkg->pc_filedir = pkg_get_parent_dir (pkg);
@@ -759,11 +763,12 @@ pkgconf_pkg_find (pkgconf_client_t* client, const char* name)
 
       pkg = pkgconf_pkg_new_from_file (client, name, f);
       if (pkg != NULL)
-      {
         pkgconf_path_add (pkg->pc_filedir, &client->dir_list, true);
-        return pkg;
-      }
     }
+
+    /* There is no point in trying anything else since the name contains the
+       extension. */
+    return pkg;
   }
 
   /* check builtins */
