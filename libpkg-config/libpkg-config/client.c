@@ -386,17 +386,24 @@ pkgconf_client_set_buildroot_dir (pkgconf_client_t* client,
 /*
  * !doc
  *
- * .. c:function:: void pkgconf_error(const pkgconf_client_t *client, const
- * char *format, ...)
+ * .. c:function:: void pkgconf_error(const pkgconf_client_t *client,
+ *                                    unsigned int eflag,
+ *                                    const char *format, ...)
  *
  *    Report an error to a client-registered error handler.
  *
  *    :param pkgconf_client_t* client: The pkgconf client object to report the
- * error to. :param char* format: A printf-style format string to use for
- * formatting the error message. :return: nothing
+ *     error to.
+ *    :param unsigned int eflag: On of the LIBPKG_CONFIG_PKG_ERRF_* error
+ *     "flags" describing this error.
+ *    :param char* format: A printf-style format string to use for formatting
+ *     the error message.
+ *    :return: nothing
  */
 void
-pkgconf_error (const pkgconf_client_t* client, const char* format, ...)
+pkgconf_error (const pkgconf_client_t* client,
+               unsigned int eflag,
+               const char* format, ...)
 {
   if (client->error_handler != NULL)
   {
@@ -407,7 +414,7 @@ pkgconf_error (const pkgconf_client_t* client, const char* format, ...)
     vsnprintf (errbuf, sizeof errbuf, format, va);
     va_end (va);
 
-    client->error_handler (errbuf, client, client->error_handler_data);
+    client->error_handler (eflag, errbuf, client, client->error_handler_data);
   }
 }
 
@@ -435,7 +442,10 @@ pkgconf_warn (const pkgconf_client_t* client, const char* format, ...)
     vsnprintf (errbuf, sizeof errbuf, format, va);
     va_end (va);
 
-    client->warn_handler (errbuf, client, client->warn_handler_data);
+    client->warn_handler (LIBPKG_CONFIG_PKG_ERRF_OK,
+                          errbuf,
+                          client,
+                          client->warn_handler_data);
   }
 }
 
@@ -482,9 +492,10 @@ pkgconf_trace (const pkgconf_client_t* client,
   vsnprintf (errbuf + len, sizeof (errbuf) - len, format, va);
   va_end (va);
 
-  pkgconf_strlcat (errbuf, "\n", sizeof errbuf);
-
-  client->trace_handler (errbuf, client, client->trace_handler_data);
+  client->trace_handler (LIBPKG_CONFIG_PKG_ERRF_OK,
+                         errbuf,
+                         client,
+                         client->trace_handler_data);
 #else
   (void)client;
   (void)filename;
