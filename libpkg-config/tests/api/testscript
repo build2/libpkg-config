@@ -42,6 +42,7 @@ sp = " "
 }
 
 : single-quoted
+:
 {
   +cat <<EOI >=libfoo.pc
     prefix='C:\Program   Files\Foo'
@@ -207,5 +208,39 @@ sp = " "
       -lfoo
     l$sp
       -Lbar
+    EOO
+}
+
+: long-var
+:
+: Test long variable name and value.
+:
+{
+  a='abcdefghijklmnopqrstuvwxyz';
+
+  # ~0,5K
+  #
+  n = "$a$a$a$a$a$a$a$a$a$a$a$a$a$a$a$a$a$a$a$a";
+
+  # ~64K
+  #
+  v = '1234567890abcdefghijklmnopqrstuvwxyz ';
+  v = "$v$v$v$v$v$v$v$v$v$v$v$v$v";
+  v = "$v$v$v$v$v$v$v$v$v$v$v$v";
+  v = "$v$v$v$v$v$v$v$v$v$v$v$n$n";
+
+  cat <<"EOI" >=libfoo.pc;
+    $n="$v"
+    var=\${$n}
+    Name: libfoo
+    Description: Foo library
+    Version: 1.0
+    EOI
+
+  f = $~/libfoo.pc;
+
+  $* --vars $f >>"EOO"
+    var $v
+    $n $v
     EOO
 }

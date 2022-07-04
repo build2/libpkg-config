@@ -54,6 +54,9 @@ print_and_free (pkgconf_list_t* list)
  * --libs
  *     Print linker flags.
  *
+ * --static
+ *     Assume static linking.
+ *
  * --with-path <dir>
  *     Search through the directory for pc-files. If at least one --with-path
  *     is specified then the default directories are not searched through.
