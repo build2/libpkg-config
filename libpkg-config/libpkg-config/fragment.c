@@ -177,8 +177,7 @@ pkgconf_fragment_add (const pkgconf_client_t* client,
     char mungebuf[PKGCONF_ITEM_SIZE];
 
     if (list->tail != NULL && list->tail->data != NULL &&
-        !(client->flags &
-          LIBPKG_CONFIG_PKG_PKGF_DONT_MERGE_SPECIAL_FRAGMENTS))
+        (client->flags & LIBPKG_CONFIG_PKG_PKGF_MERGE_SPECIAL_FRAGMENTS) != 0)
     {
       pkgconf_fragment_t* parent = list->tail->data;
 
@@ -395,7 +394,7 @@ pkgconf_fragment_copy (const pkgconf_client_t* client,
 {
   pkgconf_fragment_t* frag;
 
-  if (!(client->flags & LIBPKG_CONFIG_PKG_PKGF_DONT_MERGE_SPECIAL_FRAGMENTS))
+  if ((client->flags & LIBPKG_CONFIG_PKG_PKGF_MERGE_SPECIAL_FRAGMENTS) != 0)
   {
     if ((frag = pkgconf_fragment_exists (
              list, base, client->flags, is_private)) != NULL)
