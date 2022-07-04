@@ -364,7 +364,6 @@ pkgconf_pkg_parser_value_set (void* opaque,
                               const char* keyword,
                               const char* value)
 {
-  char canonicalized_value[PKGCONF_ITEM_SIZE];
   pkgconf_pkg_t* pkg = opaque;
 
   (void)lineno;
@@ -375,6 +374,7 @@ pkgconf_pkg_parser_value_set (void* opaque,
     return;
   }
 
+  char canonicalized_value[PKGCONF_ITEM_SIZE];
   pkgconf_strlcpy (canonicalized_value, value, sizeof canonicalized_value);
   canonicalize_path (canonicalized_value);
 
