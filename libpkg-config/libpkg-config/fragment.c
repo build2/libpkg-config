@@ -161,10 +161,33 @@ pkgconf_fragment_add (const pkgconf_client_t* client,
 
   if (strlen (string) > 1 && !pkgconf_fragment_is_special (string))
   {
+    /* If the previous fragment is of the -I, -L, -F, or -l type and has no
+     * path specified, then consider the current fragment as a separately
+     * specified path and don't split it into the type and data.
+     */
+    char type;
+    const char* data;
+
+    pkgconf_fragment_t* p = list->tail != NULL ? list->tail->data : NULL;
+    char t = p != NULL ? p->type : '\0';
+
+    if (p != NULL                                      &&
+        (t == 'I' || t == 'L' || t == 'F' || t == 'l') &&
+        p->data[0] == '\0')
+    {
+      type = '\0';
+      data = string;
+    }
+    else
+    {
+      type = *(string + 1);
+      data = string + 2;
+    }
+
     frag = calloc (sizeof (pkgconf_fragment_t), 1);
 
-    frag->type = *(string + 1);
-    frag->data = pkgconf_fragment_copy_munged (client, string + 2);
+    frag->type = type;
+    frag->data = pkgconf_fragment_copy_munged (client, data);
 
     PKGCONF_TRACE (client,
                    "added fragment {%c, '%s'} to list @%p",

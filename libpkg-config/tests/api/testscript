@@ -1,6 +1,8 @@
 # file      : tests/api/testscript
 # license   : ISC; see accompanying COPYING file
 
+sp = " "
+
 : double-quoted
 :
 {
@@ -169,5 +171,41 @@
       IOKit
       -framework
       CoreFoundation
+    EOO
+}
+
+: no-oversplit
+:
+{
+  +cat <<EOI >=libfoo.pc
+    Name: libfoo
+    Description: Foo library
+    Version: 1.0
+    Cflags: -I -Ifoo
+    Libs: -L -lfoo -l -Lbar
+    EOI
+
+  f = $~/libfoo.pc
+
+  : cflags
+  :
+  : Test that the '-I -Ifoo' options sequence is parsed into 2 fragments: the
+  : first has the type 'I' and no value and the second has no type and the
+  : '-Ifoo' value.
+  :
+  $* --cflags $f >>"EOO"
+    I$sp
+      -Ifoo
+    EOO
+
+  : libs
+  :
+  : Similar to the above but for the -L and -l options.
+  :
+  $* --libs $f >>"EOO"
+    L$sp
+      -lfoo
+    l$sp
+      -Lbar
     EOO
 }
