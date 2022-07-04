@@ -318,7 +318,6 @@ pkgconf_parser_parse (FILE* f,
 #define LIBPKG_CONFIG_PKG_ERRF_PACKAGE_NOT_FOUND    0x01
 #define LIBPKG_CONFIG_PKG_ERRF_PACKAGE_VER_MISMATCH 0x02
 #define LIBPKG_CONFIG_PKG_ERRF_PACKAGE_CONFLICT     0x04
-#define LIBPKG_CONFIG_PKG_ERRF_DEPGRAPH_BREAK       0x08
 
 LIBPKG_CONFIG_SYMEXPORT pkgconf_pkg_t*
 pkgconf_pkg_ref (pkgconf_client_t* client, pkgconf_pkg_t* pkg);
