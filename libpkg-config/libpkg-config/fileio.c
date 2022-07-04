@@ -23,107 +23,111 @@
 
 #include <libpkg-config/stdinc.h>
 
-char *
-pkgconf_fgetline(char *line, size_t size, FILE *stream)
+char*
+pkgconf_fgetline (char* line, size_t size, FILE* stream)
 {
-	char *s = line;
-	char *end = line + size - 2; /* Potentially assign 2 char in loop. */
-	bool quoted = false;
-	int c = '\0', c2;
+  char* s = line;
+  char* end = line + size - 2; /* Potentially assign 2 char in loop. */
+  bool quoted = false;
+  int c = '\0', c2;
 
-	if (s == NULL)
-		return NULL;
+  if (s == NULL)
+    return NULL;
 
-	while (s < end && (c = getc(stream)) != EOF)
-	{
-		if (c == '\\' && !quoted)
-		{
-			quoted = true;
-			continue;
-		}
-		else if (c == '#')
-		{
-			if (!quoted) {
-				/* Skip the rest of the line */
-				do {
-					c = getc(stream);
-				} while (c != '\n' && c != EOF);
-				*s++ = '\n';
-				break;
-			}
-                        else
-                        	*s++ = c;
+  while (s < end && (c = getc (stream)) != EOF)
+  {
+    if (c == '\\' && !quoted)
+    {
+      quoted = true;
+      continue;
+    }
+    else if (c == '#')
+    {
+      if (!quoted)
+      {
+        /* Skip the rest of the line */
+        do
+        {
+          c = getc (stream);
+        } while (c != '\n' && c != EOF);
+        *s++ = '\n';
+        break;
+      }
+      else
+        *s++ = c;
 
-			quoted = false;
-			continue;
-		}
-		else if (c == '\n')
-		{
-			if (quoted)
-			{
-				/* Trim spaces */
-				do {
-					c2 = getc(stream);
-				} while (c2 == '\t' || c2 == ' ');
+      quoted = false;
+      continue;
+    }
+    else if (c == '\n')
+    {
+      if (quoted)
+      {
+        /* Trim spaces */
+        do
+        {
+          c2 = getc (stream);
+        } while (c2 == '\t' || c2 == ' ');
 
-				ungetc(c2, stream);
+        ungetc (c2, stream);
 
-				quoted = false;
-				continue;
-			}
-			else
-                        	*s++ = c;
+        quoted = false;
+        continue;
+      }
+      else
+        *s++ = c;
 
-			break;
-		}
-		else if (c == '\r')
-		{
-			*s++ = '\n';
+      break;
+    }
+    else if (c == '\r')
+    {
+      *s++ = '\n';
 
-			if ((c2 = getc(stream)) == '\n')
-			{
-				if (quoted)
-				{
-					quoted = false;
-					continue;
-				}
+      if ((c2 = getc (stream)) == '\n')
+      {
+        if (quoted)
+        {
+          quoted = false;
+          continue;
+        }
 
-				break;
-			}
+        break;
+      }
 
-			ungetc(c2, stream);
+      ungetc (c2, stream);
 
-			if (quoted)
-			{
-				quoted = false;
-				continue;
-			}
+      if (quoted)
+      {
+        quoted = false;
+        continue;
+      }
 
-			break;
-		}
-		else
-		{
-			if (quoted) {
-				*s++ = '\\';
-				quoted = false;
-			}
-			*s++ = c;
-		}
+      break;
+    }
+    else
+    {
+      if (quoted)
+      {
+        *s++ = '\\';
+        quoted = false;
+      }
+      *s++ = c;
+    }
+  }
 
-	}
+  if (c == EOF && (s == line || ferror (stream)))
+    return NULL;
 
-	if (c == EOF && (s == line || ferror(stream)))
-		return NULL;
+  *s = '\0';
 
-	*s = '\0';
+  /* Remove newline character. */
+  if (s > line && *(--s) == '\n')
+  {
+    *s = '\0';
 
-	/* Remove newline character. */
-	if (s > line && *(--s) == '\n') {
-		*s = '\0';
+    if (s > line && *(--s) == '\r')
+      *s = '\0';
+  }
 
-		if (s > line && *(--s) == '\r')
-			*s = '\0';
-	}
-
-	return line;
+  return line;
 }

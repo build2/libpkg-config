@@ -29,8 +29,8 @@
  * libpkg-config `argvsplit` module
  * ================================
  *
- * This is a lowlevel module which provides parsing of strings into argument vectors,
- * similar to what a shell would do.
+ * This is a lowlevel module which provides parsing of strings into argument
+ * vectors, similar to what a shell would do.
  */
 
 /*
@@ -44,116 +44,120 @@
  *    :return: nothing
  */
 void
-pkgconf_argv_free(char **argv)
+pkgconf_argv_free (char** argv)
 {
-	free(argv[0]);
-	free(argv);
+  free (argv[0]);
+  free (argv);
 }
 
 /*
  * !doc
  *
- * .. c:function:: int pkgconf_argv_split(const char *src, int *argc, char ***argv)
+ * .. c:function:: int pkgconf_argv_split(const char *src, int *argc, char
+ * ***argv)
  *
  *    Splits a string into an argument vector.
  *
  *    :param char*   src: The string to split.
- *    :param int*    argc: A pointer to an integer to store the argument count.
- *    :param char*** argv: A pointer to a pointer for an argument vector.
+ *    :param int*    argc: A pointer to an integer to store the argument
+ * count. :param char*** argv: A pointer to a pointer for an argument vector.
  *    :return: 0 on success, -1 on error.
  *    :rtype: int
  */
 int
-pkgconf_argv_split(const char *src, int *argc, char ***argv)
+pkgconf_argv_split (const char* src, int* argc, char*** argv)
 {
-	char *buf = malloc(strlen(src) + 1);
-	const char *src_iter;
-	char *dst_iter;
-	int argc_count = 0;
-	int argv_size = 5;
-	char quote = 0;
-	bool escaped = false;
+  char* buf = malloc (strlen (src) + 1);
+  const char* src_iter;
+  char* dst_iter;
+  int argc_count = 0;
+  int argv_size = 5;
+  char quote = 0;
+  bool escaped = false;
 
-	src_iter = src;
-	dst_iter = buf;
+  src_iter = src;
+  dst_iter = buf;
 
-	memset(buf, 0, strlen(src) + 1);
+  memset (buf, 0, strlen (src) + 1);
 
-	*argv = calloc(sizeof (void *), argv_size);
-	(*argv)[argc_count] = dst_iter;
+  *argv = calloc (sizeof (void*), argv_size);
+  (*argv)[argc_count] = dst_iter;
 
-	while (*src_iter)
-	{
-		if (escaped)
-		{
-			/* POSIX: only \CHAR is special inside a double quote if CHAR is {$, `, ", \, newline}. */
-			if (quote == '\"')
-			{
-				if (!(*src_iter == '$' || *src_iter == '`' || *src_iter == '"' || *src_iter == '\\'))
-					*dst_iter++ = '\\';
+  while (*src_iter)
+  {
+    if (escaped)
+    {
+      /* POSIX: only \CHAR is special inside a double quote if CHAR is {$, `,
+       * ", \, newline}. */
+      if (quote == '\"')
+      {
+        if (!(*src_iter == '$' || *src_iter == '`' || *src_iter == '"' ||
+              *src_iter == '\\'))
+          *dst_iter++ = '\\';
 
-				*dst_iter++ = *src_iter;
-			}
-			else
-				*dst_iter++ = *src_iter;
+        *dst_iter++ = *src_iter;
+      }
+      else
+        *dst_iter++ = *src_iter;
 
-			escaped = false;
-		}
-		else if (quote)
-		{
-			if (*src_iter == quote)
-				quote = 0;
-			else if (*src_iter == '\\' && quote != '\'')
-				escaped = true;
-			else
-				*dst_iter++ = *src_iter;
-		}
-		else if (isspace((unsigned int)*src_iter))
-		{
-			if ((*argv)[argc_count] != NULL)
-			{
-				argc_count++, dst_iter++;
+      escaped = false;
+    }
+    else if (quote)
+    {
+      if (*src_iter == quote)
+        quote = 0;
+      else if (*src_iter == '\\' && quote != '\'')
+        escaped = true;
+      else
+        *dst_iter++ = *src_iter;
+    }
+    else if (isspace ((unsigned int)*src_iter))
+    {
+      if ((*argv)[argc_count] != NULL)
+      {
+        argc_count++, dst_iter++;
 
-				if (argc_count == argv_size)
-				{
-					argv_size += 5;
-					*argv = realloc(*argv, sizeof(void *) * argv_size);
-				}
+        if (argc_count == argv_size)
+        {
+          argv_size += 5;
+          *argv = realloc (*argv, sizeof (void*) * argv_size);
+        }
 
-				(*argv)[argc_count] = dst_iter;
-			}
-		}
-		else switch(*src_iter)
-		{
-			case '\\':
-				escaped = true;
-				break;
+        (*argv)[argc_count] = dst_iter;
+      }
+    }
+    else
+      switch (*src_iter)
+      {
+      case '\\':
+        escaped = true;
+        break;
 
-			case '\"':
-			case '\'':
-				quote = *src_iter;
-				break;
+      case '\"':
+      case '\'':
+        quote = *src_iter;
+        break;
 
-			default:
-				*dst_iter++ = *src_iter;
-				break;
-		}
+      default:
+        *dst_iter++ = *src_iter;
+        break;
+      }
 
-		src_iter++;
-	}
+    src_iter++;
+  }
 
-	if (escaped || quote)
-	{
-		free(*argv);
-		free(buf);
-		return -1;
-	}
+  if (escaped || quote)
+  {
+    free (*argv);
+    free (buf);
+    return -1;
+  }
 
-	if (strlen((*argv)[argc_count]))
-	{
-		argc_count++;
-	}
+  if (strlen ((*argv)[argc_count]))
+  {
+    argc_count++;
+  }
 
-	*argc = argc_count;
-	return 0;
+  *argc = argc_count;
+  return 0;
 }

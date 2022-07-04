@@ -29,67 +29,70 @@
  * libpkg-config `client` module
  * =============================
  *
- * The libpkg-config `client` module implements the `pkgconf_client_t` "client" object.
- * Client objects store all necessary state for libpkg-config allowing for multiple instances to run
- * in parallel.
+ * The libpkg-config `client` module implements the `pkgconf_client_t`
+ * "client" object. Client objects store all necessary state for libpkg-config
+ * allowing for multiple instances to run in parallel.
  *
- * Client objects are not thread safe, in other words, a client object should not be shared across
- * thread boundaries.
+ * Client objects are not thread safe, in other words, a client object should
+ * not be shared across thread boundaries.
  */
 
 #ifndef LIBPKG_CONFIG_NTRACE
 static void
-trace_path_list(const pkgconf_client_t *client, const char *desc, pkgconf_list_t *list)
+trace_path_list (const pkgconf_client_t* client,
+                 const char* desc,
+                 pkgconf_list_t* list)
 {
-	const pkgconf_node_t *n;
+  const pkgconf_node_t* n;
 
-	PKGCONF_TRACE(client, "%s:", desc);
-	LIBPKG_CONFIG_FOREACH_LIST_ENTRY(list->head, n)
-	{
-		const pkgconf_path_t *p = n->data;
+  PKGCONF_TRACE (client, "%s:", desc);
+  LIBPKG_CONFIG_FOREACH_LIST_ENTRY (list->head, n)
+  {
+    const pkgconf_path_t* p = n->data;
 
-		PKGCONF_TRACE(client, "  - '%s'", p->path);
-	}
+    PKGCONF_TRACE (client, "  - '%s'", p->path);
+  }
 }
 #endif
 
 static inline void
-build_default_search_path(pkgconf_list_t* dirlist)
+build_default_search_path (pkgconf_list_t* dirlist)
 {
 #ifdef _WIN32
-	char namebuf[MAX_PATH];
-	char outbuf[MAX_PATH];
-	char *p;
+  char namebuf[MAX_PATH];
+  char outbuf[MAX_PATH];
+  char* p;
 
-	int sizepath = GetModuleFileName(NULL, namebuf, sizeof namebuf);
-	char * winslash;
-	namebuf[sizepath] = '\0';
-	while ((winslash = strchr (namebuf, '\\')) != NULL)
-	{
-		*winslash = '/';
-	}
-	p = strrchr(namebuf, '/');
-	if (p == NULL)
-		pkgconf_path_split(PKG_DEFAULT_PATH, dirlist, true);
+  int sizepath = GetModuleFileName (NULL, namebuf, sizeof namebuf);
+  char* winslash;
+  namebuf[sizepath] = '\0';
+  while ((winslash = strchr (namebuf, '\\')) != NULL)
+  {
+    *winslash = '/';
+  }
+  p = strrchr (namebuf, '/');
+  if (p == NULL)
+    pkgconf_path_split (PKG_DEFAULT_PATH, dirlist, true);
 
-	*p = '\0';
-	pkgconf_strlcpy(outbuf, namebuf, sizeof outbuf);
-	pkgconf_strlcat(outbuf, "/", sizeof outbuf);
-	pkgconf_strlcat(outbuf, "../lib/pkgconfig", sizeof outbuf);
-	pkgconf_path_add(outbuf, dirlist, true);
-	pkgconf_strlcpy(outbuf, namebuf, sizeof outbuf);
-	pkgconf_strlcat(outbuf, "/", sizeof outbuf);
-	pkgconf_strlcat(outbuf, "../share/pkgconfig", sizeof outbuf);
-	pkgconf_path_add(outbuf, dirlist, true);
+  *p = '\0';
+  pkgconf_strlcpy (outbuf, namebuf, sizeof outbuf);
+  pkgconf_strlcat (outbuf, "/", sizeof outbuf);
+  pkgconf_strlcat (outbuf, "../lib/pkgconfig", sizeof outbuf);
+  pkgconf_path_add (outbuf, dirlist, true);
+  pkgconf_strlcpy (outbuf, namebuf, sizeof outbuf);
+  pkgconf_strlcat (outbuf, "/", sizeof outbuf);
+  pkgconf_strlcat (outbuf, "../share/pkgconfig", sizeof outbuf);
+  pkgconf_path_add (outbuf, dirlist, true);
 #else
-	pkgconf_path_split(PKG_DEFAULT_PATH, dirlist, true);
+  pkgconf_path_split (PKG_DEFAULT_PATH, dirlist, true);
 #endif
 }
 
 /*
  * !doc
  *
- * .. c:function:: void pkgconf_client_dir_list_build(pkgconf_client_t *client)
+ * .. c:function:: void pkgconf_client_dir_list_build(pkgconf_client_t
+ * *client)
  *
  *    Bootstraps the package search paths.  If the
  *    ``LIBPKG_CONFIG_PKG_PKGF_ENV_ONLY`` `flag` is set on the client, then
@@ -101,99 +104,121 @@ build_default_search_path(pkgconf_list_t* dirlist)
  *    :return: nothing
  */
 void
-pkgconf_client_dir_list_build(pkgconf_client_t *client)
+pkgconf_client_dir_list_build (pkgconf_client_t* client)
 {
-	pkgconf_path_build_from_environ("PKG_CONFIG_PATH", NULL, &client->dir_list, true);
+  pkgconf_path_build_from_environ (
+      "PKG_CONFIG_PATH", NULL, &client->dir_list, true);
 
-	if (getenv("PKG_CONFIG_LIBDIR") != NULL)
-	{
-		/* PKG_CONFIG_LIBDIR= should empty the default search path entirely. */
-		(void) pkgconf_path_build_from_environ("PKG_CONFIG_LIBDIR", NULL, &client->dir_list, true);
-	}
-        else if (!(client->flags & LIBPKG_CONFIG_PKG_PKGF_ENV_ONLY))
-        	build_default_search_path(&client->dir_list);
+  if (getenv ("PKG_CONFIG_LIBDIR") != NULL)
+  {
+    /* PKG_CONFIG_LIBDIR= should empty the default search path entirely. */
+    (void)pkgconf_path_build_from_environ (
+        "PKG_CONFIG_LIBDIR", NULL, &client->dir_list, true);
+  }
+  else if (!(client->flags & LIBPKG_CONFIG_PKG_PKGF_ENV_ONLY))
+    build_default_search_path (&client->dir_list);
 }
 
 /*
  * !doc
  *
- * .. c:function:: void pkgconf_client_init(pkgconf_client_t *client, pkgconf_error_handler_func_t error_handler, void *error_handler_data, bool init_filters)
+ * .. c:function:: void pkgconf_client_init(pkgconf_client_t *client,
+ * pkgconf_error_handler_func_t error_handler, void *error_handler_data, bool
+ * init_filters)
  *
  *    Initialise a pkgconf client object.
  *
  *    :param pkgconf_client_t* client: The client to initialise.
- *    :param pkgconf_error_handler_func_t error_handler: An optional error handler to use for logging errors.
- *    :param void* error_handler_data: user data passed to optional error handler
- *    :param bool init_filters: whether two initialize include/lib path filters from environment/defaults
- *    :return: nothing
+ *    :param pkgconf_error_handler_func_t error_handler: An optional error
+ * handler to use for logging errors. :param void* error_handler_data: user
+ * data passed to optional error handler :param bool init_filters: whether two
+ * initialize include/lib path filters from environment/defaults :return:
+ * nothing
  */
 void
-pkgconf_client_init(pkgconf_client_t *client,
-                    pkgconf_error_handler_func_t error_handler,
-                    void *error_handler_data,
-                    bool init_filters)
+pkgconf_client_init (pkgconf_client_t* client,
+                     pkgconf_error_handler_func_t error_handler,
+                     void* error_handler_data,
+                     bool init_filters)
 {
-	memset (client, 0, sizeof (pkgconf_client_t));
+  memset (client, 0, sizeof (pkgconf_client_t));
 
-	pkgconf_client_set_error_handler(client, error_handler, error_handler_data);
+  pkgconf_client_set_error_handler (
+      client, error_handler, error_handler_data);
 
-	pkgconf_client_set_sysroot_dir(client, NULL);
-	pkgconf_client_set_buildroot_dir(client, NULL);
-	pkgconf_client_set_prefix_varname(client, NULL);
+  pkgconf_client_set_sysroot_dir (client, NULL);
+  pkgconf_client_set_buildroot_dir (client, NULL);
+  pkgconf_client_set_prefix_varname (client, NULL);
 
-        if (init_filters)
-        {
-          pkgconf_path_build_from_environ("PKG_CONFIG_SYSTEM_LIBRARY_PATH", SYSTEM_LIBDIR, &client->filter_libdirs, false);
-          pkgconf_path_build_from_environ("PKG_CONFIG_SYSTEM_INCLUDE_PATH", SYSTEM_INCLUDEDIR, &client->filter_includedirs, false);
+  if (init_filters)
+  {
+    pkgconf_path_build_from_environ ("PKG_CONFIG_SYSTEM_LIBRARY_PATH",
+                                     SYSTEM_LIBDIR,
+                                     &client->filter_libdirs,
+                                     false);
+    pkgconf_path_build_from_environ ("PKG_CONFIG_SYSTEM_INCLUDE_PATH",
+                                     SYSTEM_INCLUDEDIR,
+                                     &client->filter_includedirs,
+                                     false);
 
-          /* GCC uses these environment variables to define system include paths, so we should check them. */
-          pkgconf_path_build_from_environ("LIBRARY_PATH", NULL, &client->filter_libdirs, false);
-          pkgconf_path_build_from_environ("CPATH", NULL, &client->filter_includedirs, false);
-          pkgconf_path_build_from_environ("C_INCLUDE_PATH", NULL, &client->filter_includedirs, false);
-          pkgconf_path_build_from_environ("CPLUS_INCLUDE_PATH", NULL, &client->filter_includedirs, false);
-          pkgconf_path_build_from_environ("OBJC_INCLUDE_PATH", NULL, &client->filter_includedirs, false);
+    /* GCC uses these environment variables to define system include paths, so
+     * we should check them. */
+    pkgconf_path_build_from_environ (
+        "LIBRARY_PATH", NULL, &client->filter_libdirs, false);
+    pkgconf_path_build_from_environ (
+        "CPATH", NULL, &client->filter_includedirs, false);
+    pkgconf_path_build_from_environ (
+        "C_INCLUDE_PATH", NULL, &client->filter_includedirs, false);
+    pkgconf_path_build_from_environ (
+        "CPLUS_INCLUDE_PATH", NULL, &client->filter_includedirs, false);
+    pkgconf_path_build_from_environ (
+        "OBJC_INCLUDE_PATH", NULL, &client->filter_includedirs, false);
 
 #ifdef _WIN32
-          /* also use the path lists that MSVC uses on windows */
-          pkgconf_path_build_from_environ("INCLUDE", NULL, &client->filter_includedirs, false);
+    /* also use the path lists that MSVC uses on windows */
+    pkgconf_path_build_from_environ (
+        "INCLUDE", NULL, &client->filter_includedirs, false);
 #endif
-        }
+  }
 
-	PKGCONF_TRACE(client, "initialized client @%p", client);
+  PKGCONF_TRACE (client, "initialized client @%p", client);
 
 #ifndef LIBPKG_CONFIG_NTRACE
-        if (init_filters)
-        {
-          trace_path_list(client, "filtered library paths", &client->filter_libdirs);
-          trace_path_list(client, "filtered include paths", &client->filter_includedirs);
-        }
+  if (init_filters)
+  {
+    trace_path_list (
+        client, "filtered library paths", &client->filter_libdirs);
+    trace_path_list (
+        client, "filtered include paths", &client->filter_includedirs);
+  }
 #endif
 }
 
 /*
  * !doc
  *
- * .. c:function:: pkgconf_client_t* pkgconf_client_new(pkgconf_error_handler_func_t error_handler, void *error_handler_data, bool init_filters)
+ * .. c:function:: pkgconf_client_t*
+ * pkgconf_client_new(pkgconf_error_handler_func_t error_handler, void
+ * *error_handler_data, bool init_filters)
  *
  *    Allocate and initialise a pkgconf client object.
  *
- *    :param pkgconf_error_handler_func_t error_handler: An optional error handler to use for logging errors.
- *    :param void* error_handler_data: user data passed to optional error handler
- *    :param bool init_filters: whether two initialize include/lib path filters from environment/defaults
- *    :return: A pkgconf client object.
- *    :rtype: pkgconf_client_t*
+ *    :param pkgconf_error_handler_func_t error_handler: An optional error
+ * handler to use for logging errors. :param void* error_handler_data: user
+ * data passed to optional error handler :param bool init_filters: whether two
+ * initialize include/lib path filters from environment/defaults :return: A
+ * pkgconf client object. :rtype: pkgconf_client_t*
  */
-pkgconf_client_t *
-pkgconf_client_new(pkgconf_error_handler_func_t error_handler,
-                   void *error_handler_data,
-                   bool init_filters)
+pkgconf_client_t*
+pkgconf_client_new (pkgconf_error_handler_func_t error_handler,
+                    void* error_handler_data,
+                    bool init_filters)
 {
-	pkgconf_client_t *out = malloc(sizeof(pkgconf_client_t));
-        if (out != NULL)
-          pkgconf_client_init(out,
-                              error_handler, error_handler_data,
-                              init_filters);
-	return out;
+  pkgconf_client_t* out = malloc (sizeof (pkgconf_client_t));
+  if (out != NULL)
+    pkgconf_client_init (
+        out, error_handler, error_handler_data, init_filters);
+  return out;
 }
 
 /*
@@ -207,25 +232,25 @@ pkgconf_client_new(pkgconf_error_handler_func_t error_handler,
  *    :return: nothing
  */
 void
-pkgconf_client_deinit(pkgconf_client_t *client)
+pkgconf_client_deinit (pkgconf_client_t* client)
 {
-	PKGCONF_TRACE(client, "deinit @%p", client);
+  PKGCONF_TRACE (client, "deinit @%p", client);
 
-	if (client->prefix_varname != NULL)
-		free(client->prefix_varname);
+  if (client->prefix_varname != NULL)
+    free (client->prefix_varname);
 
-	if (client->sysroot_dir != NULL)
-		free(client->sysroot_dir);
+  if (client->sysroot_dir != NULL)
+    free (client->sysroot_dir);
 
-	if (client->buildroot_dir != NULL)
-		free(client->buildroot_dir);
+  if (client->buildroot_dir != NULL)
+    free (client->buildroot_dir);
 
-	pkgconf_path_free(&client->filter_libdirs);
-	pkgconf_path_free(&client->filter_includedirs);
+  pkgconf_path_free (&client->filter_libdirs);
+  pkgconf_path_free (&client->filter_includedirs);
 
-	pkgconf_tuple_free_global(client);
-	pkgconf_path_free(&client->dir_list);
-	pkgconf_cache_free(client);
+  pkgconf_tuple_free_global (client);
+  pkgconf_path_free (&client->dir_list);
+  pkgconf_cache_free (client);
 }
 
 /*
@@ -233,22 +258,24 @@ pkgconf_client_deinit(pkgconf_client_t *client)
  *
  * .. c:function:: void pkgconf_client_free(pkgconf_client_t *client)
  *
- *    Release resources belonging to a pkgconf client object and then free the client object itself.
+ *    Release resources belonging to a pkgconf client object and then free the
+ * client object itself.
  *
  *    :param pkgconf_client_t* client: The client to deinitialise and free.
  *    :return: nothing
  */
 void
-pkgconf_client_free(pkgconf_client_t *client)
+pkgconf_client_free (pkgconf_client_t* client)
 {
-	pkgconf_client_deinit(client);
-	free(client);
+  pkgconf_client_deinit (client);
+  free (client);
 }
 
 /*
  * !doc
  *
- * .. c:function:: const char *pkgconf_client_get_sysroot_dir(const pkgconf_client_t *client)
+ * .. c:function:: const char *pkgconf_client_get_sysroot_dir(const
+ * pkgconf_client_t *client)
  *
  *    Retrieves the client's sysroot directory (if any).
  *
@@ -256,43 +283,54 @@ pkgconf_client_free(pkgconf_client_t *client)
  *    :return: A string containing the sysroot directory or NULL.
  *    :rtype: const char *
  */
-const char *
-pkgconf_client_get_sysroot_dir(const pkgconf_client_t *client)
+const char*
+pkgconf_client_get_sysroot_dir (const pkgconf_client_t* client)
 {
-	return client->sysroot_dir;
+  return client->sysroot_dir;
 }
 
 /*
  * !doc
  *
- * .. c:function:: void pkgconf_client_set_sysroot_dir(pkgconf_client_t *client, const char *sysroot_dir)
+ * .. c:function:: void pkgconf_client_set_sysroot_dir(pkgconf_client_t
+ * *client, const char *sysroot_dir)
  *
- *    Sets or clears the sysroot directory on a client object.  Any previous sysroot directory setting is
- *    automatically released if one was previously set.
+ *    Sets or clears the sysroot directory on a client object.  Any previous
+ * sysroot directory setting is automatically released if one was previously
+ * set.
  *
- *    Additionally, the global tuple ``$(pc_sysrootdir)`` is set as appropriate based on the new setting.
+ *    Additionally, the global tuple ``$(pc_sysrootdir)`` is set as
+ * appropriate based on the new setting.
  *
  *    :param pkgconf_client_t* client: The client object being modified.
  *    :param char* sysroot_dir: The sysroot directory to set or NULL to unset.
  *    :return: nothing
  */
 void
-pkgconf_client_set_sysroot_dir(pkgconf_client_t *client, const char *sysroot_dir)
+pkgconf_client_set_sysroot_dir (pkgconf_client_t* client,
+                                const char* sysroot_dir)
 {
-	if (client->sysroot_dir != NULL)
-		free(client->sysroot_dir);
+  if (client->sysroot_dir != NULL)
+    free (client->sysroot_dir);
 
-	client->sysroot_dir = sysroot_dir != NULL ? strdup(sysroot_dir) : NULL;
+  client->sysroot_dir = sysroot_dir != NULL ? strdup (sysroot_dir) : NULL;
 
-	PKGCONF_TRACE(client, "set sysroot_dir to: %s", client->sysroot_dir != NULL ? client->sysroot_dir : "<default>");
+  PKGCONF_TRACE (client,
+                 "set sysroot_dir to: %s",
+                 client->sysroot_dir != NULL ? client->sysroot_dir
+                                             : "<default>");
 
-	pkgconf_tuple_add_global(client, "pc_sysrootdir", client->sysroot_dir != NULL ? client->sysroot_dir : "/");
+  pkgconf_tuple_add_global (client,
+                            "pc_sysrootdir",
+                            client->sysroot_dir != NULL ? client->sysroot_dir
+                                                        : "/");
 }
 
 /*
  * !doc
  *
- * .. c:function:: const char *pkgconf_client_get_buildroot_dir(const pkgconf_client_t *client)
+ * .. c:function:: const char *pkgconf_client_get_buildroot_dir(const
+ * pkgconf_client_t *client)
  *
  *    Retrieves the client's buildroot directory (if any).
  *
@@ -300,315 +338,362 @@ pkgconf_client_set_sysroot_dir(pkgconf_client_t *client, const char *sysroot_dir
  *    :return: A string containing the buildroot directory or NULL.
  *    :rtype: const char *
  */
-const char *
-pkgconf_client_get_buildroot_dir(const pkgconf_client_t *client)
+const char*
+pkgconf_client_get_buildroot_dir (const pkgconf_client_t* client)
 {
-	return client->buildroot_dir;
+  return client->buildroot_dir;
 }
 
 /*
  * !doc
  *
- * .. c:function:: void pkgconf_client_set_buildroot_dir(pkgconf_client_t *client, const char *buildroot_dir)
+ * .. c:function:: void pkgconf_client_set_buildroot_dir(pkgconf_client_t
+ * *client, const char *buildroot_dir)
  *
- *    Sets or clears the buildroot directory on a client object.  Any previous buildroot directory setting is
- *    automatically released if one was previously set.
+ *    Sets or clears the buildroot directory on a client object.  Any previous
+ * buildroot directory setting is automatically released if one was previously
+ * set.
  *
- *    Additionally, the global tuple ``$(pc_top_builddir)`` is set as appropriate based on the new setting.
+ *    Additionally, the global tuple ``$(pc_top_builddir)`` is set as
+ * appropriate based on the new setting.
  *
  *    :param pkgconf_client_t* client: The client object being modified.
- *    :param char* buildroot_dir: The buildroot directory to set or NULL to unset.
- *    :return: nothing
+ *    :param char* buildroot_dir: The buildroot directory to set or NULL to
+ * unset. :return: nothing
  */
 void
-pkgconf_client_set_buildroot_dir(pkgconf_client_t *client, const char *buildroot_dir)
+pkgconf_client_set_buildroot_dir (pkgconf_client_t* client,
+                                  const char* buildroot_dir)
 {
-	if (client->buildroot_dir != NULL)
-		free(client->buildroot_dir);
+  if (client->buildroot_dir != NULL)
+    free (client->buildroot_dir);
 
-	client->buildroot_dir = buildroot_dir != NULL ? strdup(buildroot_dir) : NULL;
+  client->buildroot_dir =
+      buildroot_dir != NULL ? strdup (buildroot_dir) : NULL;
 
-	PKGCONF_TRACE(client, "set buildroot_dir to: %s", client->buildroot_dir != NULL ? client->buildroot_dir : "<default>");
+  PKGCONF_TRACE (client,
+                 "set buildroot_dir to: %s",
+                 client->buildroot_dir != NULL ? client->buildroot_dir
+                                               : "<default>");
 
-	pkgconf_tuple_add_global(client, "pc_top_builddir", client->buildroot_dir != NULL ? client->buildroot_dir : "$(top_builddir)");
+  pkgconf_tuple_add_global (client,
+                            "pc_top_builddir",
+                            client->buildroot_dir != NULL
+                                ? client->buildroot_dir
+                                : "$(top_builddir)");
 }
 
 /*
  * !doc
  *
- * .. c:function:: void pkgconf_error(const pkgconf_client_t *client, const char *format, ...)
+ * .. c:function:: void pkgconf_error(const pkgconf_client_t *client, const
+ * char *format, ...)
  *
  *    Report an error to a client-registered error handler.
  *
- *    :param pkgconf_client_t* client: The pkgconf client object to report the error to.
- *    :param char* format: A printf-style format string to use for formatting the error message.
- *    :return: nothing
+ *    :param pkgconf_client_t* client: The pkgconf client object to report the
+ * error to. :param char* format: A printf-style format string to use for
+ * formatting the error message. :return: nothing
  */
 void
-pkgconf_error(const pkgconf_client_t *client, const char *format, ...)
+pkgconf_error (const pkgconf_client_t* client, const char* format, ...)
 {
   if (client->error_handler != NULL)
   {
     char errbuf[PKGCONF_BUFSIZE];
     va_list va;
 
-    va_start(va, format);
-    vsnprintf(errbuf, sizeof errbuf, format, va);
-    va_end(va);
+    va_start (va, format);
+    vsnprintf (errbuf, sizeof errbuf, format, va);
+    va_end (va);
 
-    client->error_handler(errbuf, client, client->error_handler_data);
+    client->error_handler (errbuf, client, client->error_handler_data);
   }
 }
 
 /*
  * !doc
  *
- * .. c:function:: void pkgconf_warn(const pkgconf_client_t *client, const char *format, ...)
+ * .. c:function:: void pkgconf_warn(const pkgconf_client_t *client, const
+ * char *format, ...)
  *
  *    Report an error to a client-registered warn handler.
  *
- *    :param pkgconf_client_t* client: The pkgconf client object to report the error to.
- *    :param char* format: A printf-style format string to use for formatting the warning message.
- *    :return: nothing
+ *    :param pkgconf_client_t* client: The pkgconf client object to report the
+ * error to. :param char* format: A printf-style format string to use for
+ * formatting the warning message. :return: nothing
  */
 void
-pkgconf_warn(const pkgconf_client_t *client, const char *format, ...)
+pkgconf_warn (const pkgconf_client_t* client, const char* format, ...)
 {
   if (client->warn_handler != NULL)
   {
     char errbuf[PKGCONF_BUFSIZE];
     va_list va;
 
-    va_start(va, format);
-    vsnprintf(errbuf, sizeof errbuf, format, va);
-    va_end(va);
+    va_start (va, format);
+    vsnprintf (errbuf, sizeof errbuf, format, va);
+    va_end (va);
 
-    client->warn_handler(errbuf, client, client->warn_handler_data);
+    client->warn_handler (errbuf, client, client->warn_handler_data);
   }
 }
 
 /*
  * !doc
  *
- * .. c:function:: bool pkgconf_trace(const pkgconf_client_t *client, const char *filename, size_t len, const char *funcname, const char *format, ...)
+ * .. c:function:: bool pkgconf_trace(const pkgconf_client_t *client, const
+ * char *filename, size_t len, const char *funcname, const char *format, ...)
  *
  *    Report a message to a client-registered trace handler.
  *
- *    :param pkgconf_client_t* client: The pkgconf client object to report the trace message to.
- *    :param char* filename: The file the function is in.
+ *    :param pkgconf_client_t* client: The pkgconf client object to report the
+ * trace message to. :param char* filename: The file the function is in.
  *    :param size_t lineno: The line number currently being executed.
  *    :param char* funcname: The function name to use.
- *    :param char* format: A printf-style format string to use for formatting the trace message.
- *    :return: nothing
+ *    :param char* format: A printf-style format string to use for formatting
+ * the trace message. :return: nothing
  */
 void
-pkgconf_trace(const pkgconf_client_t *client, const char *filename, size_t lineno, const char *funcname, const char *format, ...)
+pkgconf_trace (const pkgconf_client_t* client,
+               const char* filename,
+               size_t lineno,
+               const char* funcname,
+               const char* format,
+               ...)
 {
-	if (client == NULL || client->trace_handler == NULL)
-		return;
+  if (client == NULL || client->trace_handler == NULL)
+    return;
 
 #ifndef LIBPKG_CONFIG_NTRACE
 
-        char errbuf[PKGCONF_BUFSIZE];
-	size_t len;
-	va_list va;
+  char errbuf[PKGCONF_BUFSIZE];
+  size_t len;
+  va_list va;
 
-	len = snprintf(errbuf, sizeof errbuf, "%s:" SIZE_FMT_SPECIFIER " [%s]: ", filename, lineno, funcname);
+  len = snprintf (errbuf,
+                  sizeof errbuf,
+                  "%s:" SIZE_FMT_SPECIFIER " [%s]: ",
+                  filename,
+                  lineno,
+                  funcname);
 
-	va_start(va, format);
-	vsnprintf(errbuf + len, sizeof(errbuf) - len, format, va);
-	va_end(va);
+  va_start (va, format);
+  vsnprintf (errbuf + len, sizeof (errbuf) - len, format, va);
+  va_end (va);
 
-	pkgconf_strlcat(errbuf, "\n", sizeof errbuf);
+  pkgconf_strlcat (errbuf, "\n", sizeof errbuf);
 
-	client->trace_handler(errbuf, client, client->trace_handler_data);
+  client->trace_handler (errbuf, client, client->trace_handler_data);
 #else
-        (void) client;
-        (void) filename;
-        (void) lineno;
-        (void) funcname;
-        (void) format;
+  (void)client;
+  (void)filename;
+  (void)lineno;
+  (void)funcname;
+  (void)format;
 #endif
 }
 
 /*
  * !doc
  *
- * .. c:function:: unsigned int pkgconf_client_get_flags(const pkgconf_client_t *client)
+ * .. c:function:: unsigned int pkgconf_client_get_flags(const
+ * pkgconf_client_t *client)
  *
  *    Retrieves resolver-specific flags associated with a client object.
  *
- *    :param pkgconf_client_t* client: The client object to retrieve the resolver-specific flags from.
- *    :return: a bitfield of resolver-specific flags
- *    :rtype: uint
+ *    :param pkgconf_client_t* client: The client object to retrieve the
+ * resolver-specific flags from. :return: a bitfield of resolver-specific
+ * flags :rtype: uint
  */
 unsigned int
-pkgconf_client_get_flags(const pkgconf_client_t *client)
+pkgconf_client_get_flags (const pkgconf_client_t* client)
 {
-	return client->flags;
+  return client->flags;
 }
 
 /*
  * !doc
  *
- * .. c:function:: void pkgconf_client_set_flags(pkgconf_client_t *client, unsigned int flags)
+ * .. c:function:: void pkgconf_client_set_flags(pkgconf_client_t *client,
+ * unsigned int flags)
  *
  *    Sets resolver-specific flags associated with a client object.
  *
- *    :param pkgconf_client_t* client: The client object to set the resolver-specific flags on.
- *    :return: nothing
+ *    :param pkgconf_client_t* client: The client object to set the
+ * resolver-specific flags on. :return: nothing
  */
 void
-pkgconf_client_set_flags(pkgconf_client_t *client, unsigned int flags)
+pkgconf_client_set_flags (pkgconf_client_t* client, unsigned int flags)
 {
-	client->flags = flags;
+  client->flags = flags;
 }
 
 /*
  * !doc
  *
- * .. c:function:: const char *pkgconf_client_get_prefix_varname(const pkgconf_client_t *client)
+ * .. c:function:: const char *pkgconf_client_get_prefix_varname(const
+ * pkgconf_client_t *client)
  *
- *    Retrieves the name of the variable that should contain a module's prefix.
- *    In some cases, it is necessary to override this variable to allow proper path relocation.
+ *    Retrieves the name of the variable that should contain a module's
+ * prefix. In some cases, it is necessary to override this variable to allow
+ * proper path relocation.
  *
- *    :param pkgconf_client_t* client: The client object to retrieve the prefix variable name from.
- *    :return: the prefix variable name as a string
+ *    :param pkgconf_client_t* client: The client object to retrieve the
+ * prefix variable name from. :return: the prefix variable name as a string
  *    :rtype: const char *
  */
-const char *
-pkgconf_client_get_prefix_varname(const pkgconf_client_t *client)
+const char*
+pkgconf_client_get_prefix_varname (const pkgconf_client_t* client)
 {
-	return client->prefix_varname;
+  return client->prefix_varname;
 }
 
 /*
  * !doc
  *
- * .. c:function:: void pkgconf_client_set_prefix_varname(pkgconf_client_t *client, const char *prefix_varname)
+ * .. c:function:: void pkgconf_client_set_prefix_varname(pkgconf_client_t
+ * *client, const char *prefix_varname)
  *
  *    Sets the name of the variable that should contain a module's prefix.
- *    If the variable name is ``NULL``, then the default variable name (``prefix``) is used.
+ *    If the variable name is ``NULL``, then the default variable name
+ * (``prefix``) is used.
  *
- *    :param pkgconf_client_t* client: The client object to set the prefix variable name on.
- *    :param char* prefix_varname: The prefix variable name to set.
- *    :return: nothing
+ *    :param pkgconf_client_t* client: The client object to set the prefix
+ * variable name on. :param char* prefix_varname: The prefix variable name to
+ * set. :return: nothing
  */
 void
-pkgconf_client_set_prefix_varname(pkgconf_client_t *client, const char *prefix_varname)
+pkgconf_client_set_prefix_varname (pkgconf_client_t* client,
+                                   const char* prefix_varname)
 {
-	if (prefix_varname == NULL)
-		prefix_varname = "prefix";
+  if (prefix_varname == NULL)
+    prefix_varname = "prefix";
 
-	if (client->prefix_varname != NULL)
-		free(client->prefix_varname);
+  if (client->prefix_varname != NULL)
+    free (client->prefix_varname);
 
-	client->prefix_varname = strdup(prefix_varname);
+  client->prefix_varname = strdup (prefix_varname);
 
-	PKGCONF_TRACE(client, "set prefix_varname to: %s", client->prefix_varname);
+  PKGCONF_TRACE (client, "set prefix_varname to: %s", client->prefix_varname);
 }
 
 /*
  * !doc
  *
- * .. c:function:: pkgconf_client_get_warn_handler(const pkgconf_client_t *client)
+ * .. c:function:: pkgconf_client_get_warn_handler(const pkgconf_client_t
+ * *client)
  *
  *    Returns the warning handler if one is set, else ``NULL``.
  *
- *    :param pkgconf_client_t* client: The client object to get the warn handler from.
- *    :return: a function pointer to the warn handler or ``NULL``
+ *    :param pkgconf_client_t* client: The client object to get the warn
+ * handler from. :return: a function pointer to the warn handler or ``NULL``
  */
 pkgconf_error_handler_func_t
-pkgconf_client_get_warn_handler(const pkgconf_client_t *client)
+pkgconf_client_get_warn_handler (const pkgconf_client_t* client)
 {
-	return client->warn_handler;
+  return client->warn_handler;
 }
 
 /*
  * !doc
  *
- * .. c:function:: pkgconf_client_set_warn_handler(pkgconf_client_t *client, pkgconf_error_handler_func_t warn_handler, void *warn_handler_data)
+ * .. c:function:: pkgconf_client_set_warn_handler(pkgconf_client_t *client,
+ * pkgconf_error_handler_func_t warn_handler, void *warn_handler_data)
  *
- *    Sets a warn handler on a client object or uninstalls one if set to ``NULL``.
+ *    Sets a warn handler on a client object or uninstalls one if set to
+ * ``NULL``.
  *
- *    :param pkgconf_client_t* client: The client object to set the warn handler on.
- *    :param pkgconf_error_handler_func_t warn_handler: The warn handler to set.
- *    :param void* warn_handler_data: Optional data to associate with the warn handler.
- *    :return: nothing
+ *    :param pkgconf_client_t* client: The client object to set the warn
+ * handler on. :param pkgconf_error_handler_func_t warn_handler: The warn
+ * handler to set. :param void* warn_handler_data: Optional data to associate
+ * with the warn handler. :return: nothing
  */
 void
-pkgconf_client_set_warn_handler(pkgconf_client_t *client, pkgconf_error_handler_func_t warn_handler, void *warn_handler_data)
+pkgconf_client_set_warn_handler (pkgconf_client_t* client,
+                                 pkgconf_error_handler_func_t warn_handler,
+                                 void* warn_handler_data)
 {
-	client->warn_handler = warn_handler;
-	client->warn_handler_data = warn_handler_data;
+  client->warn_handler = warn_handler;
+  client->warn_handler_data = warn_handler_data;
 }
 
 /*
  * !doc
  *
- * .. c:function:: pkgconf_client_get_error_handler(const pkgconf_client_t *client)
+ * .. c:function:: pkgconf_client_get_error_handler(const pkgconf_client_t
+ * *client)
  *
  *    Returns the error handler if one is set, else ``NULL``.
  *
- *    :param pkgconf_client_t* client: The client object to get the error handler from.
- *    :return: a function pointer to the error handler or ``NULL``
+ *    :param pkgconf_client_t* client: The client object to get the error
+ * handler from. :return: a function pointer to the error handler or ``NULL``
  */
 pkgconf_error_handler_func_t
-pkgconf_client_get_error_handler(const pkgconf_client_t *client)
+pkgconf_client_get_error_handler (const pkgconf_client_t* client)
 {
-	return client->error_handler;
+  return client->error_handler;
 }
 
 /*
  * !doc
  *
- * .. c:function:: pkgconf_client_set_error_handler(pkgconf_client_t *client, pkgconf_error_handler_func_t error_handler, void *error_handler_data)
+ * .. c:function:: pkgconf_client_set_error_handler(pkgconf_client_t *client,
+ * pkgconf_error_handler_func_t error_handler, void *error_handler_data)
  *
- *    Sets a warn handler on a client object or uninstalls one if set to ``NULL``.
+ *    Sets a warn handler on a client object or uninstalls one if set to
+ * ``NULL``.
  *
- *    :param pkgconf_client_t* client: The client object to set the error handler on.
- *    :param pkgconf_error_handler_func_t error_handler: The error handler to set.
- *    :param void* error_handler_data: Optional data to associate with the error handler.
- *    :return: nothing
+ *    :param pkgconf_client_t* client: The client object to set the error
+ * handler on. :param pkgconf_error_handler_func_t error_handler: The error
+ * handler to set. :param void* error_handler_data: Optional data to associate
+ * with the error handler. :return: nothing
  */
 void
-pkgconf_client_set_error_handler(pkgconf_client_t *client, pkgconf_error_handler_func_t error_handler, void *error_handler_data)
+pkgconf_client_set_error_handler (pkgconf_client_t* client,
+                                  pkgconf_error_handler_func_t error_handler,
+                                  void* error_handler_data)
 {
-	client->error_handler = error_handler;
-	client->error_handler_data = error_handler_data;
+  client->error_handler = error_handler;
+  client->error_handler_data = error_handler_data;
 }
 
 /*
  * !doc
  *
- * .. c:function:: pkgconf_client_get_trace_handler(const pkgconf_client_t *client)
+ * .. c:function:: pkgconf_client_get_trace_handler(const pkgconf_client_t
+ * *client)
  *
  *    Returns the error handler if one is set, else ``NULL``.
  *
- *    :param pkgconf_client_t* client: The client object to get the error handler from.
- *    :return: a function pointer to the error handler or ``NULL``
+ *    :param pkgconf_client_t* client: The client object to get the error
+ * handler from. :return: a function pointer to the error handler or ``NULL``
  */
 pkgconf_error_handler_func_t
-pkgconf_client_get_trace_handler(const pkgconf_client_t *client)
+pkgconf_client_get_trace_handler (const pkgconf_client_t* client)
 {
-	return client->trace_handler;
+  return client->trace_handler;
 }
 
 /*
  * !doc
  *
- * .. c:function:: pkgconf_client_set_trace_handler(pkgconf_client_t *client, pkgconf_error_handler_func_t trace_handler, void *trace_handler_data)
+ * .. c:function:: pkgconf_client_set_trace_handler(pkgconf_client_t *client,
+ * pkgconf_error_handler_func_t trace_handler, void *trace_handler_data)
  *
- *    Sets a warn handler on a client object or uninstalls one if set to ``NULL``.
+ *    Sets a warn handler on a client object or uninstalls one if set to
+ * ``NULL``.
  *
- *    :param pkgconf_client_t* client: The client object to set the error handler on.
- *    :param pkgconf_error_handler_func_t trace_handler: The error handler to set.
- *    :param void* trace_handler_data: Optional data to associate with the error handler.
- *    :return: nothing
+ *    :param pkgconf_client_t* client: The client object to set the error
+ * handler on. :param pkgconf_error_handler_func_t trace_handler: The error
+ * handler to set. :param void* trace_handler_data: Optional data to associate
+ * with the error handler. :return: nothing
  */
 void
-pkgconf_client_set_trace_handler(pkgconf_client_t *client, pkgconf_error_handler_func_t trace_handler, void *trace_handler_data)
+pkgconf_client_set_trace_handler (pkgconf_client_t* client,
+                                  pkgconf_error_handler_func_t trace_handler,
+                                  void* trace_handler_data)
 {
-	client->trace_handler = trace_handler;
-	client->trace_handler_data = trace_handler_data;
+  client->trace_handler = trace_handler;
+  client->trace_handler_data = trace_handler_data;
 }

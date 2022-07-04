@@ -40,7 +40,7 @@
 # define WIN32_LEAN_AND_MEAN
 # include <windows.h> /* @@ I wonder if we still need it? */
 # include <malloc.h>
-# define PATH_DEV_NULL	"nul"
+# define PATH_DEV_NULL "nul"
 
 # define strncasecmp _strnicmp
 # define strcasecmp _stricmp
@@ -50,12 +50,12 @@
  * accepts the standard (C99) 'z' modifier.
  */
 # if defined(__GNUC__) && __GNUC__ >= 10
-#  define SIZE_FMT_SPECIFIER	"%zu"
+#  define SIZE_FMT_SPECIFIER "%zu"
 # else
 #  ifdef _WIN64
-#   define SIZE_FMT_SPECIFIER	"%I64u"
+#   define SIZE_FMT_SPECIFIER "%I64u"
 #  else
-#   define SIZE_FMT_SPECIFIER	"%u"
+#   define SIZE_FMT_SPECIFIER "%u"
 #  endif
 # endif
 
@@ -71,8 +71,8 @@
 
 #else /* _WIN32 */
 
-# define PATH_DEV_NULL	"/dev/null"
-# define SIZE_FMT_SPECIFIER	"%zu"
+# define PATH_DEV_NULL "/dev/null"
+# define SIZE_FMT_SPECIFIER "%zu"
 # include <unistd.h>
 # include <limits.h>
 # ifdef PATH_MAX
@@ -82,7 +82,7 @@
 # endif
 #endif
 
-#define PKGCONF_BUFSIZE	(65535)
+#define PKGCONF_BUFSIZE (65535)
 
 #define PKGCONF_ARRAY_SIZE(x) (sizeof(x) / sizeof(*(x)))
 
@@ -96,20 +96,20 @@
 #ifndef LIBPKG_CONFIG_NTRACE
 #if defined(__GNUC__) || defined(__INTEL_COMPILER)
 #define PKGCONF_TRACE(client, ...) do { \
-		pkgconf_trace(client, __FILE__, __LINE__, __PRETTY_FUNCTION__, __VA_ARGS__); \
-	} while (0)
+    pkgconf_trace(client, __FILE__, __LINE__, __PRETTY_FUNCTION__, __VA_ARGS__); \
+  } while (0)
 #else
 #define PKGCONF_TRACE(client, ...) do { \
-		pkgconf_trace(client, __FILE__, __LINE__, __func__, __VA_ARGS__); \
-	} while (0)
+    pkgconf_trace(client, __FILE__, __LINE__, __func__, __VA_ARGS__);   \
+  } while (0)
 #endif
 #else
 #define PKGCONF_TRACE(client, ...) do {} while (0)
 #endif
 
 #ifdef _WIN32
-#	undef PKG_DEFAULT_PATH
-#	define PKG_DEFAULT_PATH "../lib/pkgconfig;../share/pkgconfig"
+#  undef PKG_DEFAULT_PATH
+#  define PKG_DEFAULT_PATH "../lib/pkgconfig;../share/pkgconfig"
 #endif
 
 #define PKG_CONFIG_EXT ".pc"

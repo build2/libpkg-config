@@ -26,29 +26,32 @@
  * Returns strlen(src); if retval >= siz, truncation occurred.
  */
 static inline size_t
-strlcpy(char *dst, const char *src, size_t siz)
+strlcpy (char* dst, const char* src, size_t siz)
 {
-	char *d = dst;
-	const char *s = src;
-	size_t n = siz;
+  char* d = dst;
+  const char* s = src;
+  size_t n = siz;
 
-	/* Copy as many bytes as will fit */
-	if (n != 0) {
-		while (--n != 0) {
-			if ((*d++ = *s++) == '\0')
-				break;
-		}
-	}
+  /* Copy as many bytes as will fit */
+  if (n != 0)
+  {
+    while (--n != 0)
+    {
+      if ((*d++ = *s++) == '\0')
+        break;
+    }
+  }
 
-	/* Not enough room in dst, add NUL and traverse rest of src */
-	if (n == 0) {
-		if (siz != 0)
-			*d = '\0';		/* NUL-terminate dst */
-		while (*s++)
-			;
-	}
+  /* Not enough room in dst, add NUL and traverse rest of src */
+  if (n == 0)
+  {
+    if (siz != 0)
+      *d = '\0'; /* NUL-terminate dst */
+    while (*s++)
+      ;
+  }
 
-	return(s - src - 1);	/* count does not include NUL */
+  return (s - src - 1); /* count does not include NUL */
 }
 #endif
 
@@ -61,31 +64,32 @@ strlcpy(char *dst, const char *src, size_t siz)
  * If retval >= siz, truncation occurred.
  */
 static inline size_t
-strlcat(char *dst, const char *src, size_t siz)
+strlcat (char* dst, const char* src, size_t siz)
 {
-	char *d = dst;
-	const char *s = src;
-	size_t n = siz;
-	size_t dlen;
+  char* d = dst;
+  const char* s = src;
+  size_t n = siz;
+  size_t dlen;
 
-	/* Find the end of dst and adjust bytes left but don't go past end */
-	while (n-- != 0 && *d != '\0')
-		d++;
-	dlen = d - dst;
-	n = siz - dlen;
+  /* Find the end of dst and adjust bytes left but don't go past end */
+  while (n-- != 0 && *d != '\0') d++;
+  dlen = d - dst;
+  n = siz - dlen;
 
-	if (n == 0)
-		return(dlen + strlen(s));
-	while (*s != '\0') {
-		if (n != 1) {
-			*d++ = *s;
-			n--;
-		}
-		s++;
-	}
-	*d = '\0';
+  if (n == 0)
+    return (dlen + strlen (s));
+  while (*s != '\0')
+  {
+    if (n != 1)
+    {
+      *d++ = *s;
+      n--;
+    }
+    s++;
+  }
+  *d = '\0';
 
-	return(dlen + (s - src));	/* count does not include NUL */
+  return (dlen + (s - src)); /* count does not include NUL */
 }
 #endif
 
@@ -94,29 +98,29 @@ strlcat(char *dst, const char *src, size_t siz)
  * Creates a memory buffer and copies at most 'len' characters to it.
  * If 'len' is less than the length of the source string, truncation occured.
  */
-static inline char *
-strndup(const char *src, size_t len)
+static inline char*
+strndup (const char* src, size_t len)
 {
-	char *out = malloc(len + 1);
-	pkgconf_strlcpy(out, src, len + 1);
-	return out;
+  char* out = malloc (len + 1);
+  pkgconf_strlcpy (out, src, len + 1);
+  return out;
 }
 #endif
 
 size_t
-pkgconf_strlcpy(char *dst, const char *src, size_t siz)
+pkgconf_strlcpy (char* dst, const char* src, size_t siz)
 {
-	return strlcpy(dst, src, siz);
+  return strlcpy (dst, src, siz);
 }
 
 size_t
-pkgconf_strlcat(char *dst, const char *src, size_t siz)
+pkgconf_strlcat (char* dst, const char* src, size_t siz)
 {
-	return strlcat(dst, src, siz);
+  return strlcat (dst, src, siz);
 }
 
-char *
-pkgconf_strndup(const char *src, size_t len)
+char*
+pkgconf_strndup (const char* src, size_t len)
 {
-	return strndup(src, len);
+  return strndup (src, len);
 }
