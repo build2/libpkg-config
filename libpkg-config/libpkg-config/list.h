@@ -23,34 +23,40 @@
 #define LIBPKG_CONFIG_LIST_H
 
 #ifdef __cplusplus
-extern "C" {
+extern "C"
+{
 #endif
 
 typedef struct pkgconf_node_ pkgconf_node_t;
 
-struct pkgconf_node_ {
-	pkgconf_node_t *prev, *next;
-	void *data;
+struct pkgconf_node_
+{
+  pkgconf_node_t *prev, *next;
+  void* data;
 };
 
-typedef struct {
-	pkgconf_node_t *head, *tail;
-	size_t length;
+typedef struct
+{
+  pkgconf_node_t *head, *tail;
+  size_t length;
 } pkgconf_list_t;
 
-#define LIBPKG_CONFIG_LIST_INITIALIZER { NULL, NULL, 0 }
+#define LIBPKG_CONFIG_LIST_INITIALIZER {NULL, NULL, 0}
 
-#define LIBPKG_CONFIG_FOREACH_LIST_ENTRY(head, value) \
-	for ((value) = (head); (value) != NULL; (value) = (value)->next)
+#define LIBPKG_CONFIG_FOREACH_LIST_ENTRY(head, value)                   \
+  for ((value) = (head); (value) != NULL; (value) = (value)->next)
 
-#define LIBPKG_CONFIG_FOREACH_LIST_ENTRY_SAFE(head, nextiter, value) \
-	for ((value) = (head), (nextiter) = (head) != NULL ? (head)->next : NULL; (value) != NULL; (value) = (nextiter), (nextiter) = (nextiter) != NULL ? (nextiter)->next : NULL)
+#define LIBPKG_CONFIG_FOREACH_LIST_ENTRY_SAFE(head, nextiter, value)        \
+  for ((value) = (head), (nextiter) = (head) != NULL ? (head)->next : NULL; \
+       (value) != NULL;                                                     \
+       (value) = (nextiter),                                                \
+         (nextiter) = (nextiter) != NULL ? (nextiter)->next : NULL)
 
-#define LIBPKG_CONFIG_FOREACH_LIST_ENTRY_REVERSE(tail, value) \
-	for ((value) = (tail); (value) != NULL; (value) = (value)->prev)
+#define LIBPKG_CONFIG_FOREACH_LIST_ENTRY_REVERSE(tail, value)           \
+  for ((value) = (tail); (value) != NULL; (value) = (value)->prev)
 
 static inline void
-pkgconf_list_zero(pkgconf_list_t *list)
+pkgconf_list_zero (pkgconf_list_t* list)
 {
   list->head = NULL;
   list->tail = NULL;
@@ -58,67 +64,69 @@ pkgconf_list_zero(pkgconf_list_t *list)
 }
 
 static inline void
-pkgconf_node_insert(pkgconf_node_t *node, void *data, pkgconf_list_t *list)
+pkgconf_node_insert (pkgconf_node_t* node, void* data, pkgconf_list_t* list)
 {
-	pkgconf_node_t *tnode;
+  pkgconf_node_t* tnode;
 
-	node->data = data;
+  node->data = data;
 
-	if (list->head == NULL)
-	{
-		list->head = node;
-		list->tail = node;
-		list->length = 1;
-		return;
-	}
+  if (list->head == NULL)
+  {
+    list->head = node;
+    list->tail = node;
+    list->length = 1;
+    return;
+  }
 
-	tnode = list->head;
+  tnode = list->head;
 
-	node->next = tnode;
-	tnode->prev = node;
+  node->next = tnode;
+  tnode->prev = node;
 
-	list->head = node;
-	list->length++;
+  list->head = node;
+  list->length++;
 }
 
 static inline void
-pkgconf_node_insert_tail(pkgconf_node_t *node, void *data, pkgconf_list_t *list)
+pkgconf_node_insert_tail (pkgconf_node_t* node,
+                          void* data,
+                          pkgconf_list_t* list)
 {
-	pkgconf_node_t *tnode;
+  pkgconf_node_t* tnode;
 
-	node->data = data;
+  node->data = data;
 
-	if (list->tail == NULL)
-	{
-		list->head = node;
-		list->tail = node;
-		list->length = 1;
-		return;
-	}
+  if (list->tail == NULL)
+  {
+    list->head = node;
+    list->tail = node;
+    list->length = 1;
+    return;
+  }
 
-	tnode = list->tail;
+  tnode = list->tail;
 
-	node->prev = tnode;
-	tnode->next = node;
+  node->prev = tnode;
+  tnode->next = node;
 
-	list->tail = node;
-	list->length++;
+  list->tail = node;
+  list->length++;
 }
 
 static inline void
-pkgconf_node_delete(pkgconf_node_t *node, pkgconf_list_t *list)
+pkgconf_node_delete (pkgconf_node_t* node, pkgconf_list_t* list)
 {
-	list->length--;
+  list->length--;
 
-	if (node->prev == NULL)
-		list->head = node->next;
-	else
-		node->prev->next = node->next;
+  if (node->prev == NULL)
+    list->head = node->next;
+  else
+    node->prev->next = node->next;
 
-	if (node->next == NULL)
-		list->tail = node->prev;
-	else
-		node->next->prev = node->prev;
+  if (node->next == NULL)
+    list->tail = node->prev;
+  else
+    node->next->prev = node->prev;
 }
 
 #ifdef __cplusplus
