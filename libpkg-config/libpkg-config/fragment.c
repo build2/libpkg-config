@@ -35,38 +35,38 @@
  * and reorderable.
  */
 
-struct pkgconf_fragment_check
+struct pkg_config_fragment_check
 {
   char* token;
   size_t len;
 };
 
-static const struct pkgconf_fragment_check check_fragments[] = {
-    {"-framework", 10},
-    {"-isystem", 8},
-    {"-idirafter", 10},
-    {"-pthread", 8},
-    {"-Wa,", 4},
-    {"-Wl,", 4},
-    {"-Wp,", 4},
-    {"-trigraphs", 10},
-    {"-pedantic", 9},
-    {"-ansi", 5},
-    {"-std=", 5},
-    {"-stdlib=", 8},
-    {"-include", 8},
-    {"-nostdinc", 9},
-    {"-nostdlibinc", 12},
-    {"-nobuiltininc", 13}};
+static const struct pkg_config_fragment_check check_fragments[] = {
+  {"-framework", 10},
+  {"-isystem", 8},
+  {"-idirafter", 10},
+  {"-pthread", 8},
+  {"-Wa,", 4},
+  {"-Wl,", 4},
+  {"-Wp,", 4},
+  {"-trigraphs", 10},
+  {"-pedantic", 9},
+  {"-ansi", 5},
+  {"-std=", 5},
+  {"-stdlib=", 8},
+  {"-include", 8},
+  {"-nostdinc", 9},
+  {"-nostdlibinc", 12},
+  {"-nobuiltininc", 13}};
 
 static inline bool
-pkgconf_fragment_is_unmergeable (const char* string)
+pkg_config_fragment_is_unmergeable (const char* string)
 {
   if (*string != '-')
     return true;
 
   size_t i;
-  for (i = 0; i < PKGCONF_ARRAY_SIZE (check_fragments); i++)
+  for (i = 0; i < PKG_CONFIG_ARRAY_SIZE (check_fragments); i++)
     if (!strncmp (string, check_fragments[i].token, check_fragments[i].len))
       return true;
 
@@ -78,7 +78,7 @@ pkgconf_fragment_is_unmergeable (const char* string)
 }
 
 static inline bool
-pkgconf_fragment_should_munge (const char* string, const char* sysroot_dir)
+pkg_config_fragment_should_munge (const char* string, const char* sysroot_dir)
 {
   if (*string != '/')
     return false;
@@ -91,7 +91,7 @@ pkgconf_fragment_should_munge (const char* string, const char* sysroot_dir)
 }
 
 static inline bool
-pkgconf_fragment_is_special (const char* string)
+pkg_config_fragment_is_special (const char* string)
 {
   if (*string != '-')
     return true;
@@ -99,38 +99,38 @@ pkgconf_fragment_is_special (const char* string)
   if (!strncmp (string, "-lib:", 5))
     return true;
 
-  return pkgconf_fragment_is_unmergeable (string);
+  return pkg_config_fragment_is_unmergeable (string);
 }
 
 static inline void
-pkgconf_fragment_munge (const pkgconf_client_t* client,
-                        char* buf,
-                        size_t buflen,
-                        const char* source,
-                        const char* sysroot_dir)
+pkg_config_fragment_munge (const pkg_config_client_t* client,
+                           char* buf,
+                           size_t buflen,
+                           const char* source,
+                           const char* sysroot_dir)
 {
   *buf = '\0';
 
   if (sysroot_dir == NULL)
-    sysroot_dir = pkgconf_tuple_find_global (client, "pc_sysrootdir");
+    sysroot_dir = pkg_config_tuple_find_global (client, "pc_sysrootdir");
 
   if (sysroot_dir != NULL &&
-      pkgconf_fragment_should_munge (source, sysroot_dir))
-    pkgconf_strlcat (buf, sysroot_dir, buflen);
+      pkg_config_fragment_should_munge (source, sysroot_dir))
+    pkg_config_strlcat (buf, sysroot_dir, buflen);
 
-  pkgconf_strlcat (buf, source, buflen);
+  pkg_config_strlcat (buf, source, buflen);
 
   if (*buf == '/' &&
       !(client->flags & LIBPKG_CONFIG_PKG_PKGF_DONT_RELOCATE_PATHS))
-    pkgconf_path_relocate (buf, buflen);
+    pkg_config_path_relocate (buf, buflen);
 }
 
 static inline char*
-pkgconf_fragment_copy_munged (const pkgconf_client_t* client,
-                              const char* source)
+pkg_config_fragment_copy_munged (const pkg_config_client_t* client,
+                                 const char* source)
 {
-  char mungebuf[PKGCONF_ITEM_SIZE];
-  pkgconf_fragment_munge (
+  char mungebuf[PKG_CONFIG_ITEM_SIZE];
+  pkg_config_fragment_munge (
       client, mungebuf, sizeof mungebuf, source, client->sysroot_dir);
   return strdup (mungebuf);
 }
@@ -138,28 +138,28 @@ pkgconf_fragment_copy_munged (const pkgconf_client_t* client,
 /*
  * !doc
  *
- * .. c:function:: void pkgconf_fragment_add(const pkgconf_client_t *client,
- * pkgconf_list_t *list, const char *string)
+ * .. c:function:: void pkg_config_fragment_add(const pkg_config_client_t
+ * *client, pkg_config_list_t *list, const char *string)
  *
  *    Adds a `fragment` of text to a `fragment list`, possibly modifying the
  * fragment if a sysroot is set.
  *
- *    :param pkgconf_client_t* client: The pkgconf client being accessed.
- *    :param pkgconf_list_t* list: The fragment list.
- *    :param char* string: The string of text to add as a fragment to the
- * fragment list. :return: nothing
+ *    :param pkg_config_client_t* client: The pkg-config client being
+ * accessed. :param pkg_config_list_t* list: The fragment list. :param char*
+ * string: The string of text to add as a fragment to the fragment list.
+ * :return: nothing
  */
 void
-pkgconf_fragment_add (const pkgconf_client_t* client,
-                      pkgconf_list_t* list,
-                      const char* string)
+pkg_config_fragment_add (const pkg_config_client_t* client,
+                         pkg_config_list_t* list,
+                         const char* string)
 {
-  pkgconf_fragment_t* frag;
+  pkg_config_fragment_t* frag;
 
   if (*string == '\0')
     return;
 
-  if (strlen (string) > 1 && !pkgconf_fragment_is_special (string))
+  if (strlen (string) > 1 && !pkg_config_fragment_is_special (string))
   {
     /* If the previous fragment is of the -I, -L, -F, or -l type and has no
      * path specified, then consider the current fragment as a separately
@@ -168,11 +168,10 @@ pkgconf_fragment_add (const pkgconf_client_t* client,
     char type;
     const char* data;
 
-    pkgconf_fragment_t* p = list->tail != NULL ? list->tail->data : NULL;
+    pkg_config_fragment_t* p = list->tail != NULL ? list->tail->data : NULL;
     char t = p != NULL ? p->type : '\0';
 
-    if (p != NULL                                      &&
-        (t == 'I' || t == 'L' || t == 'F' || t == 'l') &&
+    if (p != NULL && (t == 'I' || t == 'L' || t == 'F' || t == 'l') &&
         p->data[0] == '\0')
     {
       type = '\0';
@@ -184,43 +183,43 @@ pkgconf_fragment_add (const pkgconf_client_t* client,
       data = string + 2;
     }
 
-    frag = calloc (sizeof (pkgconf_fragment_t), 1);
+    frag = calloc (sizeof (pkg_config_fragment_t), 1);
 
     frag->type = type;
-    frag->data = pkgconf_fragment_copy_munged (client, data);
+    frag->data = pkg_config_fragment_copy_munged (client, data);
 
-    PKGCONF_TRACE (client,
-                   "added fragment {%c, '%s'} to list @%p",
-                   frag->type,
-                   frag->data,
-                   list);
+    PKG_CONFIG_TRACE (client,
+                      "added fragment {%c, '%s'} to list @%p",
+                      frag->type,
+                      frag->data,
+                      list);
   }
   else
   {
-    char mungebuf[PKGCONF_ITEM_SIZE];
+    char mungebuf[PKG_CONFIG_ITEM_SIZE];
 
     if (list->tail != NULL && list->tail->data != NULL &&
         (client->flags & LIBPKG_CONFIG_PKG_PKGF_MERGE_SPECIAL_FRAGMENTS) != 0)
     {
-      pkgconf_fragment_t* parent = list->tail->data;
+      pkg_config_fragment_t* parent = list->tail->data;
 
       /* only attempt to merge 'special' fragments together */
-      if (!parent->type && pkgconf_fragment_is_unmergeable (parent->data))
+      if (!parent->type && pkg_config_fragment_is_unmergeable (parent->data))
       {
         size_t len;
         char* newdata;
 
-        pkgconf_fragment_munge (
+        pkg_config_fragment_munge (
             client, mungebuf, sizeof mungebuf, string, NULL);
 
         len = strlen (parent->data) + strlen (mungebuf) + 2;
         newdata = malloc (len);
 
-        pkgconf_strlcpy (newdata, parent->data, len);
-        pkgconf_strlcat (newdata, " ", len);
-        pkgconf_strlcat (newdata, mungebuf, len);
+        pkg_config_strlcpy (newdata, parent->data, len);
+        pkg_config_strlcat (newdata, " ", len);
+        pkg_config_strlcat (newdata, mungebuf, len);
 
-        PKGCONF_TRACE (
+        PKG_CONFIG_TRACE (
             client,
             "merging '%s' to '%s' to form fragment {'%s'} in list @%p",
             mungebuf,
@@ -233,8 +232,8 @@ pkgconf_fragment_add (const pkgconf_client_t* client,
         parent->merged = true;
 
         /* use a copy operation to force a dedup */
-        pkgconf_node_delete (&parent->iter, list);
-        pkgconf_fragment_copy (client, list, parent, false);
+        pkg_config_node_delete (&parent->iter, list);
+        pkg_config_fragment_copy (client, list, parent, false);
 
         /* the fragment list now (maybe) has the copied node, so free the
          * original */
@@ -245,28 +244,29 @@ pkgconf_fragment_add (const pkgconf_client_t* client,
       }
     }
 
-    frag = calloc (sizeof (pkgconf_fragment_t), 1);
+    frag = calloc (sizeof (pkg_config_fragment_t), 1);
 
     frag->type = 0;
     frag->data = strdup (string);
 
-    PKGCONF_TRACE (client,
-                   "created special fragment {'%s'} in list @%p",
-                   frag->data,
-                   list);
+    PKG_CONFIG_TRACE (client,
+                      "created special fragment {'%s'} in list @%p",
+                      frag->data,
+                      list);
   }
 
-  pkgconf_node_insert_tail (&frag->iter, frag, list);
+  pkg_config_node_insert_tail (&frag->iter, frag, list);
 }
 
-static inline pkgconf_fragment_t*
-pkgconf_fragment_lookup (pkgconf_list_t* list, const pkgconf_fragment_t* base)
+static inline pkg_config_fragment_t*
+pkg_config_fragment_lookup (pkg_config_list_t* list,
+                            const pkg_config_fragment_t* base)
 {
-  pkgconf_node_t* node;
+  pkg_config_node_t* node;
 
   LIBPKG_CONFIG_FOREACH_LIST_ENTRY_REVERSE (list->tail, node)
   {
-    pkgconf_fragment_t* frag = node->data;
+    pkg_config_fragment_t* frag = node->data;
 
     if (base->type != frag->type)
       continue;
@@ -279,9 +279,9 @@ pkgconf_fragment_lookup (pkgconf_list_t* list, const pkgconf_fragment_t* base)
 }
 
 static inline bool
-pkgconf_fragment_can_merge_back (const pkgconf_fragment_t* base,
-                                 unsigned int flags,
-                                 bool is_private)
+pkg_config_fragment_can_merge_back (const pkg_config_fragment_t* base,
+                                    unsigned int flags,
+                                    bool is_private)
 {
   (void)flags;
 
@@ -304,37 +304,37 @@ pkgconf_fragment_can_merge_back (const pkgconf_fragment_t* base,
 }
 
 static inline bool
-pkgconf_fragment_can_merge (const pkgconf_fragment_t* base,
-                            unsigned int flags,
-                            bool is_private)
+pkg_config_fragment_can_merge (const pkg_config_fragment_t* base,
+                               unsigned int flags,
+                               bool is_private)
 {
   (void)flags;
 
   if (is_private)
     return false;
 
-  return pkgconf_fragment_is_unmergeable (base->data);
+  return pkg_config_fragment_is_unmergeable (base->data);
 }
 
-static inline pkgconf_fragment_t*
-pkgconf_fragment_exists (pkgconf_list_t* list,
-                         const pkgconf_fragment_t* base,
-                         unsigned int flags,
-                         bool is_private)
+static inline pkg_config_fragment_t*
+pkg_config_fragment_exists (pkg_config_list_t* list,
+                            const pkg_config_fragment_t* base,
+                            unsigned int flags,
+                            bool is_private)
 {
-  if (!pkgconf_fragment_can_merge_back (base, flags, is_private))
+  if (!pkg_config_fragment_can_merge_back (base, flags, is_private))
     return NULL;
 
-  if (!pkgconf_fragment_can_merge (base, flags, is_private))
+  if (!pkg_config_fragment_can_merge (base, flags, is_private))
     return NULL;
 
-  return pkgconf_fragment_lookup (list, base);
+  return pkg_config_fragment_lookup (list, base);
 }
 
 static inline bool
-pkgconf_fragment_should_merge (const pkgconf_fragment_t* base)
+pkg_config_fragment_should_merge (const pkg_config_fragment_t* base)
 {
-  const pkgconf_fragment_t* parent;
+  const pkg_config_fragment_t* parent;
 
   /* if we are the first fragment, that means the next fragment is the same,
    * so it's always safe. */
@@ -360,24 +360,24 @@ pkgconf_fragment_should_merge (const pkgconf_fragment_t* base)
 /*
  * !doc
  *
- * .. c:function:: bool pkgconf_fragment_has_system_dir(const pkgconf_client_t
- * *client, const pkgconf_fragment_t *frag)
+ * .. c:function:: bool pkg_config_fragment_has_system_dir(const
+ * pkg_config_client_t *client, const pkg_config_fragment_t *frag)
  *
  *    Checks if a `fragment` contains a `system path`.  System paths are
  * detected at compile time and optionally overridden by the
  * ``PKG_CONFIG_SYSTEM_INCLUDE_PATH`` and ``PKG_CONFIG_SYSTEM_LIBRARY_PATH``
  * environment variables.
  *
- *    :param pkgconf_client_t* client: The pkgconf client object the fragment
- * belongs to. :param pkgconf_fragment_t* frag: The fragment being checked.
- *    :return: true if the fragment contains a system path, else false
+ *    :param pkg_config_client_t* client: The pkg-config client object the
+ * fragment belongs to. :param pkg_config_fragment_t* frag: The fragment being
+ * checked. :return: true if the fragment contains a system path, else false
  *    :rtype: bool
  */
 bool
-pkgconf_fragment_has_system_dir (const pkgconf_client_t* client,
-                                 const pkgconf_fragment_t* frag)
+pkg_config_fragment_has_system_dir (const pkg_config_client_t* client,
+                                    const pkg_config_fragment_t* frag)
 {
-  const pkgconf_list_t* check_paths = NULL;
+  const pkg_config_list_t* check_paths = NULL;
 
   switch (frag->type)
   {
@@ -391,123 +391,125 @@ pkgconf_fragment_has_system_dir (const pkgconf_client_t* client,
     return false;
   }
 
-  return pkgconf_path_match_list (frag->data, check_paths);
+  return pkg_config_path_match_list (frag->data, check_paths);
 }
 
 /*
  * !doc
  *
- * .. c:function:: void pkgconf_fragment_copy(const pkgconf_client_t *client,
- * pkgconf_list_t *list, const pkgconf_fragment_t *base, bool is_private)
+ * .. c:function:: void pkg_config_fragment_copy(const pkg_config_client_t
+ * *client, pkg_config_list_t *list, const pkg_config_fragment_t *base, bool
+ * is_private)
  *
  *    Copies a `fragment` to another `fragment list`, possibly removing a
  * previous copy of the `fragment` in a process known as `mergeback`.
  *
- *    :param pkgconf_client_t* client: The pkgconf client being accessed.
- *    :param pkgconf_list_t* list: The list the fragment is being added to.
- *    :param pkgconf_fragment_t* base: The fragment being copied.
+ *    :param pkg_config_client_t* client: The pkg-config client being
+ * accessed. :param pkg_config_list_t* list: The list the fragment is being
+ * added to. :param pkg_config_fragment_t* base: The fragment being copied.
  *    :param bool is_private: Whether the fragment list is a `private`
  * fragment list (static linking). :return: nothing
  */
 void
-pkgconf_fragment_copy (const pkgconf_client_t* client,
-                       pkgconf_list_t* list,
-                       const pkgconf_fragment_t* base,
-                       bool is_private)
+pkg_config_fragment_copy (const pkg_config_client_t* client,
+                          pkg_config_list_t* list,
+                          const pkg_config_fragment_t* base,
+                          bool is_private)
 {
-  pkgconf_fragment_t* frag;
+  pkg_config_fragment_t* frag;
 
   if ((client->flags & LIBPKG_CONFIG_PKG_PKGF_MERGE_SPECIAL_FRAGMENTS) != 0)
   {
-    if ((frag = pkgconf_fragment_exists (
+    if ((frag = pkg_config_fragment_exists (
              list, base, client->flags, is_private)) != NULL)
     {
-      if (pkgconf_fragment_should_merge (frag))
-        pkgconf_fragment_delete (list, frag);
+      if (pkg_config_fragment_should_merge (frag))
+        pkg_config_fragment_delete (list, frag);
     }
     else if (!is_private &&
-             !pkgconf_fragment_can_merge_back (
+             !pkg_config_fragment_can_merge_back (
                  base, client->flags, is_private) &&
-             (pkgconf_fragment_lookup (list, base) != NULL))
+             (pkg_config_fragment_lookup (list, base) != NULL))
       return;
   }
 
-  frag = calloc (sizeof (pkgconf_fragment_t), 1);
+  frag = calloc (sizeof (pkg_config_fragment_t), 1);
 
   frag->type = base->type;
   frag->merged = base->merged;
   if (base->data != NULL)
     frag->data = strdup (base->data);
 
-  pkgconf_node_insert_tail (&frag->iter, frag, list);
+  pkg_config_node_insert_tail (&frag->iter, frag, list);
 }
 
 /*
  * !doc
  *
- * .. c:function:: void pkgconf_fragment_copy_list(const pkgconf_client_t
- * *client, pkgconf_list_t *list, const pkgconf_list_t *base)
+ * .. c:function:: void pkg_config_fragment_copy_list(const
+ * pkg_config_client_t *client, pkg_config_list_t *list, const
+ * pkg_config_list_t *base)
  *
  *    Copies a `fragment list` to another `fragment list`, possibly removing a
  * previous copy of the fragments in a process known as `mergeback`.
  *
- *    :param pkgconf_client_t* client: The pkgconf client being accessed.
- *    :param pkgconf_list_t* list: The list the fragments are being added to.
- *    :param pkgconf_list_t* base: The list the fragments are being copied
- * from. :return: nothing
+ *    :param pkg_config_client_t* client: The pkg-config client being
+ * accessed. :param pkg_config_list_t* list: The list the fragments are being
+ * added to. :param pkg_config_list_t* base: The list the fragments are being
+ * copied from. :return: nothing
  */
 void
-pkgconf_fragment_copy_list (const pkgconf_client_t* client,
-                            pkgconf_list_t* list,
-                            const pkgconf_list_t* base)
+pkg_config_fragment_copy_list (const pkg_config_client_t* client,
+                               pkg_config_list_t* list,
+                               const pkg_config_list_t* base)
 {
-  pkgconf_node_t* node;
+  pkg_config_node_t* node;
 
   LIBPKG_CONFIG_FOREACH_LIST_ENTRY (base->head, node)
   {
-    pkgconf_fragment_t* frag = node->data;
+    pkg_config_fragment_t* frag = node->data;
 
-    pkgconf_fragment_copy (client, list, frag, true);
+    pkg_config_fragment_copy (client, list, frag, true);
   }
 }
 
 /*
  * !doc
  *
- * .. c:function:: void pkgconf_fragment_filter(const pkgconf_client_t
- * *client, pkgconf_list_t *dest, pkgconf_list_t *src,
- * pkgconf_fragment_filter_func_t filter_func)
+ * .. c:function:: void pkg_config_fragment_filter(const pkg_config_client_t
+ * *client, pkg_config_list_t *dest, pkg_config_list_t *src,
+ * pkg_config_fragment_filter_func_t filter_func)
  *
  *    Copies a `fragment list` to another `fragment list` which match a
  * user-specified filtering function.
  *
- *    :param pkgconf_client_t* client: The pkgconf client being accessed.
- *    :param pkgconf_list_t* dest: The destination list.
- *    :param pkgconf_list_t* src: The source list.
- *    :param pkgconf_fragment_filter_func_t filter_func: The filter function
- * to use. :param void* data: Optional data to pass to the filter function.
- *    :return: nothing
+ *    :param pkg_config_client_t* client: The pkg-config client being
+ * accessed. :param pkg_config_list_t* dest: The destination list. :param
+ * pkg_config_list_t* src: The source list. :param
+ * pkg_config_fragment_filter_func_t filter_func: The filter function to use.
+ * :param void* data: Optional data to pass to the filter function. :return:
+ * nothing
  */
 void
-pkgconf_fragment_filter (const pkgconf_client_t* client,
-                         pkgconf_list_t* dest,
-                         pkgconf_list_t* src,
-                         pkgconf_fragment_filter_func_t filter_func,
-                         void* data)
+pkg_config_fragment_filter (const pkg_config_client_t* client,
+                            pkg_config_list_t* dest,
+                            pkg_config_list_t* src,
+                            pkg_config_fragment_filter_func_t filter_func,
+                            void* data)
 {
-  pkgconf_node_t* node;
+  pkg_config_node_t* node;
 
   LIBPKG_CONFIG_FOREACH_LIST_ENTRY (src->head, node)
   {
-    pkgconf_fragment_t* frag = node->data;
+    pkg_config_fragment_t* frag = node->data;
 
     if (filter_func (client, frag, data))
-      pkgconf_fragment_copy (client, dest, frag, true);
+      pkg_config_fragment_copy (client, dest, frag, true);
   }
 }
 
 static inline char*
-fragment_quote (const pkgconf_fragment_t* frag)
+fragment_quote (const pkg_config_fragment_t* frag)
 {
   const char* src = frag->data;
   ssize_t outlen = strlen (src) + 10;
@@ -544,7 +546,7 @@ fragment_quote (const pkgconf_fragment_t* frag)
 }
 
 static inline size_t
-pkgconf_fragment_len (const pkgconf_fragment_t* frag)
+pkg_config_fragment_len (const pkg_config_fragment_t* frag)
 {
   size_t len = 1;
 
@@ -562,38 +564,38 @@ pkgconf_fragment_len (const pkgconf_fragment_t* frag)
 }
 
 static size_t
-fragment_render_len (const pkgconf_list_t* list, bool escape)
+fragment_render_len (const pkg_config_list_t* list, bool escape)
 {
   (void)escape;
 
   size_t out = 1; /* trailing nul */
-  pkgconf_node_t* node;
+  pkg_config_node_t* node;
 
   LIBPKG_CONFIG_FOREACH_LIST_ENTRY (list->head, node)
   {
-    const pkgconf_fragment_t* frag = node->data;
-    out += pkgconf_fragment_len (frag);
+    const pkg_config_fragment_t* frag = node->data;
+    out += pkg_config_fragment_len (frag);
   }
 
   return out;
 }
 
 static void
-fragment_render_buf (const pkgconf_list_t* list,
+fragment_render_buf (const pkg_config_list_t* list,
                      char* buf,
                      size_t buflen,
                      bool escape)
 {
   (void)escape;
 
-  pkgconf_node_t* node;
+  pkg_config_node_t* node;
   char* bptr = buf;
 
   memset (buf, 0, buflen);
 
   LIBPKG_CONFIG_FOREACH_LIST_ENTRY (list->head, node)
   {
-    const pkgconf_fragment_t* frag = node->data;
+    const pkg_config_fragment_t* frag = node->data;
     size_t buf_remaining = buflen - (bptr - buf);
     char* quoted = fragment_quote (frag);
 
@@ -611,7 +613,7 @@ fragment_render_buf (const pkgconf_list_t* list,
 
     if (quoted != NULL)
     {
-      bptr += pkgconf_strlcpy (bptr, quoted, buf_remaining);
+      bptr += pkg_config_strlcpy (bptr, quoted, buf_remaining);
       free (quoted);
     }
 
@@ -621,29 +623,30 @@ fragment_render_buf (const pkgconf_list_t* list,
   *bptr = '\0';
 }
 
-static const pkgconf_fragment_render_ops_t default_render_ops = {
+static const pkg_config_fragment_render_ops_t default_render_ops = {
     .render_len = fragment_render_len, .render_buf = fragment_render_buf};
 
 /*
  * !doc
  *
- * .. c:function:: size_t pkgconf_fragment_render_len(const pkgconf_list_t
- * *list, bool escape, const pkgconf_fragment_render_ops_t *ops)
+ * .. c:function:: size_t pkg_config_fragment_render_len(const
+ * pkg_config_list_t *list, bool escape, const
+ * pkg_config_fragment_render_ops_t *ops)
  *
  *    Calculates the required memory to store a `fragment list` when rendered
  * as a string.
  *
- *    :param pkgconf_list_t* list: The `fragment list` being rendered.
+ *    :param pkg_config_list_t* list: The `fragment list` being rendered.
  *    :param bool escape: Whether or not to escape special shell characters
- * (deprecated). :param pkgconf_fragment_render_ops_t* ops: An optional ops
+ * (deprecated). :param pkg_config_fragment_render_ops_t* ops: An optional ops
  * structure to use for custom renderers, else ``NULL``. :return: the amount
  * of bytes required to represent the `fragment list` when rendered :rtype:
  * size_t
  */
 size_t
-pkgconf_fragment_render_len (const pkgconf_list_t* list,
-                             bool escape,
-                             const pkgconf_fragment_render_ops_t* ops)
+pkg_config_fragment_render_len (const pkg_config_list_t* list,
+                                bool escape,
+                                const pkg_config_fragment_render_ops_t* ops)
 {
   (void)escape;
 
@@ -654,25 +657,25 @@ pkgconf_fragment_render_len (const pkgconf_list_t* list,
 /*
  * !doc
  *
- * .. c:function:: void pkgconf_fragment_render_buf(const pkgconf_list_t
+ * .. c:function:: void pkg_config_fragment_render_buf(const pkg_config_list_t
  * *list, char *buf, size_t buflen, bool escape, const
- * pkgconf_fragment_render_ops_t *ops)
+ * pkg_config_fragment_render_ops_t *ops)
  *
  *    Renders a `fragment list` into a buffer.
  *
- *    :param pkgconf_list_t* list: The `fragment list` being rendered.
+ *    :param pkg_config_list_t* list: The `fragment list` being rendered.
  *    :param char* buf: The buffer to render the fragment list into.
  *    :param size_t buflen: The length of the buffer.
  *    :param bool escape: Whether or not to escape special shell characters
- * (deprecated). :param pkgconf_fragment_render_ops_t* ops: An optional ops
+ * (deprecated). :param pkg_config_fragment_render_ops_t* ops: An optional ops
  * structure to use for custom renderers, else ``NULL``. :return: nothing
  */
 void
-pkgconf_fragment_render_buf (const pkgconf_list_t* list,
-                             char* buf,
-                             size_t buflen,
-                             bool escape,
-                             const pkgconf_fragment_render_ops_t* ops)
+pkg_config_fragment_render_buf (const pkg_config_list_t* list,
+                                char* buf,
+                                size_t buflen,
+                                bool escape,
+                                const pkg_config_fragment_render_ops_t* ops)
 {
   (void)escape;
 
@@ -683,27 +686,28 @@ pkgconf_fragment_render_buf (const pkgconf_list_t* list,
 /*
  * !doc
  *
- * .. c:function:: char *pkgconf_fragment_render(const pkgconf_list_t *list)
+ * .. c:function:: char *pkg_config_fragment_render(const pkg_config_list_t
+ * *list)
  *
  *    Allocate memory and render a `fragment list` into it.
  *
- *    :param pkgconf_list_t* list: The `fragment list` being rendered.
+ *    :param pkg_config_list_t* list: The `fragment list` being rendered.
  *    :param bool escape: Whether or not to escape special shell characters
- * (deprecated). :param pkgconf_fragment_render_ops_t* ops: An optional ops
+ * (deprecated). :param pkg_config_fragment_render_ops_t* ops: An optional ops
  * structure to use for custom renderers, else ``NULL``. :return: An allocated
  * string containing the rendered `fragment list`. :rtype: char *
  */
 char*
-pkgconf_fragment_render (const pkgconf_list_t* list,
-                         bool escape,
-                         const pkgconf_fragment_render_ops_t* ops)
+pkg_config_fragment_render (const pkg_config_list_t* list,
+                            bool escape,
+                            const pkg_config_fragment_render_ops_t* ops)
 {
   (void)escape;
 
-  size_t buflen = pkgconf_fragment_render_len (list, true, ops);
+  size_t buflen = pkg_config_fragment_render_len (list, true, ops);
   char* buf = calloc (1, buflen);
 
-  pkgconf_fragment_render_buf (list, buf, buflen, true, ops);
+  pkg_config_fragment_render_buf (list, buf, buflen, true, ops);
 
   return buf;
 }
@@ -711,19 +715,20 @@ pkgconf_fragment_render (const pkgconf_list_t* list,
 /*
  * !doc
  *
- * .. c:function:: void pkgconf_fragment_delete(pkgconf_list_t *list,
- * pkgconf_fragment_t *node)
+ * .. c:function:: void pkg_config_fragment_delete(pkg_config_list_t *list,
+ * pkg_config_fragment_t *node)
  *
  *    Delete a `fragment node` from a `fragment list`.
  *
- *    :param pkgconf_list_t* list: The `fragment list` to delete from.
- *    :param pkgconf_fragment_t* node: The `fragment node` to delete.
+ *    :param pkg_config_list_t* list: The `fragment list` to delete from.
+ *    :param pkg_config_fragment_t* node: The `fragment node` to delete.
  *    :return: nothing
  */
 void
-pkgconf_fragment_delete (pkgconf_list_t* list, pkgconf_fragment_t* node)
+pkg_config_fragment_delete (pkg_config_list_t* list,
+                            pkg_config_fragment_t* node)
 {
-  pkgconf_node_delete (&node->iter, list);
+  pkg_config_node_delete (&node->iter, list);
 
   free (node->data);
   free (node);
@@ -732,21 +737,21 @@ pkgconf_fragment_delete (pkgconf_list_t* list, pkgconf_fragment_t* node)
 /*
  * !doc
  *
- * .. c:function:: void pkgconf_fragment_free(pkgconf_list_t *list)
+ * .. c:function:: void pkg_config_fragment_free(pkg_config_list_t *list)
  *
  *    Delete an entire `fragment list`.
  *
- *    :param pkgconf_list_t* list: The `fragment list` to delete.
+ *    :param pkg_config_list_t* list: The `fragment list` to delete.
  *    :return: nothing
  */
 void
-pkgconf_fragment_free (pkgconf_list_t* list)
+pkg_config_fragment_free (pkg_config_list_t* list)
 {
-  pkgconf_node_t *node, *next;
+  pkg_config_node_t *node, *next;
 
   LIBPKG_CONFIG_FOREACH_LIST_ENTRY_SAFE (list->head, next, node)
   {
-    pkgconf_fragment_t* frag = node->data;
+    pkg_config_fragment_t* frag = node->data;
 
     free (frag->data);
     free (frag);
@@ -756,33 +761,34 @@ pkgconf_fragment_free (pkgconf_list_t* list)
 /*
  * !doc
  *
- * .. c:function:: bool pkgconf_fragment_parse(const pkgconf_client_t *client,
- * pkgconf_list_t *list, pkgconf_list_t *vars, const char *value)
+ * .. c:function:: bool pkg_config_fragment_parse(const pkg_config_client_t
+ * *client, pkg_config_list_t *list, pkg_config_list_t *vars, const char
+ * *value)
  *
  *    Parse a string into a `fragment list`.
  *
- *    :param pkgconf_client_t* client: The pkgconf client being accessed.
- *    :param pkgconf_list_t* list: The `fragment list` to add the fragment
- * entries to. :param pkgconf_list_t* vars: A list of variables to use for
- * variable substitution. :param char* value: The string to parse into
+ *    :param pkg_config_client_t* client: The pkg-config client being
+ * accessed. :param pkg_config_list_t* list: The `fragment list` to add the
+ * fragment entries to. :param pkg_config_list_t* vars: A list of variables to
+ * use for variable substitution. :param char* value: The string to parse into
  * fragments. :return: true on success, false on parse error
  */
 bool
-pkgconf_fragment_parse (const pkgconf_client_t* client,
-                        pkgconf_list_t* list,
-                        pkgconf_list_t* vars,
-                        const char* value)
+pkg_config_fragment_parse (const pkg_config_client_t* client,
+                           pkg_config_list_t* list,
+                           pkg_config_list_t* vars,
+                           const char* value)
 {
   int i, ret, argc;
   char** argv;
-  char* repstr = pkgconf_tuple_parse (client, vars, value);
+  char* repstr = pkg_config_tuple_parse (client, vars, value);
 
-  PKGCONF_TRACE (client, "post-subst: [%s] -> [%s]", value, repstr);
+  PKG_CONFIG_TRACE (client, "post-subst: [%s] -> [%s]", value, repstr);
 
-  ret = pkgconf_argv_split (repstr, &argc, &argv);
+  ret = pkg_config_argv_split (repstr, &argc, &argv);
   if (ret < 0)
   {
-    PKGCONF_TRACE (client, "unable to parse fragment string [%s]", repstr);
+    PKG_CONFIG_TRACE (client, "unable to parse fragment string [%s]", repstr);
     free (repstr);
     return false;
   }
@@ -791,20 +797,20 @@ pkgconf_fragment_parse (const pkgconf_client_t* client,
   {
     if (argv[i] == NULL)
     {
-      PKGCONF_TRACE (client,
-                     "parsed fragment string is inconsistent: argc = %d "
-                     "while argv[%d] == NULL",
-                     argc,
-                     i);
-      pkgconf_argv_free (argv);
+      PKG_CONFIG_TRACE (client,
+                        "parsed fragment string is inconsistent: argc = %d "
+                        "while argv[%d] == NULL",
+                        argc,
+                        i);
+      pkg_config_argv_free (argv);
       free (repstr);
       return false;
     }
 
-    pkgconf_fragment_add (client, list, argv[i]);
+    pkg_config_fragment_add (client, list, argv[i]);
   }
 
-  pkgconf_argv_free (argv);
+  pkg_config_argv_free (argv);
   free (repstr);
 
   return true;

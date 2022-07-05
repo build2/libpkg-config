@@ -27,23 +27,23 @@ extern "C"
 {
 #endif
 
-typedef struct pkgconf_node_ pkgconf_node_t;
+typedef struct pkg_config_node_ pkg_config_node_t;
 
-struct pkgconf_node_
+struct pkg_config_node_
 {
-  pkgconf_node_t *prev, *next;
+  pkg_config_node_t *prev, *next;
   void* data;
 };
 
 typedef struct
 {
-  pkgconf_node_t *head, *tail;
+  pkg_config_node_t *head, *tail;
   size_t length;
-} pkgconf_list_t;
+} pkg_config_list_t;
 
 #define LIBPKG_CONFIG_LIST_INITIALIZER {NULL, NULL, 0}
 
-#define LIBPKG_CONFIG_FOREACH_LIST_ENTRY(head, value)                   \
+#define LIBPKG_CONFIG_FOREACH_LIST_ENTRY(head, value)                       \
   for ((value) = (head); (value) != NULL; (value) = (value)->next)
 
 #define LIBPKG_CONFIG_FOREACH_LIST_ENTRY_SAFE(head, nextiter, value)        \
@@ -52,21 +52,23 @@ typedef struct
        (value) = (nextiter),                                                \
          (nextiter) = (nextiter) != NULL ? (nextiter)->next : NULL)
 
-#define LIBPKG_CONFIG_FOREACH_LIST_ENTRY_REVERSE(tail, value)           \
+#define LIBPKG_CONFIG_FOREACH_LIST_ENTRY_REVERSE(tail, value)               \
   for ((value) = (tail); (value) != NULL; (value) = (value)->prev)
 
 static inline void
-pkgconf_list_zero (pkgconf_list_t* list)
-{
+pkg_config_list_zero (pkg_config_list_t* list)
+ {
   list->head = NULL;
   list->tail = NULL;
   list->length = 0;
 }
 
 static inline void
-pkgconf_node_insert (pkgconf_node_t* node, void* data, pkgconf_list_t* list)
+pkg_config_node_insert (pkg_config_node_t* node,
+                        void* data,
+                        pkg_config_list_t* list)
 {
-  pkgconf_node_t* tnode;
+  pkg_config_node_t* tnode;
 
   node->data = data;
 
@@ -88,11 +90,11 @@ pkgconf_node_insert (pkgconf_node_t* node, void* data, pkgconf_list_t* list)
 }
 
 static inline void
-pkgconf_node_insert_tail (pkgconf_node_t* node,
-                          void* data,
-                          pkgconf_list_t* list)
+pkg_config_node_insert_tail (pkg_config_node_t* node,
+                             void* data,
+                             pkg_config_list_t* list)
 {
-  pkgconf_node_t* tnode;
+  pkg_config_node_t* tnode;
 
   node->data = data;
 
@@ -114,7 +116,7 @@ pkgconf_node_insert_tail (pkgconf_node_t* node,
 }
 
 static inline void
-pkgconf_node_delete (pkgconf_node_t* node, pkgconf_list_t* list)
+pkg_config_node_delete (pkg_config_node_t* node, pkg_config_list_t* list)
 {
   list->length--;
 

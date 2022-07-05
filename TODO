@@ -2,6 +2,6 @@ For new revision:
 
 For new release:
 
-  - Consider redefining PKGCONF_BUFSIZE from the current 65535 bytes to
+  - Consider redefining PKG_CONFIG_BUFSIZE from the current 65535 bytes to
     something smaller, given it is used to allocate buffers on the stack
-    (sometimes several of them). See also PKGCONF_ITEM_SIZE.
+    (sometimes several of them). See also PKG_CONFIG_ITEM_SIZE.

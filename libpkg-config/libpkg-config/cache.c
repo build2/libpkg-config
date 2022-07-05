@@ -32,68 +32,68 @@
  * The libpkg-config `cache` module manages a package/module object cache,
  * allowing it to avoid loading duplicate copies of a package/module.
  *
- * A cache is tied to a specific pkgconf client object, so package objects
+ * A cache is tied to a specific pkg-config client object, so package objects
  * should not be shared across threads.
  */
 
 /*
  * !doc
  *
- * .. c:function:: pkgconf_pkg_t *pkgconf_cache_lookup(const pkgconf_client_t
- * *client, const char *id)
+ * .. c:function:: pkg_config_pkg_t *pkg_config_cache_lookup(const
+ * pkg_config_client_t *client, const char *id)
  *
  *    Looks up a package in the cache given an `id` atom,
  *    such as ``gtk+-3.0`` and returns the already loaded version
  *    if present.
  *
- *    :param pkgconf_client_t* client: The client object to access.
+ *    :param pkg_config_client_t* client: The client object to access.
  *    :param char* id: The package atom to look up in the client object's
  * cache. :return: A package object if present, else ``NULL``. :rtype:
- * pkgconf_pkg_t *
+ * pkg_config_pkg_t *
  */
-pkgconf_pkg_t*
-pkgconf_cache_lookup (pkgconf_client_t* client, const char* id)
+pkg_config_pkg_t*
+pkg_config_cache_lookup (pkg_config_client_t* client, const char* id)
 {
-  pkgconf_node_t* node;
+  pkg_config_node_t* node;
 
   LIBPKG_CONFIG_FOREACH_LIST_ENTRY (client->pkg_cache.head, node)
   {
-    pkgconf_pkg_t* pkg = node->data;
+    pkg_config_pkg_t* pkg = node->data;
 
     if (!strcmp (pkg->id, id))
     {
-      PKGCONF_TRACE (client, "found: %s @%p", id, pkg);
-      return pkgconf_pkg_ref (client, pkg);
+      PKG_CONFIG_TRACE (client, "found: %s @%p", id, pkg);
+      return pkg_config_pkg_ref (client, pkg);
     }
   }
 
-  PKGCONF_TRACE (client, "miss: %s", id);
+  PKG_CONFIG_TRACE (client, "miss: %s", id);
   return NULL;
 }
 
 /*
  * !doc
  *
- * .. c:function:: void pkgconf_cache_add(pkgconf_client_t *client,
- * pkgconf_pkg_t *pkg)
+ * .. c:function:: void pkg_config_cache_add(pkg_config_client_t *client,
+ * pkg_config_pkg_t *pkg)
  *
  *    Adds an entry for the package to the package cache.
  *    The cache entry must be removed if the package is freed.
  *
- *    :param pkgconf_client_t* client: The client object to modify.
- *    :param pkgconf_pkg_t* pkg: The package object to add to the client
+ *    :param pkg_config_client_t* client: The client object to modify.
+ *    :param pkg_config_pkg_t* pkg: The package object to add to the client
  * object's cache. :return: nothing
  */
 void
-pkgconf_cache_add (pkgconf_client_t* client, pkgconf_pkg_t* pkg)
+pkg_config_cache_add (pkg_config_client_t* client, pkg_config_pkg_t* pkg)
 {
   if (pkg == NULL)
     return;
 
-  pkgconf_pkg_ref (client, pkg);
-  pkgconf_node_insert (&pkg->cache_iter, pkg, &client->pkg_cache);
+  pkg_config_pkg_ref (client, pkg);
+  pkg_config_node_insert (&pkg->cache_iter, pkg, &client->pkg_cache);
 
-  PKGCONF_TRACE (client, "added @%p to cache", pkg);
+  PKG_CONFIG_TRACE (client, "added @%p to cache", pkg);
 
   /* mark package as cached */
   pkg->flags |= LIBPKG_CONFIG_PKG_PROPF_CACHED;
@@ -102,17 +102,17 @@ pkgconf_cache_add (pkgconf_client_t* client, pkgconf_pkg_t* pkg)
 /*
  * !doc
  *
- * .. c:function:: void pkgconf_cache_remove(pkgconf_client_t *client,
- * pkgconf_pkg_t *pkg)
+ * .. c:function:: void pkg_config_cache_remove(pkg_config_client_t *client,
+ * pkg_config_pkg_t *pkg)
  *
  *    Deletes a package from the client object's package cache.
  *
- *    :param pkgconf_client_t* client: The client object to modify.
- *    :param pkgconf_pkg_t* pkg: The package object to remove from the client
- * object's cache. :return: nothing
+ *    :param pkg_config_client_t* client: The client object to modify.
+ *    :param pkg_config_pkg_t* pkg: The package object to remove from the
+ * client object's cache. :return: nothing
  */
 void
-pkgconf_cache_remove (pkgconf_client_t* client, pkgconf_pkg_t* pkg)
+pkg_config_cache_remove (pkg_config_client_t* client, pkg_config_pkg_t* pkg)
 {
   if (pkg == NULL)
     return;
@@ -120,19 +120,19 @@ pkgconf_cache_remove (pkgconf_client_t* client, pkgconf_pkg_t* pkg)
   if (!(pkg->flags & LIBPKG_CONFIG_PKG_PROPF_CACHED))
     return;
 
-  PKGCONF_TRACE (client, "removed @%p from cache", pkg);
+  PKG_CONFIG_TRACE (client, "removed @%p from cache", pkg);
 
-  pkgconf_node_delete (&pkg->cache_iter, &client->pkg_cache);
+  pkg_config_node_delete (&pkg->cache_iter, &client->pkg_cache);
 }
 
 static inline void
-clear_dependency_matches (pkgconf_list_t* list)
+clear_dependency_matches (pkg_config_list_t* list)
 {
-  pkgconf_node_t* iter;
+  pkg_config_node_t* iter;
 
   LIBPKG_CONFIG_FOREACH_LIST_ENTRY (list->head, iter)
   {
-    pkgconf_dependency_t* dep = iter->data;
+    pkg_config_dependency_t* dep = iter->data;
     dep->match = NULL;
   }
 }
@@ -140,23 +140,23 @@ clear_dependency_matches (pkgconf_list_t* list)
 /*
  * !doc
  *
- * .. c:function:: void pkgconf_cache_free(pkgconf_client_t *client)
+ * .. c:function:: void pkg_config_cache_free(pkg_config_client_t *client)
  *
  *    Releases all resources related to a client object's package cache.
  *    This function should only be called to clear a client object's package
  * cache, as it may release any package in the cache.
  *
- *    :param pkgconf_client_t* client: The client object to modify.
+ *    :param pkg_config_client_t* client: The client object to modify.
  */
 void
-pkgconf_cache_free (pkgconf_client_t* client)
+pkg_config_cache_free (pkg_config_client_t* client)
 {
-  pkgconf_node_t *iter, *iter2;
+  pkg_config_node_t *iter, *iter2;
 
   /* first we clear cached match pointers */
   LIBPKG_CONFIG_FOREACH_LIST_ENTRY (client->pkg_cache.head, iter)
   {
-    pkgconf_pkg_t* pkg = iter->data;
+    pkg_config_pkg_t* pkg = iter->data;
 
     clear_dependency_matches (&pkg->required);
     clear_dependency_matches (&pkg->requires_private);
@@ -166,11 +166,11 @@ pkgconf_cache_free (pkgconf_client_t* client)
   /* now forcibly free everything */
   LIBPKG_CONFIG_FOREACH_LIST_ENTRY_SAFE (client->pkg_cache.head, iter2, iter)
   {
-    pkgconf_pkg_t* pkg = iter->data;
-    pkgconf_pkg_free (client, pkg);
+    pkg_config_pkg_t* pkg = iter->data;
+    pkg_config_pkg_free (client, pkg);
   }
 
   memset (&client->pkg_cache, 0, sizeof client->pkg_cache);
 
-  PKGCONF_TRACE (client, "cleared package cache");
+  PKG_CONFIG_TRACE (client, "cleared package cache");
 }

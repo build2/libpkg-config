@@ -36,7 +36,7 @@
 /*
  * !doc
  *
- * .. c:function:: void pkgconf_argv_free(char **argv)
+ * .. c:function:: void pkg_config_argv_free(char **argv)
  *
  *    Frees an argument vector.
  *
@@ -44,7 +44,7 @@
  *    :return: nothing
  */
 void
-pkgconf_argv_free (char** argv)
+pkg_config_argv_free (char** argv)
 {
   free (argv[0]);
   free (argv);
@@ -53,7 +53,7 @@ pkgconf_argv_free (char** argv)
 /*
  * !doc
  *
- * .. c:function:: int pkgconf_argv_split(const char *src, int *argc, char
+ * .. c:function:: int pkg_config_argv_split(const char *src, int *argc, char
  * ***argv)
  *
  *    Splits a string into an argument vector.
@@ -65,7 +65,7 @@ pkgconf_argv_free (char** argv)
  *    :rtype: int
  */
 int
-pkgconf_argv_split (const char* src, int* argc, char*** argv)
+pkg_config_argv_split (const char* src, int* argc, char*** argv)
 {
   char* buf = malloc (strlen (src) + 1);
   const char* src_iter;

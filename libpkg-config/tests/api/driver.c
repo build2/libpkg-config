@@ -19,7 +19,7 @@
 static void
 error_handler (unsigned int e,
                const char* msg,
-               const pkgconf_client_t* c,
+               const pkg_config_client_t* c,
                const void* d)
 {
   (void) e; /* Unused. */
@@ -30,25 +30,25 @@ error_handler (unsigned int e,
 }
 
 static void
-frags_print_and_free (pkgconf_list_t* list)
+frags_print_and_free (pkg_config_list_t* list)
 {
-  pkgconf_node_t *node;
+  pkg_config_node_t *node;
   LIBPKG_CONFIG_FOREACH_LIST_ENTRY(list->head, node)
   {
-    pkgconf_fragment_t* frag = node->data;
+    pkg_config_fragment_t* frag = node->data;
     printf("%c %s\n", frag->type != '\0' ? frag->type : ' ', frag->data);
   }
 
-  pkgconf_fragment_free (list);
+  pkg_config_fragment_free (list);
 }
 
 static void
-tuples_print (pkgconf_list_t *list)
+tuples_print (pkg_config_list_t *list)
 {
-  pkgconf_node_t *node;
+  pkg_config_node_t *node;
   LIBPKG_CONFIG_FOREACH_LIST_ENTRY(list->head, node)
   {
-    pkgconf_tuple_t *tuple = node->data;
+    pkg_config_tuple_t *tuple = node->data;
 
     /* Skip the automatically added variable.
      */
@@ -116,22 +116,22 @@ main (int argc, const char* argv[])
   size_t n = strlen (path);
   assert (n > 3 && strcmp (path + n - 3, ".pc") == 0);
 
-  pkgconf_client_t cs;
-  pkgconf_client_t* c = &cs;
-  pkgconf_client_init (c,
-                       error_handler,
-                       NULL /* error_handler_data */,
-                       true /* init_filters */);
+  pkg_config_client_t cs;
+  pkg_config_client_t* c = &cs;
+  pkg_config_client_init (c,
+                          error_handler,
+                          NULL /* error_handler_data */,
+                          true /* init_filters */);
 
   assert (c != NULL);
 
   int r = 1;
   int max_depth = 2000;
 
-  const int pkgconf_flags = 0;
+  const int pkg_config_flags = 0;
 
-  pkgconf_client_set_flags (c, pkgconf_flags);
-  pkgconf_pkg_t* p = pkgconf_pkg_find (c, path);
+  pkg_config_client_set_flags (c, pkg_config_flags);
+  pkg_config_pkg_t* p = pkg_config_pkg_find (c, path);
 
   if (p != NULL)
   {
@@ -141,33 +141,34 @@ main (int argc, const char* argv[])
     {
     case dump_cflags:
       {
-        pkgconf_client_set_flags (c,
-                                  pkgconf_flags |
-                                  LIBPKG_CONFIG_PKG_PKGF_SEARCH_PRIVATE);
+        pkg_config_client_set_flags (c,
+                                     pkg_config_flags |
+                                     LIBPKG_CONFIG_PKG_PKGF_SEARCH_PRIVATE);
 
-        pkgconf_list_t list = LIBPKG_CONFIG_LIST_INITIALIZER;
-        e = pkgconf_pkg_cflags (c, p, &list, max_depth);
+        pkg_config_list_t list = LIBPKG_CONFIG_LIST_INITIALIZER;
+        e = pkg_config_pkg_cflags (c, p, &list, max_depth);
 
         if (e == LIBPKG_CONFIG_PKG_ERRF_OK)
           frags_print_and_free (&list);
 
-        pkgconf_client_set_flags (c, 0); /* Restore. */
+        pkg_config_client_set_flags (c, 0); /* Restore. */
         break;
       }
     case dump_libs:
       {
-        pkgconf_client_set_flags (c,
-                                  pkgconf_flags                         |
-                                  LIBPKG_CONFIG_PKG_PKGF_SEARCH_PRIVATE |
-                                  LIBPKG_CONFIG_PKG_PKGF_ADD_PRIVATE_FRAGMENTS);
+        pkg_config_client_set_flags (
+          c,
+          pkg_config_flags                      |
+          LIBPKG_CONFIG_PKG_PKGF_SEARCH_PRIVATE |
+          LIBPKG_CONFIG_PKG_PKGF_ADD_PRIVATE_FRAGMENTS);
 
-        pkgconf_list_t list = LIBPKG_CONFIG_LIST_INITIALIZER;
-        e = pkgconf_pkg_libs (c, p, &list, max_depth);
+        pkg_config_list_t list = LIBPKG_CONFIG_LIST_INITIALIZER;
+        e = pkg_config_pkg_libs (c, p, &list, max_depth);
 
         if (e == LIBPKG_CONFIG_PKG_ERRF_OK)
           frags_print_and_free (&list);
 
-        pkgconf_client_set_flags (c, 0); /* Restore. */
+        pkg_config_client_set_flags (c, 0); /* Restore. */
         break;
       }
     case dump_vars:
@@ -184,11 +185,11 @@ main (int argc, const char* argv[])
     if (e == LIBPKG_CONFIG_PKG_ERRF_OK)
       r = 0;
 
-    pkgconf_pkg_unref (c, p);
+    pkg_config_pkg_unref (c, p);
   }
   else
     fprintf (stderr, "package file '%s' not found or invalid\n", path);
 
-  pkgconf_client_deinit (c);
+  pkg_config_client_deinit (c);
   return r;
 }

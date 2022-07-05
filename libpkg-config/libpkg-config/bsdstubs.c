@@ -102,25 +102,25 @@ static inline char*
 strndup (const char* src, size_t len)
 {
   char* out = malloc (len + 1);
-  pkgconf_strlcpy (out, src, len + 1);
+  pkg_config_strlcpy (out, src, len + 1);
   return out;
 }
 #endif
 
 size_t
-pkgconf_strlcpy (char* dst, const char* src, size_t siz)
+pkg_config_strlcpy (char* dst, const char* src, size_t siz)
 {
   return strlcpy (dst, src, siz);
 }
 
 size_t
-pkgconf_strlcat (char* dst, const char* src, size_t siz)
+pkg_config_strlcat (char* dst, const char* src, size_t siz)
 {
   return strlcat (dst, src, siz);
 }
 
 char*
-pkgconf_strndup (const char* src, size_t len)
+pkg_config_strndup (const char* src, size_t len)
 {
   return strndup (src, len);
 }
