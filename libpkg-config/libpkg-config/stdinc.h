@@ -82,6 +82,9 @@
 # endif
 #endif
 
+/* Besides other things, this size limits the length of the line that we can
+ * read from a .pc file and thus the size of variable name/value.
+ */
 #define PKGCONF_BUFSIZE (65535)
 
 #define PKGCONF_ARRAY_SIZE(x) (sizeof(x) / sizeof(*(x)))
