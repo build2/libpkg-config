@@ -86,7 +86,7 @@ main (int argc, const char* argv[])
       libs = true;
     else if (strcmp (o, "--static") == 0)
       client_flags |= LIBPKG_CONFIG_PKG_PKGF_SEARCH_PRIVATE |
-                      LIBPKG_CONFIG_PKG_PKGF_MERGE_PRIVATE_FRAGMENTS;
+                      LIBPKG_CONFIG_PKG_PKGF_ADD_PRIVATE_FRAGMENTS;
     else if (strcmp (o, "--with-path") == 0)
     {
       ++i;

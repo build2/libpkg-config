@@ -157,9 +157,9 @@ main (int argc, const char* argv[])
     case dump_libs:
       {
         pkgconf_client_set_flags (c,
-                                  pkgconf_flags                   |
+                                  pkgconf_flags                         |
                                   LIBPKG_CONFIG_PKG_PKGF_SEARCH_PRIVATE |
-                                  LIBPKG_CONFIG_PKG_PKGF_MERGE_PRIVATE_FRAGMENTS);
+                                  LIBPKG_CONFIG_PKG_PKGF_ADD_PRIVATE_FRAGMENTS);
 
         pkgconf_list_t list = LIBPKG_CONFIG_LIST_INITIALIZER;
         e = pkgconf_pkg_libs (c, p, &list, max_depth);
