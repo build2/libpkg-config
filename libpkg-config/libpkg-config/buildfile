@@ -23,16 +23,17 @@ clang_msvc = ($c.id == 'clang' && $msvc_runtime)
 #
 if! $windows
 {
-  inc_dirs = "/usr/include"
-  lib_dirs = "/usr/lib"
-
   if ($install.root != [null])
   {
+    inc_dirs = "$install.resolve($install.include)"
+    lib_dirs = "$install.resolve($install.lib)"
     def_dirs = "$install.resolve($install.pkgconfig)"
   }
   else
   {
-    def_dirs = ""
+    inc_dirs = "/usr/include"
+    lib_dirs = "/usr/lib"
+    def_dirs = "/usr/lib/pkconfig"
   }
 }
 else
