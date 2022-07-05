@@ -46,11 +46,11 @@ str_has_suffix (const char* str, const char* suffix)
 }
 
 static char*
-pkg_get_parent_dir (pkgconf_pkg_t* pkg)
+pkg_get_parent_dir (pkg_config_pkg_t* pkg)
 {
-  char buf[PKGCONF_ITEM_SIZE], *pathbuf;
+  char buf[PKG_CONFIG_ITEM_SIZE], *pathbuf;
 
-  pkgconf_strlcpy (buf, pkg->filename, sizeof buf);
+  pkg_config_strlcpy (buf, pkg->filename, sizeof buf);
   pathbuf = strrchr (buf, LIBPKG_CONFIG_DIR_SEP_S);
   if (pathbuf == NULL)
     pathbuf = strrchr (buf, '/');
@@ -60,9 +60,9 @@ pkg_get_parent_dir (pkgconf_pkg_t* pkg)
   return strdup (buf);
 }
 
-typedef void (*pkgconf_pkg_parser_keyword_func_t) (
-    const pkgconf_client_t* client,
-    pkgconf_pkg_t* pkg,
+typedef void (*pkg_config_pkg_parser_keyword_func_t) (
+    const pkg_config_client_t* client,
+    pkg_config_pkg_t* pkg,
     const char* keyword,
     const size_t lineno,
     const ptrdiff_t offset,
@@ -70,39 +70,39 @@ typedef void (*pkgconf_pkg_parser_keyword_func_t) (
 typedef struct
 {
   const char* keyword;
-  const pkgconf_pkg_parser_keyword_func_t func;
+  const pkg_config_pkg_parser_keyword_func_t func;
   const ptrdiff_t offset;
-} pkgconf_pkg_parser_keyword_pair_t;
+} pkg_config_pkg_parser_keyword_pair_t;
 
 static int
-pkgconf_pkg_parser_keyword_pair_cmp (const void* key, const void* ptr)
+pkg_config_pkg_parser_keyword_pair_cmp (const void* key, const void* ptr)
 {
-  const pkgconf_pkg_parser_keyword_pair_t* pair = ptr;
+  const pkg_config_pkg_parser_keyword_pair_t* pair = ptr;
   return strcasecmp (key, pair->keyword);
 }
 
 static void
-pkgconf_pkg_parser_tuple_func (const pkgconf_client_t* client,
-                               pkgconf_pkg_t* pkg,
-                               const char* keyword,
-                               const size_t lineno,
-                               const ptrdiff_t offset,
-                               const char* value)
+pkg_config_pkg_parser_tuple_func (const pkg_config_client_t* client,
+                                  pkg_config_pkg_t* pkg,
+                                  const char* keyword,
+                                  const size_t lineno,
+                                  const ptrdiff_t offset,
+                                  const char* value)
 {
   (void)keyword;
   (void)lineno;
 
   char** dest = (char**)((char*)pkg + offset);
-  *dest = pkgconf_tuple_parse (client, &pkg->vars, value);
+  *dest = pkg_config_tuple_parse (client, &pkg->vars, value);
 }
 
 static void
-pkgconf_pkg_parser_version_func (const pkgconf_client_t* client,
-                                 pkgconf_pkg_t* pkg,
-                                 const char* keyword,
-                                 const size_t lineno,
-                                 const ptrdiff_t offset,
-                                 const char* value)
+pkg_config_pkg_parser_version_func (const pkg_config_client_t* client,
+                                    pkg_config_pkg_t* pkg,
+                                    const char* keyword,
+                                    const size_t lineno,
+                                    const ptrdiff_t offset,
+                                    const char* value)
 {
   (void)keyword;
   (void)lineno;
@@ -111,7 +111,7 @@ pkgconf_pkg_parser_version_func (const pkgconf_client_t* client,
   char** dest = (char**)((char*)pkg + offset);
 
   /* cut at any detected whitespace */
-  p = pkgconf_tuple_parse (client, &pkg->vars, value);
+  p = pkg_config_tuple_parse (client, &pkg->vars, value);
 
   len = strcspn (p, " \t");
   if (len != strlen (p))
@@ -119,127 +119,128 @@ pkgconf_pkg_parser_version_func (const pkgconf_client_t* client,
     i = p + (ptrdiff_t)len;
     *i = '\0';
 
-    pkgconf_warn (client,
-                  "%s:" SIZE_FMT_SPECIFIER
-                  ": warning: malformed version field with whitespace, "
-                  "trimming to [%s]",
-                  pkg->filename,
-                  lineno,
-                  p);
+    pkg_config_warn (client,
+                     "%s:" SIZE_FMT_SPECIFIER
+                     ": warning: malformed version field with whitespace, "
+                     "trimming to [%s]",
+                     pkg->filename,
+                     lineno,
+                     p);
   }
 
   *dest = p;
 }
 
 static void
-pkgconf_pkg_parser_fragment_func (const pkgconf_client_t* client,
-                                  pkgconf_pkg_t* pkg,
-                                  const char* keyword,
-                                  const size_t lineno,
-                                  const ptrdiff_t offset,
-                                  const char* value)
+pkg_config_pkg_parser_fragment_func (const pkg_config_client_t* client,
+                                     pkg_config_pkg_t* pkg,
+                                     const char* keyword,
+                                     const size_t lineno,
+                                     const ptrdiff_t offset,
+                                     const char* value)
 {
-  pkgconf_list_t* dest = (pkgconf_list_t*)((char*)pkg + offset);
-  bool ret = pkgconf_fragment_parse (client, dest, &pkg->vars, value);
+  pkg_config_list_t* dest = (pkg_config_list_t*)((char*)pkg + offset);
+  bool ret = pkg_config_fragment_parse (client, dest, &pkg->vars, value);
 
   if (!ret)
   {
-    pkgconf_warn (client,
-                  "%s:" SIZE_FMT_SPECIFIER
-                  ": warning: unable to parse field '%s' into an argument "
-                  "vector, value [%s]",
-                  pkg->filename,
-                  lineno,
-                  keyword,
-                  value);
+    pkg_config_warn (client,
+                     "%s:" SIZE_FMT_SPECIFIER
+                     ": warning: unable to parse field '%s' into an argument "
+                     "vector, value [%s]",
+                     pkg->filename,
+                     lineno,
+                     keyword,
+                     value);
   }
 }
 
 static void
-pkgconf_pkg_parser_dependency_func (const pkgconf_client_t* client,
-                                    pkgconf_pkg_t* pkg,
-                                    const char* keyword,
-                                    const size_t lineno,
-                                    const ptrdiff_t offset,
-                                    const char* value)
+pkg_config_pkg_parser_dependency_func (const pkg_config_client_t* client,
+                                       pkg_config_pkg_t* pkg,
+                                       const char* keyword,
+                                       const size_t lineno,
+                                       const ptrdiff_t offset,
+                                       const char* value)
 {
   (void)keyword;
   (void)lineno;
 
-  pkgconf_list_t* dest = (pkgconf_list_t*)((char*)pkg + offset);
-  pkgconf_dependency_parse (client, pkg, dest, value, 0);
+  pkg_config_list_t* dest = (pkg_config_list_t*)((char*)pkg + offset);
+  pkg_config_dependency_parse (client, pkg, dest, value, 0);
 }
 
-/* a variant of pkgconf_pkg_parser_dependency_func which colors the dependency
- * node as an "internal" dependency. */
+/* a variant of pkg_config_pkg_parser_dependency_func which colors the
+ * dependency node as an "internal" dependency. */
 static void
-pkgconf_pkg_parser_internal_dependency_func (const pkgconf_client_t* client,
-                                             pkgconf_pkg_t* pkg,
-                                             const char* keyword,
-                                             const size_t lineno,
-                                             const ptrdiff_t offset,
-                                             const char* value)
+pkg_config_pkg_parser_internal_dependency_func (
+    const pkg_config_client_t* client,
+    pkg_config_pkg_t* pkg,
+    const char* keyword,
+    const size_t lineno,
+    const ptrdiff_t offset,
+    const char* value)
 {
   (void)keyword;
   (void)lineno;
 
-  pkgconf_list_t* dest = (pkgconf_list_t*)((char*)pkg + offset);
-  pkgconf_dependency_parse (
+  pkg_config_list_t* dest = (pkg_config_list_t*)((char*)pkg + offset);
+  pkg_config_dependency_parse (
       client, pkg, dest, value, LIBPKG_CONFIG_PKG_DEPF_INTERNAL);
 }
 
 /* keep this in alphabetical order */
-static const pkgconf_pkg_parser_keyword_pair_t
-    pkgconf_pkg_parser_keyword_funcs[] = {
-        {"CFLAGS",
-         pkgconf_pkg_parser_fragment_func,
-         offsetof (pkgconf_pkg_t, cflags)},
-        {"CFLAGS.private",
-         pkgconf_pkg_parser_fragment_func,
-         offsetof (pkgconf_pkg_t, cflags_private)},
-        {"Conflicts",
-         pkgconf_pkg_parser_dependency_func,
-         offsetof (pkgconf_pkg_t, conflicts)},
-        {"Description",
-         pkgconf_pkg_parser_tuple_func,
-         offsetof (pkgconf_pkg_t, description)},
-        {"LIBS",
-         pkgconf_pkg_parser_fragment_func,
-         offsetof (pkgconf_pkg_t, libs)},
-        {"LIBS.private",
-         pkgconf_pkg_parser_fragment_func,
-         offsetof (pkgconf_pkg_t, libs_private)},
-        {"Name",
-         pkgconf_pkg_parser_tuple_func,
-         offsetof (pkgconf_pkg_t, realname)},
-        {"Requires",
-         pkgconf_pkg_parser_dependency_func,
-         offsetof (pkgconf_pkg_t, required)},
-        {"Requires.internal",
-         pkgconf_pkg_parser_internal_dependency_func,
-         offsetof (pkgconf_pkg_t, requires_private)},
-        {"Requires.private",
-         pkgconf_pkg_parser_dependency_func,
-         offsetof (pkgconf_pkg_t, requires_private)},
-        {"Version",
-         pkgconf_pkg_parser_version_func,
-         offsetof (pkgconf_pkg_t, version)},
+static const pkg_config_pkg_parser_keyword_pair_t
+pkg_config_pkg_parser_keyword_funcs[] = {
+  {"CFLAGS",
+   pkg_config_pkg_parser_fragment_func,
+   offsetof (pkg_config_pkg_t, cflags)},
+  {"CFLAGS.private",
+   pkg_config_pkg_parser_fragment_func,
+   offsetof (pkg_config_pkg_t, cflags_private)},
+  {"Conflicts",
+   pkg_config_pkg_parser_dependency_func,
+   offsetof (pkg_config_pkg_t, conflicts)},
+  {"Description",
+   pkg_config_pkg_parser_tuple_func,
+   offsetof (pkg_config_pkg_t, description)},
+  {"LIBS",
+   pkg_config_pkg_parser_fragment_func,
+   offsetof (pkg_config_pkg_t, libs)},
+  {"LIBS.private",
+   pkg_config_pkg_parser_fragment_func,
+   offsetof (pkg_config_pkg_t, libs_private)},
+  {"Name",
+   pkg_config_pkg_parser_tuple_func,
+   offsetof (pkg_config_pkg_t, realname)},
+  {"Requires",
+   pkg_config_pkg_parser_dependency_func,
+   offsetof (pkg_config_pkg_t, required)},
+  {"Requires.internal",
+   pkg_config_pkg_parser_internal_dependency_func,
+   offsetof (pkg_config_pkg_t, requires_private)},
+  {"Requires.private",
+   pkg_config_pkg_parser_dependency_func,
+   offsetof (pkg_config_pkg_t, requires_private)},
+  {"Version",
+   pkg_config_pkg_parser_version_func,
+   offsetof (pkg_config_pkg_t, version)}
 };
 
 static void
-pkgconf_pkg_parser_keyword_set (void* opaque,
-                                const size_t lineno,
-                                const char* keyword,
-                                const char* value)
+pkg_config_pkg_parser_keyword_set (void* opaque,
+                                   const size_t lineno,
+                                   const char* keyword,
+                                   const char* value)
 {
-  pkgconf_pkg_t* pkg = opaque;
+  pkg_config_pkg_t* pkg = opaque;
 
-  const pkgconf_pkg_parser_keyword_pair_t* pair =
+  const pkg_config_pkg_parser_keyword_pair_t* pair =
       bsearch (keyword,
-               pkgconf_pkg_parser_keyword_funcs,
-               PKGCONF_ARRAY_SIZE (pkgconf_pkg_parser_keyword_funcs),
-               sizeof (pkgconf_pkg_parser_keyword_pair_t),
-               pkgconf_pkg_parser_keyword_pair_cmp);
+               pkg_config_pkg_parser_keyword_funcs,
+               PKG_CONFIG_ARRAY_SIZE (pkg_config_pkg_parser_keyword_funcs),
+               sizeof (pkg_config_pkg_parser_keyword_pair_t),
+               pkg_config_pkg_parser_keyword_pair_cmp);
 
   if (pair == NULL || pair->func == NULL)
     return;
@@ -248,12 +249,12 @@ pkgconf_pkg_parser_keyword_set (void* opaque,
 }
 
 static const char*
-determine_prefix (const pkgconf_pkg_t* pkg, char* buf, size_t buflen)
+determine_prefix (const pkg_config_pkg_t* pkg, char* buf, size_t buflen)
 {
   char* pathiter;
 
-  pkgconf_strlcpy (buf, pkg->filename, buflen);
-  pkgconf_path_relocate (buf, buflen);
+  pkg_config_strlcpy (buf, pkg->filename, buflen);
+  pkg_config_path_relocate (buf, buflen);
 
   pathiter = strrchr (buf, LIBPKG_CONFIG_DIR_SEP_S);
   if (pathiter == NULL)
@@ -285,7 +286,7 @@ determine_prefix (const pkgconf_pkg_t* pkg, char* buf, size_t buflen)
 }
 
 /*
- * Takes a real path and converts it to a pkgconf value. This means
+ * Takes a real path and converts it to a pkg-config value. This means
  * normalizing directory separators and escaping things (only spaces covered
  * atm).
  *
@@ -359,23 +360,23 @@ is_path_prefix_equal (const char* path1, const char* path2, size_t path2_len)
 }
 
 static void
-pkgconf_pkg_parser_value_set (void* opaque,
-                              const size_t lineno,
-                              const char* keyword,
-                              const char* value)
+pkg_config_pkg_parser_value_set (void* opaque,
+                                 const size_t lineno,
+                                 const char* keyword,
+                                 const char* value)
 {
-  pkgconf_pkg_t* pkg = opaque;
+  pkg_config_pkg_t* pkg = opaque;
 
   (void)lineno;
 
   if (!(pkg->owner->flags & LIBPKG_CONFIG_PKG_PKGF_REDEFINE_PREFIX))
   {
-    pkgconf_tuple_add (pkg->owner, &pkg->vars, keyword, value, true);
+    pkg_config_tuple_add (pkg->owner, &pkg->vars, keyword, value, true);
     return;
   }
 
-  char canonicalized_value[PKGCONF_ITEM_SIZE];
-  pkgconf_strlcpy (canonicalized_value, value, sizeof canonicalized_value);
+  char canonicalized_value[PKG_CONFIG_ITEM_SIZE];
+  pkg_config_strlcpy (canonicalized_value, value, sizeof canonicalized_value);
   canonicalize_path (canonicalized_value);
 
   /* Some pc files will use absolute paths for all of their directories
@@ -387,32 +388,33 @@ pkgconf_pkg_parser_value_set (void* opaque,
                             pkg->orig_prefix->value,
                             strlen (pkg->orig_prefix->value)))
   {
-    char newvalue[PKGCONF_ITEM_SIZE];
+    char newvalue[PKG_CONFIG_ITEM_SIZE];
 
-    pkgconf_strlcpy (newvalue, pkg->prefix->value, sizeof newvalue);
-    pkgconf_strlcat (newvalue,
-                     canonicalized_value + strlen (pkg->orig_prefix->value),
-                     sizeof newvalue);
-    pkgconf_tuple_add (pkg->owner, &pkg->vars, keyword, newvalue, false);
+    pkg_config_strlcpy (newvalue, pkg->prefix->value, sizeof newvalue);
+    pkg_config_strlcat (newvalue,
+                        canonicalized_value +
+                            strlen (pkg->orig_prefix->value),
+                        sizeof newvalue);
+    pkg_config_tuple_add (pkg->owner, &pkg->vars, keyword, newvalue, false);
   }
   else if (strcmp (keyword, pkg->owner->prefix_varname))
-    pkgconf_tuple_add (pkg->owner, &pkg->vars, keyword, value, true);
+    pkg_config_tuple_add (pkg->owner, &pkg->vars, keyword, value, true);
   else
   {
-    char pathbuf[PKGCONF_ITEM_SIZE];
+    char pathbuf[PKG_CONFIG_ITEM_SIZE];
     const char* relvalue = determine_prefix (pkg, pathbuf, sizeof pathbuf);
 
     if (relvalue != NULL)
     {
       char* prefix_value = convert_path_to_value (relvalue);
-      pkg->orig_prefix = pkgconf_tuple_add (
+      pkg->orig_prefix = pkg_config_tuple_add (
           pkg->owner, &pkg->vars, "orig_prefix", canonicalized_value, true);
-      pkg->prefix = pkgconf_tuple_add (
+      pkg->prefix = pkg_config_tuple_add (
           pkg->owner, &pkg->vars, keyword, prefix_value, false);
       free (prefix_value);
     }
     else
-      pkgconf_tuple_add (pkg->owner, &pkg->vars, keyword, value, true);
+      pkg_config_tuple_add (pkg->owner, &pkg->vars, keyword, value, true);
   }
 }
 
@@ -420,53 +422,53 @@ typedef struct
 {
   const char* field;
   const ptrdiff_t offset;
-} pkgconf_pkg_validity_check_t;
+} pkg_config_pkg_validity_check_t;
 
-static const pkgconf_pkg_validity_check_t pkgconf_pkg_validations[] = {
-    {"Name", offsetof (pkgconf_pkg_t, realname)},
-    {"Description", offsetof (pkgconf_pkg_t, description)},
-    {"Version", offsetof (pkgconf_pkg_t, version)},
+static const pkg_config_pkg_validity_check_t pkg_config_pkg_validations[] = {
+  {"Name", offsetof (pkg_config_pkg_t, realname)},
+  {"Description", offsetof (pkg_config_pkg_t, description)},
+  {"Version", offsetof (pkg_config_pkg_t, version)},
 };
 
-static const pkgconf_parser_operand_func_t pkg_parser_funcs[256] = {
-    [':'] = pkgconf_pkg_parser_keyword_set,
-    ['='] = pkgconf_pkg_parser_value_set};
+static const pkg_config_parser_operand_func_t pkg_parser_funcs[] = {
+  [':'] = pkg_config_pkg_parser_keyword_set,
+  ['='] = pkg_config_pkg_parser_value_set};
 
 static void
-pkg_warn_func (pkgconf_pkg_t* pkg, const char* fmt, ...)
+pkg_warn_func (pkg_config_pkg_t* pkg, const char* fmt, ...)
     LIBPKG_CONFIG_PRINTFLIKE (2, 3);
 
 static void
-pkg_warn_func (pkgconf_pkg_t* pkg, const char* fmt, ...)
+pkg_warn_func (pkg_config_pkg_t* pkg, const char* fmt, ...)
 {
-  char buf[PKGCONF_ITEM_SIZE];
+  char buf[PKG_CONFIG_ITEM_SIZE];
   va_list va;
 
   va_start (va, fmt);
   vsnprintf (buf, sizeof buf, fmt, va);
   va_end (va);
 
-  pkgconf_warn (pkg->owner, "%s", buf);
+  pkg_config_warn (pkg->owner, "%s", buf);
 }
 
 static bool
-pkgconf_pkg_validate (const pkgconf_client_t* client,
-                      const pkgconf_pkg_t* pkg)
+pkg_config_pkg_validate (const pkg_config_client_t* client,
+                         const pkg_config_pkg_t* pkg)
 {
   size_t i;
   bool valid = true;
 
-  for (i = 0; i < PKGCONF_ARRAY_SIZE (pkgconf_pkg_validations); i++)
+  for (i = 0; i < PKG_CONFIG_ARRAY_SIZE (pkg_config_pkg_validations); i++)
   {
-    char** p = (char**)((char*)pkg + pkgconf_pkg_validations[i].offset);
+    char** p = (char**)((char*)pkg + pkg_config_pkg_validations[i].offset);
 
     if (*p != NULL)
       continue;
 
-    pkgconf_warn (client,
-                  "%s: warning: file does not declare a '%s' field",
-                  pkg->filename,
-                  pkgconf_pkg_validations[i].field);
+    pkg_config_warn (client,
+                     "%s: warning: file does not declare a '%s' field",
+                     pkg->filename,
+                     pkg_config_pkg_validations[i].field);
     valid = false;
   }
 
@@ -476,26 +478,26 @@ pkgconf_pkg_validate (const pkgconf_client_t* client,
 /*
  * !doc
  *
- * .. c:function:: pkgconf_pkg_t *pkgconf_pkg_new_from_file(const
- * pkgconf_client_t *client, const char *filename, FILE *f)
+ * .. c:function:: pkg_config_pkg_t *pkg_config_pkg_new_from_file(const
+ * pkg_config_client_t *client, const char *filename, FILE *f)
  *
- *    Parse a .pc file into a pkgconf_pkg_t object structure.
+ *    Parse a .pc file into a pkg_config_pkg_t object structure.
  *
- *    :param pkgconf_client_t* client: The pkgconf client object to use for
- * dependency resolution. :param char* filename: The filename of the package
- * file (including full path). :param FILE* f: The file object to read from.
- *    :returns: A ``pkgconf_pkg_t`` object which contains the package data.
- *    :rtype: pkgconf_pkg_t *
+ *    :param pkg_config_client_t* client: The pkg-config client object to use
+ * for dependency resolution. :param char* filename: The filename of the
+ * package file (including full path). :param FILE* f: The file object to read
+ * from. :returns: A ``pkg_config_pkg_t`` object which contains the package
+ * data. :rtype: pkg_config_pkg_t *
  */
-pkgconf_pkg_t*
-pkgconf_pkg_new_from_file (pkgconf_client_t* client,
-                           const char* filename,
-                           FILE* f)
+pkg_config_pkg_t*
+pkg_config_pkg_new_from_file (pkg_config_client_t* client,
+                              const char* filename,
+                              FILE* f)
 {
-  pkgconf_pkg_t* pkg;
+  pkg_config_pkg_t* pkg;
   char* idptr;
 
-  pkg = calloc (sizeof (pkgconf_pkg_t), 1);
+  pkg = calloc (sizeof (pkg_config_pkg_t), 1);
 
   if (pkg == NULL)
     return NULL;
@@ -505,7 +507,8 @@ pkgconf_pkg_new_from_file (pkgconf_client_t* client,
   pkg->pc_filedir = pkg_get_parent_dir (pkg);
 
   char* pc_filedir_value = convert_path_to_value (pkg->pc_filedir);
-  pkgconf_tuple_add (client, &pkg->vars, "pcfiledir", pc_filedir_value, true);
+  pkg_config_tuple_add (
+      client, &pkg->vars, "pcfiledir", pc_filedir_value, true);
   free (pc_filedir_value);
 
   /* If pc_filedir is outside of sysroot_dir, clear pc_filedir
@@ -520,7 +523,7 @@ pkgconf_pkg_new_from_file (pkgconf_client_t* client,
   {
     free(client->sysroot_dir);
     client->sysroot_dir = NULL;
-    pkgconf_client_set_sysroot_dir(client, NULL);
+    pkg_config_client_set_sysroot_dir(client, NULL);
   }
 #endif
 
@@ -545,53 +548,53 @@ pkgconf_pkg_new_from_file (pkgconf_client_t* client,
   if (idptr)
     *idptr = '\0';
 
-  pkgconf_parser_parse (f,
-                        pkg,
-                        pkg_parser_funcs,
-                        (pkgconf_parser_warn_func_t)pkg_warn_func,
-                        pkg->filename);
+  pkg_config_parser_parse (f,
+                           pkg,
+                           pkg_parser_funcs,
+                           (pkg_config_parser_warn_func_t)pkg_warn_func,
+                           pkg->filename);
 
-  if (!pkgconf_pkg_validate (client, pkg))
+  if (!pkg_config_pkg_validate (client, pkg))
   {
-    pkgconf_warn (
+    pkg_config_warn (
         client, "%s: warning: skipping invalid file", pkg->filename);
-    pkgconf_pkg_free (client, pkg);
+    pkg_config_pkg_free (client, pkg);
     return NULL;
   }
 
-  return pkgconf_pkg_ref (client, pkg);
+  return pkg_config_pkg_ref (client, pkg);
 }
 
 /*
  * !doc
  *
- * .. c:function:: void pkgconf_pkg_free(pkgconf_client_t *client,
- * pkgconf_pkg_t *pkg)
+ * .. c:function:: void pkg_config_pkg_free(pkg_config_client_t *client,
+ * pkg_config_pkg_t *pkg)
  *
- *    Releases all releases for a given ``pkgconf_pkg_t`` object.
+ *    Releases all releases for a given ``pkg_config_pkg_t`` object.
  *
- *    :param pkgconf_client_t* client: The client which owns the
- * ``pkgconf_pkg_t`` object, `pkg`. :param pkgconf_pkg_t* pkg: The package to
- * free. :return: nothing
+ *    :param pkg_config_client_t* client: The client which owns the
+ * ``pkg_config_pkg_t`` object, `pkg`. :param pkg_config_pkg_t* pkg: The
+ * package to free. :return: nothing
  */
 void
-pkgconf_pkg_free (pkgconf_client_t* client, pkgconf_pkg_t* pkg)
+pkg_config_pkg_free (pkg_config_client_t* client, pkg_config_pkg_t* pkg)
 {
   if (pkg == NULL)
     return;
 
-  pkgconf_cache_remove (client, pkg);
+  pkg_config_cache_remove (client, pkg);
 
-  pkgconf_dependency_free (&pkg->required);
-  pkgconf_dependency_free (&pkg->requires_private);
-  pkgconf_dependency_free (&pkg->conflicts);
+  pkg_config_dependency_free (&pkg->required);
+  pkg_config_dependency_free (&pkg->requires_private);
+  pkg_config_dependency_free (&pkg->conflicts);
 
-  pkgconf_fragment_free (&pkg->cflags);
-  pkgconf_fragment_free (&pkg->cflags_private);
-  pkgconf_fragment_free (&pkg->libs);
-  pkgconf_fragment_free (&pkg->libs_private);
+  pkg_config_fragment_free (&pkg->cflags);
+  pkg_config_fragment_free (&pkg->cflags_private);
+  pkg_config_fragment_free (&pkg->libs);
+  pkg_config_fragment_free (&pkg->libs_private);
 
-  pkgconf_tuple_free (&pkg->vars);
+  pkg_config_tuple_free (&pkg->vars);
 
   if (pkg->id != NULL)
     free (pkg->id);
@@ -620,26 +623,26 @@ pkgconf_pkg_free (pkgconf_client_t* client, pkgconf_pkg_t* pkg)
 /*
  * !doc
  *
- * .. c:function:: pkgconf_pkg_t *pkgconf_pkg_ref(const pkgconf_client_t
- * *client, pkgconf_pkg_t *pkg)
+ * .. c:function:: pkg_config_pkg_t *pkg_config_pkg_ref(const
+ * pkg_config_client_t *client, pkg_config_pkg_t *pkg)
  *
  *    Adds an additional reference to the package object (unless it is
  * static).
  *
- *    :param pkgconf_client_t* client: The pkgconf client object which owns
- * the package being referenced. :param pkgconf_pkg_t* pkg: The package object
- * being referenced. :return: The package itself with an incremented reference
- * count. :rtype: pkgconf_pkg_t *
+ *    :param pkg_config_client_t* client: The pkg-config client object which
+ * owns the package being referenced. :param pkg_config_pkg_t* pkg: The
+ * package object being referenced. :return: The package itself with an
+ * incremented reference count. :rtype: pkg_config_pkg_t *
  */
-pkgconf_pkg_t*
-pkgconf_pkg_ref (pkgconf_client_t* client, pkgconf_pkg_t* pkg)
+pkg_config_pkg_t*
+pkg_config_pkg_ref (pkg_config_client_t* client, pkg_config_pkg_t* pkg)
 {
   if (pkg->refcount >= 0)
   {
     assert ((pkg->flags & LIBPKG_CONFIG_PKG_PROPF_CONST) == 0);
 
     if (pkg->owner != NULL && pkg->owner != client)
-      PKGCONF_TRACE (
+      PKG_CONFIG_TRACE (
           client,
           "WTF: client %p refers to package %p owned by other client %p",
           client,
@@ -647,7 +650,7 @@ pkgconf_pkg_ref (pkgconf_client_t* client, pkgconf_pkg_t* pkg)
           pkg->owner);
 
     pkg->refcount++;
-    PKGCONF_TRACE (client, "refcount@%p: %d", pkg, pkg->refcount);
+    PKG_CONFIG_TRACE (client, "refcount@%p: %d", pkg, pkg->refcount);
   }
 
   return pkg;
@@ -656,18 +659,18 @@ pkgconf_pkg_ref (pkgconf_client_t* client, pkgconf_pkg_t* pkg)
 /*
  * !doc
  *
- * .. c:function:: void pkgconf_pkg_unref(pkgconf_client_t *client,
- * pkgconf_pkg_t *pkg)
+ * .. c:function:: void pkg_config_pkg_unref(pkg_config_client_t *client,
+ * pkg_config_pkg_t *pkg)
  *
  *    Releases a reference on the package object (unless it is static).  If
  * the reference count is 0, then also free the package.
  *
- *    :param pkgconf_client_t* client: The pkgconf client object which owns
- * the package being dereferenced. :param pkgconf_pkg_t* pkg: The package
- * object being dereferenced. :return: nothing
+ *    :param pkg_config_client_t* client: The pkg-config client object which
+ * owns the package being dereferenced. :param pkg_config_pkg_t* pkg: The
+ * package object being dereferenced. :return: nothing
  */
 void
-pkgconf_pkg_unref (pkgconf_client_t* client, pkgconf_pkg_t* pkg)
+pkg_config_pkg_unref (pkg_config_client_t* client, pkg_config_pkg_t* pkg)
 {
   if (pkg->refcount >= 0)
   {
@@ -675,7 +678,7 @@ pkgconf_pkg_unref (pkgconf_client_t* client, pkgconf_pkg_t* pkg)
             pkg->refcount != 0);
 
     if (pkg->owner != NULL && pkg->owner != client)
-      PKGCONF_TRACE (
+      PKG_CONFIG_TRACE (
           client,
           "WTF: client %p unrefs package %p owned by other client %p",
           client,
@@ -683,23 +686,23 @@ pkgconf_pkg_unref (pkgconf_client_t* client, pkgconf_pkg_t* pkg)
           pkg->owner);
 
     pkg->refcount--;
-    PKGCONF_TRACE (pkg->owner, "refcount@%p: %d", pkg, pkg->refcount);
+    PKG_CONFIG_TRACE (pkg->owner, "refcount@%p: %d", pkg, pkg->refcount);
 
     if (pkg->refcount == 0)
-      pkgconf_pkg_free (pkg->owner, pkg);
+      pkg_config_pkg_free (pkg->owner, pkg);
   }
 }
 
-static inline pkgconf_pkg_t*
-pkgconf_pkg_try_specific_path (pkgconf_client_t* client,
-                               const char* path,
-                               const char* name)
+static inline pkg_config_pkg_t*
+pkg_config_pkg_try_specific_path (pkg_config_client_t* client,
+                                  const char* path,
+                                  const char* name)
 {
-  pkgconf_pkg_t* pkg = NULL;
+  pkg_config_pkg_t* pkg = NULL;
   FILE* f;
-  char locbuf[PKGCONF_ITEM_SIZE];
+  char locbuf[PKG_CONFIG_ITEM_SIZE];
 
-  PKGCONF_TRACE (client, "trying path: %s for %s", path, name);
+  PKG_CONFIG_TRACE (client, "trying path: %s for %s", path, name);
 
   if ((client->flags & LIBPKG_CONFIG_PKG_PKGF_CONSIDER_UNINSTALLED) != 0)
   {
@@ -712,8 +715,8 @@ pkgconf_pkg_try_specific_path (pkgconf_client_t* client,
 
     if ((f = fopen (locbuf, "r")) != NULL)
     {
-      PKGCONF_TRACE (client, "found (uninstalled): %s", locbuf);
-      pkg = pkgconf_pkg_new_from_file (client, locbuf, f);
+      PKG_CONFIG_TRACE (client, "found (uninstalled): %s", locbuf);
+      pkg = pkg_config_pkg_new_from_file (client, locbuf, f);
       if (pkg != NULL)
         pkg->flags |= LIBPKG_CONFIG_PKG_PROPF_UNINSTALLED;
       return pkg;
@@ -729,8 +732,8 @@ pkgconf_pkg_try_specific_path (pkgconf_client_t* client,
 
   if ((f = fopen (locbuf, "r")) != NULL)
   {
-    PKGCONF_TRACE (client, "found: %s", locbuf);
-    pkg = pkgconf_pkg_new_from_file (client, locbuf, f);
+    PKG_CONFIG_TRACE (client, "found: %s", locbuf);
+    pkg = pkg_config_pkg_new_from_file (client, locbuf, f);
   }
 
   return pkg;
@@ -739,35 +742,35 @@ pkgconf_pkg_try_specific_path (pkgconf_client_t* client,
 /*
  * !doc
  *
- * .. c:function:: pkgconf_pkg_t *pkgconf_pkg_find(pkgconf_client_t *client,
- * const char *name)
+ * .. c:function:: pkg_config_pkg_t *pkg_config_pkg_find(pkg_config_client_t
+ * *client, const char *name)
  *
  *    Search for a package.
  *
- *    :param pkgconf_client_t* client: The pkgconf client object to use for
- * dependency resolution. :param char* name: The name of the package `atom` to
- * use for searching. :return: A package object reference if the package was
- * found, else ``NULL``. :rtype: pkgconf_pkg_t *
+ *    :param pkg_config_client_t* client: The pkg-config client object to use
+ * for dependency resolution. :param char* name: The name of the package
+ * `atom` to use for searching. :return: A package object reference if the
+ * package was found, else ``NULL``. :rtype: pkg_config_pkg_t *
  */
-pkgconf_pkg_t*
-pkgconf_pkg_find (pkgconf_client_t* client, const char* name)
+pkg_config_pkg_t*
+pkg_config_pkg_find (pkg_config_client_t* client, const char* name)
 {
-  pkgconf_pkg_t* pkg = NULL;
-  pkgconf_node_t* n;
+  pkg_config_pkg_t* pkg = NULL;
+  pkg_config_node_t* n;
   FILE* f;
 
-  PKGCONF_TRACE (client, "looking for: %s", name);
+  PKG_CONFIG_TRACE (client, "looking for: %s", name);
 
   /* name might actually be a filename. */
   if (str_has_suffix (name, PKG_CONFIG_EXT))
   {
     if ((f = fopen (name, "r")) != NULL)
     {
-      PKGCONF_TRACE (client, "%s is a file", name);
+      PKG_CONFIG_TRACE (client, "%s is a file", name);
 
-      pkg = pkgconf_pkg_new_from_file (client, name, f);
+      pkg = pkg_config_pkg_new_from_file (client, name, f);
       if (pkg != NULL)
-        pkgconf_path_add (pkg->pc_filedir, &client->dir_list, true);
+        pkg_config_path_add (pkg->pc_filedir, &client->dir_list, true);
     }
 
     /* There is no point in trying anything else since the name contains the
@@ -776,32 +779,32 @@ pkgconf_pkg_find (pkgconf_client_t* client, const char* name)
   }
 
   /* check builtins */
-  if ((pkg = (pkgconf_pkg_t*)pkgconf_builtin_pkg_get (name)) != NULL)
+  if ((pkg = (pkg_config_pkg_t*)pkg_config_builtin_pkg_get (name)) != NULL)
   {
-    PKGCONF_TRACE (client, "%s is a builtin", name);
+    PKG_CONFIG_TRACE (client, "%s is a builtin", name);
     return pkg;
   }
 
   /* check cache */
   if (!(client->flags & LIBPKG_CONFIG_PKG_PKGF_NO_CACHE))
   {
-    if ((pkg = pkgconf_cache_lookup (client, name)) != NULL)
+    if ((pkg = pkg_config_cache_lookup (client, name)) != NULL)
     {
-      PKGCONF_TRACE (client, "%s is cached", name);
+      PKG_CONFIG_TRACE (client, "%s is cached", name);
       return pkg;
     }
   }
 
   LIBPKG_CONFIG_FOREACH_LIST_ENTRY (client->dir_list.head, n)
   {
-    pkgconf_path_t* pnode = n->data;
+    pkg_config_path_t* pnode = n->data;
 
-    pkg = pkgconf_pkg_try_specific_path (client, pnode->path, name);
+    pkg = pkg_config_pkg_try_specific_path (client, pnode->path, name);
     if (pkg != NULL)
       break;
   }
 
-  pkgconf_cache_add (client, pkg);
+  pkg_config_cache_add (client, pkg);
 
   return pkg;
 }
@@ -809,7 +812,8 @@ pkgconf_pkg_find (pkgconf_client_t* client, const char* name)
 /*
  * !doc
  *
- * .. c:function:: int pkgconf_compare_version(const char *a, const char *b)
+ * .. c:function:: int pkg_config_compare_version(const char *a, const char
+ * *b)
  *
  *    Compare versions using RPM version comparison rules as described in the
  * LSB.
@@ -820,10 +824,10 @@ pkgconf_pkg_find (pkgconf_client_t* client, const char* name)
  * equal, 1 if the second version is greater. :rtype: int
  */
 int
-pkgconf_compare_version (const char* a, const char* b)
+pkg_config_compare_version (const char* a, const char* b)
 {
   char oldch1, oldch2;
-  char buf1[PKGCONF_ITEM_SIZE], buf2[PKGCONF_ITEM_SIZE];
+  char buf1[PKG_CONFIG_ITEM_SIZE], buf2[PKG_CONFIG_ITEM_SIZE];
   char *str1, *str2;
   char *one, *two;
   int ret;
@@ -839,8 +843,8 @@ pkgconf_compare_version (const char* a, const char* b)
   if (!strcasecmp (a, b))
     return 0;
 
-  pkgconf_strlcpy (buf1, a, sizeof buf1);
-  pkgconf_strlcpy (buf2, b, sizeof buf2);
+  pkg_config_strlcpy (buf1, a, sizeof buf1);
+  pkg_config_strlcpy (buf2, b, sizeof buf2);
 
   one = str1 = buf1;
   two = str2 = buf2;
@@ -934,29 +938,29 @@ pkgconf_compare_version (const char* a, const char* b)
   return 1;
 }
 
-static const pkgconf_pkg_t pkg_config_virtual = {
-  .refcount = -1, /* Static. */
-  .id = "pkg-config",
-  .realname = "pkg-config",
-  .description = "virtual pkg-config package",
-  .url = LIBPKG_CONFIG_PROJECT_URL,
-  .version = LIBPKG_CONFIG_VERSION_ID,
-  .flags = LIBPKG_CONFIG_PKG_PROPF_CONST,
-  .vars = {
-    .head = &(pkgconf_node_t) {
-      .next = &(pkgconf_node_t) {
-        .next = &(pkgconf_node_t) {
-          .data = &(pkgconf_tuple_t) {
+static const pkg_config_pkg_t pkg_config_virtual = {
+    .refcount = -1, /* Static. */
+    .id = "pkg-config",
+    .realname = "pkg-config",
+    .description = "virtual pkg-config package",
+    .url = LIBPKG_CONFIG_PROJECT_URL,
+    .version = LIBPKG_CONFIG_VERSION_ID,
+    .flags = LIBPKG_CONFIG_PKG_PROPF_CONST,
+    .vars = {
+    .head = &(pkg_config_node_t) {
+      .next = &(pkg_config_node_t) {
+        .next = &(pkg_config_node_t) {
+          .data = &(pkg_config_tuple_t) {
             .key = "pc_system_libdirs",
             .value = SYSTEM_LIBDIR,
           }},
-        .data = &(pkgconf_tuple_t) {
+        .data = &(pkg_config_tuple_t) {
           .key = "pc_system_includedirs",
           .value = SYSTEM_INCLUDEDIR,
         }},
-      .data = &(pkgconf_tuple_t) {
+      .data = &(pkg_config_tuple_t) {
         .key = "pc_path",
-        .value = PKG_DEFAULT_PATH,
+        .value = PKG_CONFIG_DEFAULT_PATH,
       },
     },
     .tail = NULL,
@@ -965,109 +969,111 @@ static const pkgconf_pkg_t pkg_config_virtual = {
 typedef struct
 {
   const char* name;
-  const pkgconf_pkg_t* pkg;
-} pkgconf_builtin_pkg_pair_t;
+  const pkg_config_pkg_t* pkg;
+} pkg_config_builtin_pkg_pair_t;
 
 /* keep these in alphabetical order */
-static const pkgconf_builtin_pkg_pair_t pkgconf_builtin_pkg_pair_set[] = {
-    {"pkg-config", &pkg_config_virtual},
+static const pkg_config_builtin_pkg_pair_t pkg_config_builtin_pkg_pair_set[] =
+{
+  {"pkg-config", &pkg_config_virtual}
 };
 
 static int
-pkgconf_builtin_pkg_pair_cmp (const void* key, const void* ptr)
+pkg_config_builtin_pkg_pair_cmp (const void* key, const void* ptr)
 {
-  const pkgconf_builtin_pkg_pair_t* pair = ptr;
+  const pkg_config_builtin_pkg_pair_t* pair = ptr;
   return strcasecmp (key, pair->name);
 }
 
 /*
  * !doc
  *
- * .. c:function:: pkgconf_pkg_t *pkgconf_builtin_pkg_get(const char *name)
+ * .. c:function:: pkg_config_pkg_t *pkg_config_builtin_pkg_get(const char
+ * *name)
  *
  *    Looks up a built-in package.  The package should not be freed or
  * dereferenced.
  *
  *    :param char* name: An atom corresponding to a built-in package to search
  * for. :return: the built-in package if present, else ``NULL``. :rtype:
- * pkgconf_pkg_t *
+ * pkg_config_pkg_t *
  */
-const pkgconf_pkg_t*
-pkgconf_builtin_pkg_get (const char* name)
+const pkg_config_pkg_t*
+pkg_config_builtin_pkg_get (const char* name)
 {
-  const pkgconf_builtin_pkg_pair_t* pair =
+  const pkg_config_builtin_pkg_pair_t* pair =
       bsearch (name,
-               pkgconf_builtin_pkg_pair_set,
-               PKGCONF_ARRAY_SIZE (pkgconf_builtin_pkg_pair_set),
-               sizeof (pkgconf_builtin_pkg_pair_t),
-               pkgconf_builtin_pkg_pair_cmp);
+               pkg_config_builtin_pkg_pair_set,
+               PKG_CONFIG_ARRAY_SIZE (pkg_config_builtin_pkg_pair_set),
+               sizeof (pkg_config_builtin_pkg_pair_t),
+               pkg_config_builtin_pkg_pair_cmp);
 
   return (pair != NULL) ? pair->pkg : NULL;
 }
 
-typedef bool (*pkgconf_vercmp_res_func_t) (const char* a, const char* b);
+typedef bool (*pkg_config_vercmp_res_func_t) (const char* a, const char* b);
 
 typedef struct
 {
   const char* name;
-  pkgconf_pkg_comparator_t compare;
-} pkgconf_pkg_comparator_pair_t;
+  pkg_config_pkg_comparator_t compare;
+} pkg_config_pkg_comparator_pair_t;
 
-static const pkgconf_pkg_comparator_pair_t pkgconf_pkg_comparator_names[] = {
-    {"!=", PKGCONF_CMP_NOT_EQUAL},
-    {"(any)", PKGCONF_CMP_ANY},
-    {"<", PKGCONF_CMP_LESS_THAN},
-    {"<=", PKGCONF_CMP_LESS_THAN_EQUAL},
-    {"=", PKGCONF_CMP_EQUAL},
-    {">", PKGCONF_CMP_GREATER_THAN},
-    {">=", PKGCONF_CMP_GREATER_THAN_EQUAL},
-};
+static const pkg_config_pkg_comparator_pair_t
+pkg_config_pkg_comparator_names[] = {
+  {"!=", PKG_CONFIG_CMP_NOT_EQUAL},
+  {"(any)", PKG_CONFIG_CMP_ANY},
+  {"<", PKG_CONFIG_CMP_LESS_THAN},
+  {"<=", PKG_CONFIG_CMP_LESS_THAN_EQUAL},
+  {"=", PKG_CONFIG_CMP_EQUAL},
+  {">", PKG_CONFIG_CMP_GREATER_THAN},
+  {">=", PKG_CONFIG_CMP_GREATER_THAN_EQUAL}};
 
 static int
-pkgconf_pkg_comparator_pair_namecmp (const void* key, const void* ptr)
+pkg_config_pkg_comparator_pair_namecmp (const void* key, const void* ptr)
 {
-  const pkgconf_pkg_comparator_pair_t* pair = ptr;
+  const pkg_config_pkg_comparator_pair_t* pair = ptr;
   return strcmp (key, pair->name);
 }
 
 static bool
-pkgconf_pkg_comparator_lt (const char* a, const char* b)
+pkg_config_pkg_comparator_lt (const char* a, const char* b)
 {
-  return (pkgconf_compare_version (a, b) < 0);
+  return (pkg_config_compare_version (a, b) < 0);
 }
 
 static bool
-pkgconf_pkg_comparator_gt (const char* a, const char* b)
+pkg_config_pkg_comparator_gt (const char* a, const char* b)
 {
-  return (pkgconf_compare_version (a, b) > 0);
+  return (pkg_config_compare_version (a, b) > 0);
 }
 
 static bool
-pkgconf_pkg_comparator_lte (const char* a, const char* b)
+pkg_config_pkg_comparator_lte (const char* a, const char* b)
 {
-  return (pkgconf_compare_version (a, b) <= 0);
+  return (pkg_config_compare_version (a, b) <= 0);
 }
 
 static bool
-pkgconf_pkg_comparator_gte (const char* a, const char* b)
+pkg_config_pkg_comparator_gte (const char* a, const char* b)
 {
-  return (pkgconf_compare_version (a, b) >= 0);
+  return (pkg_config_compare_version (a, b) >= 0);
 }
 
 static bool
-pkgconf_pkg_comparator_eq (const char* a, const char* b)
+pkg_config_pkg_comparator_eq (const char* a, const char* b)
 {
-  return (pkgconf_compare_version (a, b) == 0);
+  return (pkg_config_compare_version (a, b) == 0);
 }
 
 static bool
-pkgconf_pkg_comparator_ne (const char* a, const char* b)
+pkg_config_pkg_comparator_ne (const char* a, const char* b)
 {
-  return (pkgconf_compare_version (a, b) != 0);
+  return (pkg_config_compare_version (a, b) != 0);
 }
 
 static bool
-pkgconf_pkg_comparator_any (const char* a, const char* b)
+pkg_config_pkg_comparator_any (const char* a, const char* b)
 {
   (void)a;
   (void)b;
@@ -1075,105 +1081,109 @@ pkgconf_pkg_comparator_any (const char* a, const char* b)
   return true;
 }
 
-static const pkgconf_vercmp_res_func_t pkgconf_pkg_comparator_impls[] = {
-    [PKGCONF_CMP_ANY] = pkgconf_pkg_comparator_any,
-    [PKGCONF_CMP_LESS_THAN] = pkgconf_pkg_comparator_lt,
-    [PKGCONF_CMP_GREATER_THAN] = pkgconf_pkg_comparator_gt,
-    [PKGCONF_CMP_LESS_THAN_EQUAL] = pkgconf_pkg_comparator_lte,
-    [PKGCONF_CMP_GREATER_THAN_EQUAL] = pkgconf_pkg_comparator_gte,
-    [PKGCONF_CMP_EQUAL] = pkgconf_pkg_comparator_eq,
-    [PKGCONF_CMP_NOT_EQUAL] = pkgconf_pkg_comparator_ne,
+static const pkg_config_vercmp_res_func_t pkg_config_pkg_comparator_impls[] =
+{
+  [PKG_CONFIG_CMP_ANY] = pkg_config_pkg_comparator_any,
+  [PKG_CONFIG_CMP_LESS_THAN] = pkg_config_pkg_comparator_lt,
+  [PKG_CONFIG_CMP_GREATER_THAN] = pkg_config_pkg_comparator_gt,
+  [PKG_CONFIG_CMP_LESS_THAN_EQUAL] = pkg_config_pkg_comparator_lte,
+  [PKG_CONFIG_CMP_GREATER_THAN_EQUAL] = pkg_config_pkg_comparator_gte,
+  [PKG_CONFIG_CMP_EQUAL] = pkg_config_pkg_comparator_eq,
+  [PKG_CONFIG_CMP_NOT_EQUAL] = pkg_config_pkg_comparator_ne
 };
 
 /*
  * !doc
  *
- * .. c:function:: const char *pkgconf_pkg_get_comparator(const
- * pkgconf_dependency_t *pkgdep)
+ * .. c:function:: const char *pkg_config_pkg_get_comparator(const
+ * pkg_config_dependency_t *pkgdep)
  *
  *    Returns the comparator used in a depgraph dependency node as a string.
  *
- *    :param pkgconf_dependency_t* pkgdep: The depgraph dependency node to
+ *    :param pkg_config_dependency_t* pkgdep: The depgraph dependency node to
  * return the comparator for. :return: A string matching the comparator or
  * ``"???"``. :rtype: char *
  */
 const char*
-pkgconf_pkg_get_comparator (const pkgconf_dependency_t* pkgdep)
+pkg_config_pkg_get_comparator (const pkg_config_dependency_t* pkgdep)
 {
-  if (pkgdep->compare >= PKGCONF_ARRAY_SIZE (pkgconf_pkg_comparator_names))
+  if (pkgdep->compare >=
+      PKG_CONFIG_ARRAY_SIZE (pkg_config_pkg_comparator_names))
     return "???";
 
-  return pkgconf_pkg_comparator_names[pkgdep->compare].name;
+  return pkg_config_pkg_comparator_names[pkgdep->compare].name;
 }
 
 /*
  * !doc
  *
- * .. c:function:: pkgconf_pkg_comparator_t
- * pkgconf_pkg_comparator_lookup_by_name(const char *name)
+ * .. c:function:: pkg_config_pkg_comparator_t
+ * pkg_config_pkg_comparator_lookup_by_name(const char *name)
  *
  *    Look up the appropriate comparator bytecode in the comparator set
- * (defined in ``pkg.c``, see ``pkgconf_pkg_comparator_names`` and
- * ``pkgconf_pkg_comparator_impls``).
+ * (defined in ``pkg.c``, see ``pkg_config_pkg_comparator_names`` and
+ * ``pkg_config_pkg_comparator_impls``).
  *
  *    :param char* name: The comparator to look up by `name`.
- *    :return: The comparator bytecode if found, else ``PKGCONF_CMP_ANY``.
- *    :rtype: pkgconf_pkg_comparator_t
+ *    :return: The comparator bytecode if found, else ``PKG_CONFIG_CMP_ANY``.
+ *    :rtype: pkg_config_pkg_comparator_t
  */
-pkgconf_pkg_comparator_t
-pkgconf_pkg_comparator_lookup_by_name (const char* name)
+pkg_config_pkg_comparator_t
+pkg_config_pkg_comparator_lookup_by_name (const char* name)
 {
-  const pkgconf_pkg_comparator_pair_t* p =
+  const pkg_config_pkg_comparator_pair_t* p =
       bsearch (name,
-               pkgconf_pkg_comparator_names,
-               PKGCONF_ARRAY_SIZE (pkgconf_pkg_comparator_names),
-               sizeof (pkgconf_pkg_comparator_pair_t),
-               pkgconf_pkg_comparator_pair_namecmp);
+               pkg_config_pkg_comparator_names,
+               PKG_CONFIG_ARRAY_SIZE (pkg_config_pkg_comparator_names),
+               sizeof (pkg_config_pkg_comparator_pair_t),
+               pkg_config_pkg_comparator_pair_namecmp);
 
-  return (p != NULL) ? p->compare : PKGCONF_CMP_ANY;
+  return (p != NULL) ? p->compare : PKG_CONFIG_CMP_ANY;
 }
 
 /*
  * !doc
  *
- * .. c:function:: pkgconf_pkg_t
- * *pkgconf_pkg_verify_dependency(pkgconf_client_t *client,
- * pkgconf_dependency_t *pkgdep, unsigned int *eflags)
+ * .. c:function:: pkg_config_pkg_t
+ * *pkg_config_pkg_verify_dependency(pkg_config_client_t *client,
+ * pkg_config_dependency_t *pkgdep, unsigned int *eflags)
  *
- *    Verify a pkgconf_dependency_t node in the depgraph.  If the dependency
- * is solvable, return the appropriate ``pkgconf_pkg_t`` object, else
+ *    Verify a pkg_config_dependency_t node in the depgraph.  If the
+ * dependency is solvable, return the appropriate ``pkg_config_pkg_t`` object,
+ * else
  * ``NULL``.
  *
- *    :param pkgconf_client_t* client: The pkgconf client object to use for
- * dependency resolution. :param pkgconf_dependency_t* pkgdep: The dependency
- * graph node to solve. :param uint* eflags: An optional pointer that, if set,
- * will be populated with an error code from the resolver. :return: On
- * success, the appropriate ``pkgconf_pkg_t`` object to solve the dependency,
- * else ``NULL``. :rtype: pkgconf_pkg_t *
+ *    :param pkg_config_client_t* client: The pkg-config client object to use
+ * for dependency resolution. :param pkg_config_dependency_t* pkgdep: The
+ * dependency graph node to solve. :param uint* eflags: An optional pointer
+ * that, if set, will be populated with an error code from the resolver.
+ * :return: On success, the appropriate ``pkg_config_pkg_t`` object to solve
+ * the dependency, else ``NULL``. :rtype: pkg_config_pkg_t *
  */
-pkgconf_pkg_t*
-pkgconf_pkg_verify_dependency (pkgconf_client_t* client,
-                               pkgconf_dependency_t* pkgdep,
-                               unsigned int* eflags)
+pkg_config_pkg_t*
+pkg_config_pkg_verify_dependency (pkg_config_client_t* client,
+                                  pkg_config_dependency_t* pkgdep,
+                                  unsigned int* eflags)
 {
-  pkgconf_pkg_t* pkg = NULL;
+  pkg_config_pkg_t* pkg = NULL;
 
   if (eflags != NULL)
     *eflags = LIBPKG_CONFIG_PKG_ERRF_OK;
 
-  PKGCONF_TRACE (client, "trying to verify dependency: %s", pkgdep->package);
+  PKG_CONFIG_TRACE (
+      client, "trying to verify dependency: %s", pkgdep->package);
 
   if (pkgdep->match != NULL)
   {
-    PKGCONF_TRACE (client,
-                   "cached dependency: %s -> %s@%p",
-                   pkgdep->package,
-                   pkgdep->match->id,
-                   pkgdep->match);
-    return pkgconf_pkg_ref (client, pkgdep->match);
+    PKG_CONFIG_TRACE (client,
+                      "cached dependency: %s -> %s@%p",
+                      pkgdep->package,
+                      pkgdep->match->id,
+                      pkgdep->match);
+    return pkg_config_pkg_ref (client, pkgdep->match);
   }
 
-  pkg = pkgconf_pkg_find (client, pkgdep->package);
+  pkg = pkg_config_pkg_find (client, pkgdep->package);
   if (pkg == NULL)
   {
     if (eflags != NULL)
@@ -1187,14 +1197,14 @@ pkgconf_pkg_verify_dependency (pkgconf_client_t* client,
     pkg->id = strdup (pkgdep->package);
   }
 
-  if (pkgconf_pkg_comparator_impls[pkgdep->compare](pkg->version,
-                                                    pkgdep->version) != true)
+  if (pkg_config_pkg_comparator_impls[pkgdep->compare](
+          pkg->version, pkgdep->version) != true)
   {
     if (eflags != NULL)
       *eflags |= LIBPKG_CONFIG_PKG_ERRF_PACKAGE_VER_MISMATCH;
   }
   else
-    pkgdep->match = pkgconf_pkg_ref (client, pkg);
+    pkgdep->match = pkg_config_pkg_ref (client, pkg);
 
   return pkg;
 }
@@ -1202,106 +1212,108 @@ pkgconf_pkg_verify_dependency (pkgconf_client_t* client,
 /*
  * !doc
  *
- * .. c:function:: unsigned int pkgconf_pkg_verify_graph(pkgconf_client_t
- * *client, pkgconf_pkg_t *root, int depth)
+ * .. c:function:: unsigned int
+ * pkg_config_pkg_verify_graph(pkg_config_client_t *client, pkg_config_pkg_t
+ * *root, int depth)
  *
  *    Verify the graph dependency nodes are satisfiable by walking the tree
  * using
- *    ``pkgconf_pkg_traverse()``.
+ *    ``pkg_config_pkg_traverse()``.
  *
- *    :param pkgconf_client_t* client: The pkgconf client object to use for
- * dependency resolution. :param pkgconf_pkg_t* root: The root entry in the
- * package dependency graph which should contain the top-level dependencies to
- * resolve. :param int depth: The maximum allowed depth for dependency
- * resolution. :return: On success, ``LIBPKG_CONFIG_PKG_ERRF_OK`` (0), else an
- * error code. :rtype: unsigned int
+ *    :param pkg_config_client_t* client: The pkg-config client object to use
+ * for dependency resolution. :param pkg_config_pkg_t* root: The root entry in
+ * the package dependency graph which should contain the top-level
+ * dependencies to resolve. :param int depth: The maximum allowed depth for
+ * dependency resolution. :return: On success, ``LIBPKG_CONFIG_PKG_ERRF_OK``
+ * (0), else an error code. :rtype: unsigned int
  */
 unsigned int
-pkgconf_pkg_verify_graph (pkgconf_client_t* client,
-                          pkgconf_pkg_t* root,
-                          int depth)
+pkg_config_pkg_verify_graph (pkg_config_client_t* client,
+                             pkg_config_pkg_t* root,
+                             int depth)
 {
-  return pkgconf_pkg_traverse (client, root, NULL, NULL, depth, 0);
+  return pkg_config_pkg_traverse (client, root, NULL, NULL, depth, 0);
 }
 
 static unsigned int
-pkgconf_pkg_report_graph_error (pkgconf_client_t* client,
-                                const pkgconf_pkg_t* parent,
-                                pkgconf_pkg_t* pkg,
-                                const pkgconf_dependency_t* node,
-                                unsigned int eflags)
+pkg_config_pkg_report_graph_error (pkg_config_client_t* client,
+                                   const pkg_config_pkg_t* parent,
+                                   pkg_config_pkg_t* pkg,
+                                   const pkg_config_dependency_t* node,
+                                   unsigned int eflags)
 {
   if (eflags & LIBPKG_CONFIG_PKG_ERRF_PACKAGE_NOT_FOUND)
   {
-    pkgconf_error (client,
-                   LIBPKG_CONFIG_PKG_ERRF_PACKAGE_NOT_FOUND,
-                   "package '%s' required by '%s' not found",
-                   node->package,
-                   parent->id);
+    pkg_config_error (client,
+                      LIBPKG_CONFIG_PKG_ERRF_PACKAGE_NOT_FOUND,
+                      "package '%s' required by '%s' not found",
+                      node->package,
+                      parent->id);
     /*
-    pkgconf_audit_log(client, "%s NOT-FOUND\n", node->package);
+    pkg_config_audit_log(client, "%s NOT-FOUND\n", node->package);
     */
   }
   else if (eflags & LIBPKG_CONFIG_PKG_ERRF_PACKAGE_VER_MISMATCH)
   {
     if (pkg == NULL)
     {
-      pkgconf_error (
-        client,
-        LIBPKG_CONFIG_PKG_ERRF_PACKAGE_VER_MISMATCH,
-        "package version constraint '%s %s %s' could not be satisfied",
-        node->package,
-        pkgconf_pkg_get_comparator (node),
-        node->version);
+      pkg_config_error (
+          client,
+          LIBPKG_CONFIG_PKG_ERRF_PACKAGE_VER_MISMATCH,
+          "package version constraint '%s %s %s' could not be satisfied",
+          node->package,
+          pkg_config_pkg_get_comparator (node),
+          node->version);
     }
     else
     {
-      pkgconf_error (
-        client,
-        LIBPKG_CONFIG_PKG_ERRF_PACKAGE_VER_MISMATCH,
-        "package version constraint '%s %s %s' could not be satisfied, "
-        "available version is '%s'",
-        node->package,
-        pkgconf_pkg_get_comparator (node),
-        node->version,
-        pkg->version);
+      pkg_config_error (
+          client,
+          LIBPKG_CONFIG_PKG_ERRF_PACKAGE_VER_MISMATCH,
+          "package version constraint '%s %s %s' could not be satisfied, "
+          "available version is '%s'",
+          node->package,
+          pkg_config_pkg_get_comparator (node),
+          node->version,
+          pkg->version);
     }
   }
 
   if (pkg != NULL)
-    pkgconf_pkg_unref (client, pkg);
+    pkg_config_pkg_unref (client, pkg);
 
   return eflags;
 }
 
 static inline unsigned int
-pkgconf_pkg_walk_list (pkgconf_client_t* client,
-                       pkgconf_pkg_t* parent,
-                       pkgconf_list_t* deplist,
-                       pkgconf_pkg_traverse_func_t func,
-                       void* data,
-                       int depth,
-                       unsigned int skip_flags)
+pkg_config_pkg_walk_list (pkg_config_client_t* client,
+                          pkg_config_pkg_t* parent,
+                          pkg_config_list_t* deplist,
+                          pkg_config_pkg_traverse_func_t func,
+                          void* data,
+                          int depth,
+                          unsigned int skip_flags)
 {
   unsigned int eflags = LIBPKG_CONFIG_PKG_ERRF_OK;
-  pkgconf_node_t* node;
+  pkg_config_node_t* node;
 
   LIBPKG_CONFIG_FOREACH_LIST_ENTRY (deplist->head, node)
   {
     unsigned int eflags_local = LIBPKG_CONFIG_PKG_ERRF_OK;
-    pkgconf_dependency_t* depnode = node->data;
-    pkgconf_pkg_t* pkgdep;
+    pkg_config_dependency_t* depnode = node->data;
+    pkg_config_pkg_t* pkgdep;
 
     if (*depnode->package == '\0')
       continue;
 
-    pkgdep = pkgconf_pkg_verify_dependency (client, depnode, &eflags_local);
+    pkgdep =
+        pkg_config_pkg_verify_dependency (client, depnode, &eflags_local);
 
     eflags |= eflags_local;
     if (eflags_local != LIBPKG_CONFIG_PKG_ERRF_OK &&
         !(client->flags & LIBPKG_CONFIG_PKG_PKGF_SKIP_ERRORS))
     {
-      pkgconf_pkg_report_graph_error (
+      pkg_config_pkg_report_graph_error (
           client, parent, pkgdep, depnode, eflags_local);
       continue;
     }
@@ -1310,81 +1322,81 @@ pkgconf_pkg_walk_list (pkgconf_client_t* client,
 
     if (pkgdep->flags & LIBPKG_CONFIG_PKG_PROPF_SEEN)
     {
-      pkgconf_pkg_unref (client, pkgdep);
+      pkg_config_pkg_unref (client, pkgdep);
       continue;
     }
 
     if (skip_flags && (depnode->flags & skip_flags) == skip_flags)
     {
-      pkgconf_pkg_unref (client, pkgdep);
+      pkg_config_pkg_unref (client, pkgdep);
       continue;
     }
 
     /*
-    pkgconf_audit_log_dependency(client, pkgdep, depnode);
+    pkg_config_audit_log_dependency(client, pkgdep, depnode);
     */
 
     if ((pkgdep->flags & LIBPKG_CONFIG_PKG_PROPF_CONST) == 0)
       pkgdep->flags |= LIBPKG_CONFIG_PKG_PROPF_SEEN;
 
-    eflags |= pkgconf_pkg_traverse (
+    eflags |= pkg_config_pkg_traverse (
         client, pkgdep, func, data, depth - 1, skip_flags);
 
     if ((pkgdep->flags & LIBPKG_CONFIG_PKG_PROPF_CONST) == 0)
       pkgdep->flags &= ~LIBPKG_CONFIG_PKG_PROPF_SEEN;
 
-    pkgconf_pkg_unref (client, pkgdep);
+    pkg_config_pkg_unref (client, pkgdep);
   }
 
   return eflags;
 }
 
 static inline unsigned int
-pkgconf_pkg_walk_conflicts_list (pkgconf_client_t* client,
-                                 const pkgconf_pkg_t* root,
-                                 const pkgconf_list_t* deplist)
+pkg_config_pkg_walk_conflicts_list (pkg_config_client_t* client,
+                                    const pkg_config_pkg_t* root,
+                                    const pkg_config_list_t* deplist)
 {
   unsigned int eflags;
-  pkgconf_node_t *node, *childnode;
+  pkg_config_node_t *node, *childnode;
 
   LIBPKG_CONFIG_FOREACH_LIST_ENTRY (deplist->head, node)
   {
-    pkgconf_dependency_t* parentnode = node->data;
+    pkg_config_dependency_t* parentnode = node->data;
 
     if (*parentnode->package == '\0')
       continue;
 
     LIBPKG_CONFIG_FOREACH_LIST_ENTRY (root->required.head, childnode)
     {
-      pkgconf_pkg_t* pkgdep;
-      pkgconf_dependency_t* depnode = childnode->data;
+      pkg_config_pkg_t* pkgdep;
+      pkg_config_dependency_t* depnode = childnode->data;
 
       if (*depnode->package == '\0' ||
           strcmp (depnode->package, parentnode->package))
         continue;
 
-      pkgdep = pkgconf_pkg_verify_dependency (client, parentnode, &eflags);
+      pkgdep = pkg_config_pkg_verify_dependency (client, parentnode, &eflags);
       if (eflags == LIBPKG_CONFIG_PKG_ERRF_OK)
       {
-        pkgconf_error (client,
-                       LIBPKG_CONFIG_PKG_ERRF_PACKAGE_CONFLICT,
-                       "version '%s' of '%s' conflicts with '%s' due to "
-                       "conflict rule '%s %s%s%s'",
-                       pkgdep->version,
-                       pkgdep->realname,
-                       root->realname,
-                       parentnode->package,
-                       pkgconf_pkg_get_comparator (parentnode),
-                       parentnode->version != NULL ? " " : "",
-                       parentnode->version != NULL ? parentnode->version
-                                                   : "");
+        pkg_config_error (client,
+                          LIBPKG_CONFIG_PKG_ERRF_PACKAGE_CONFLICT,
+                          "version '%s' of '%s' conflicts with '%s' due to "
+                          "conflict rule '%s %s%s%s'",
+                          pkgdep->version,
+                          pkgdep->realname,
+                          root->realname,
+                          parentnode->package,
+                          pkg_config_pkg_get_comparator (parentnode),
+                          parentnode->version != NULL ? " " : "",
+                          parentnode->version != NULL ? parentnode->version
+                                                      : "");
 
-        pkgconf_pkg_unref (client, pkgdep);
+        pkg_config_pkg_unref (client, pkgdep);
 
         return LIBPKG_CONFIG_PKG_ERRF_PACKAGE_CONFLICT;
       }
 
-      pkgconf_pkg_unref (client, pkgdep);
+      pkg_config_pkg_unref (client, pkgdep);
     }
   }
 
@@ -1394,15 +1406,15 @@ pkgconf_pkg_walk_conflicts_list (pkgconf_client_t* client,
 /*
  * !doc
  *
- * .. c:function:: unsigned int pkgconf_pkg_traverse(pkgconf_client_t *client,
- * pkgconf_pkg_t *root, pkgconf_pkg_traverse_func_t func, void *data, int
- * maxdepth, unsigned int skip_flags)
+ * .. c:function:: unsigned int pkg_config_pkg_traverse(pkg_config_client_t
+ * *client, pkg_config_pkg_t *root, pkg_config_pkg_traverse_func_t func, void
+ * *data, int maxdepth, unsigned int skip_flags)
  *
  *    Walk and resolve the dependency graph up to `maxdepth` levels.
  *
- *    :param pkgconf_client_t* client: The pkgconf client object to use for
- * dependency resolution. :param pkgconf_pkg_t* root: The root of the
- * dependency graph. :param pkgconf_pkg_traverse_func_t func: A traversal
+ *    :param pkg_config_client_t* client: The pkg-config client object to use
+ * for dependency resolution. :param pkg_config_pkg_t* root: The root of the
+ * dependency graph. :param pkg_config_pkg_traverse_func_t func: A traversal
  * function to call for each resolved node in the dependency graph. :param
  * void* data: An opaque pointer to data to be passed to the traversal
  * function. :param int maxdepth: The maximum depth to walk the dependency
@@ -1412,49 +1424,50 @@ pkgconf_pkg_walk_conflicts_list (pkgconf_client_t* client,
  * an error code. :rtype: unsigned int
  */
 unsigned int
-pkgconf_pkg_traverse (pkgconf_client_t* client,
-                      pkgconf_pkg_t* root,
-                      pkgconf_pkg_traverse_func_t func,
-                      void* data,
-                      int maxdepth,
-                      unsigned int skip_flags)
+pkg_config_pkg_traverse (pkg_config_client_t* client,
+                         pkg_config_pkg_t* root,
+                         pkg_config_pkg_traverse_func_t func,
+                         void* data,
+                         int maxdepth,
+                         unsigned int skip_flags)
 {
   unsigned int eflags = LIBPKG_CONFIG_PKG_ERRF_OK;
 
   if (maxdepth == 0)
     return eflags;
 
-  PKGCONF_TRACE (client, "%s: level %d", root->id, maxdepth);
+  PKG_CONFIG_TRACE (client, "%s: level %d", root->id, maxdepth);
 
   if (func != NULL)
     func (client, root, data);
 
   if (!(client->flags & LIBPKG_CONFIG_PKG_PKGF_SKIP_CONFLICTS))
   {
-    eflags = pkgconf_pkg_walk_conflicts_list (client, root, &root->conflicts);
+    eflags =
+        pkg_config_pkg_walk_conflicts_list (client, root, &root->conflicts);
     if (eflags != LIBPKG_CONFIG_PKG_ERRF_OK)
       return eflags;
   }
 
-  PKGCONF_TRACE (client, "%s: walking requires list", root->id);
-  eflags = pkgconf_pkg_walk_list (
+  PKG_CONFIG_TRACE (client, "%s: walking requires list", root->id);
+  eflags = pkg_config_pkg_walk_list (
       client, root, &root->required, func, data, maxdepth, skip_flags);
   if (eflags != LIBPKG_CONFIG_PKG_ERRF_OK)
     return eflags;
 
   if (client->flags & LIBPKG_CONFIG_PKG_PKGF_SEARCH_PRIVATE)
   {
-    PKGCONF_TRACE (client, "%s: walking requires.private list", root->id);
+    PKG_CONFIG_TRACE (client, "%s: walking requires.private list", root->id);
 
     /* XXX: ugly */
     client->flags |= LIBPKG_CONFIG_PKG_PKGF_ITER_PKG_IS_PRIVATE;
-    eflags = pkgconf_pkg_walk_list (client,
-                                    root,
-                                    &root->requires_private,
-                                    func,
-                                    data,
-                                    maxdepth,
-                                    skip_flags);
+    eflags = pkg_config_pkg_walk_list (client,
+                                       root,
+                                       &root->requires_private,
+                                       func,
+                                       data,
+                                       maxdepth,
+                                       skip_flags);
     client->flags &= ~LIBPKG_CONFIG_PKG_PKGF_ITER_PKG_IS_PRIVATE;
 
     if (eflags != LIBPKG_CONFIG_PKG_ERRF_OK)
@@ -1465,56 +1478,57 @@ pkgconf_pkg_traverse (pkgconf_client_t* client,
 }
 
 static void
-pkgconf_pkg_cflags_collect (pkgconf_client_t* client,
-                            pkgconf_pkg_t* pkg,
-                            void* data)
+pkg_config_pkg_cflags_collect (pkg_config_client_t* client,
+                               pkg_config_pkg_t* pkg,
+                               void* data)
 {
-  pkgconf_list_t* list = data;
-  pkgconf_node_t* node;
+  pkg_config_list_t* list = data;
+  pkg_config_node_t* node;
 
   LIBPKG_CONFIG_FOREACH_LIST_ENTRY (pkg->cflags.head, node)
   {
-    pkgconf_fragment_t* frag = node->data;
-    pkgconf_fragment_copy (client, list, frag, false);
+    pkg_config_fragment_t* frag = node->data;
+    pkg_config_fragment_copy (client, list, frag, false);
   }
 }
 
 static void
-pkgconf_pkg_cflags_private_collect (pkgconf_client_t* client,
-                                    pkgconf_pkg_t* pkg,
-                                    void* data)
+pkg_config_pkg_cflags_private_collect (pkg_config_client_t* client,
+                                       pkg_config_pkg_t* pkg,
+                                       void* data)
 {
-  pkgconf_list_t* list = data;
-  pkgconf_node_t* node;
+  pkg_config_list_t* list = data;
+  pkg_config_node_t* node;
 
   LIBPKG_CONFIG_FOREACH_LIST_ENTRY (pkg->cflags_private.head, node)
   {
-    pkgconf_fragment_t* frag = node->data;
-    pkgconf_fragment_copy (client, list, frag, true);
+    pkg_config_fragment_t* frag = node->data;
+    pkg_config_fragment_copy (client, list, frag, true);
   }
 }
 
 /*
  * !doc
  *
- * .. c:function:: int pkgconf_pkg_cflags(pkgconf_client_t *client,
- * pkgconf_pkg_t *root, pkgconf_list_t *list, int maxdepth)
+ * .. c:function:: int pkg_config_pkg_cflags(pkg_config_client_t *client,
+ * pkg_config_pkg_t *root, pkg_config_list_t *list, int maxdepth)
  *
  *    Walks a dependency graph and extracts relevant ``CFLAGS`` fragments.
  *
- *    :param pkgconf_client_t* client: The pkgconf client object to use for
- * dependency resolution. :param pkgconf_pkg_t* root: The root of the
- * dependency graph. :param pkgconf_list_t* list: The fragment list to add the
- * extracted ``CFLAGS`` fragments to. :param int maxdepth: The maximum allowed
- * depth for dependency resolution.  -1 means infinite recursion. :return:
+ *    :param pkg_config_client_t* client: The pkg-config client object to use
+ * for dependency resolution. :param pkg_config_pkg_t* root: The root of the
+ * dependency graph. :param pkg_config_list_t* list: The fragment list to add
+ * the extracted ``CFLAGS`` fragments to. :param int maxdepth: The maximum
+ * allowed depth for dependency resolution.  -1 means infinite recursion.
+ * :return:
  * ``LIBPKG_CONFIG_PKG_ERRF_OK`` if successful, otherwise an error code.
  *    :rtype: unsigned int
  */
 unsigned int
-pkgconf_pkg_cflags (pkgconf_client_t* client,
-                    pkgconf_pkg_t* root,
-                    pkgconf_list_t* list,
-                    int maxdepth)
+pkg_config_pkg_cflags (pkg_config_client_t* client,
+                       pkg_config_pkg_t* root,
+                       pkg_config_list_t* list,
+                       int maxdepth)
 {
   unsigned int eflag;
   unsigned int skip_flags =
@@ -1522,44 +1536,48 @@ pkgconf_pkg_cflags (pkgconf_client_t* client,
               0
           ? LIBPKG_CONFIG_PKG_DEPF_INTERNAL
           : 0;
-  pkgconf_list_t frags = LIBPKG_CONFIG_LIST_INITIALIZER;
+  pkg_config_list_t frags = LIBPKG_CONFIG_LIST_INITIALIZER;
 
-  eflag = pkgconf_pkg_traverse (
-      client, root, pkgconf_pkg_cflags_collect, &frags, maxdepth, skip_flags);
+  eflag = pkg_config_pkg_traverse (client,
+                                   root,
+                                   pkg_config_pkg_cflags_collect,
+                                   &frags,
+                                   maxdepth,
+                                   skip_flags);
 
   if (eflag == LIBPKG_CONFIG_PKG_ERRF_OK &&
       client->flags & LIBPKG_CONFIG_PKG_PKGF_ADD_PRIVATE_FRAGMENTS)
-    eflag = pkgconf_pkg_traverse (client,
-                                  root,
-                                  pkgconf_pkg_cflags_private_collect,
-                                  &frags,
-                                  maxdepth,
-                                  skip_flags);
+    eflag = pkg_config_pkg_traverse (client,
+                                     root,
+                                     pkg_config_pkg_cflags_private_collect,
+                                     &frags,
+                                     maxdepth,
+                                     skip_flags);
 
   if (eflag != LIBPKG_CONFIG_PKG_ERRF_OK)
   {
-    pkgconf_fragment_free (&frags);
+    pkg_config_fragment_free (&frags);
     return eflag;
   }
 
-  pkgconf_fragment_copy_list (client, list, &frags);
-  pkgconf_fragment_free (&frags);
+  pkg_config_fragment_copy_list (client, list, &frags);
+  pkg_config_fragment_free (&frags);
 
   return eflag;
 }
 
 static void
-pkgconf_pkg_libs_collect (pkgconf_client_t* client,
-                          pkgconf_pkg_t* pkg,
-                          void* data)
+pkg_config_pkg_libs_collect (pkg_config_client_t* client,
+                             pkg_config_pkg_t* pkg,
+                             void* data)
 {
-  pkgconf_list_t* list = data;
-  pkgconf_node_t* node;
+  pkg_config_list_t* list = data;
+  pkg_config_node_t* node;
 
   LIBPKG_CONFIG_FOREACH_LIST_ENTRY (pkg->libs.head, node)
   {
-    pkgconf_fragment_t* frag = node->data;
-    pkgconf_fragment_copy (
+    pkg_config_fragment_t* frag = node->data;
+    pkg_config_fragment_copy (
         client,
         list,
         frag,
@@ -1570,8 +1588,8 @@ pkgconf_pkg_libs_collect (pkgconf_client_t* client,
   {
     LIBPKG_CONFIG_FOREACH_LIST_ENTRY (pkg->libs_private.head, node)
     {
-      pkgconf_fragment_t* frag = node->data;
-      pkgconf_fragment_copy (client, list, frag, true);
+      pkg_config_fragment_t* frag = node->data;
+      pkg_config_fragment_copy (client, list, frag, true);
     }
   }
 }
@@ -1579,33 +1597,34 @@ pkgconf_pkg_libs_collect (pkgconf_client_t* client,
 /*
  * !doc
  *
- * .. c:function:: int pkgconf_pkg_libs(pkgconf_client_t *client,
- * pkgconf_pkg_t *root, pkgconf_list_t *list, int maxdepth)
+ * .. c:function:: int pkg_config_pkg_libs(pkg_config_client_t *client,
+ * pkg_config_pkg_t *root, pkg_config_list_t *list, int maxdepth)
  *
  *    Walks a dependency graph and extracts relevant ``LIBS`` fragments.
  *
- *    :param pkgconf_client_t* client: The pkgconf client object to use for
- * dependency resolution. :param pkgconf_pkg_t* root: The root of the
- * dependency graph. :param pkgconf_list_t* list: The fragment list to add the
- * extracted ``LIBS`` fragments to. :param int maxdepth: The maximum allowed
- * depth for dependency resolution.  -1 means infinite recursion. :return:
+ *    :param pkg_config_client_t* client: The pkg-config client object to use
+ * for dependency resolution. :param pkg_config_pkg_t* root: The root of the
+ * dependency graph. :param pkg_config_list_t* list: The fragment list to add
+ * the extracted ``LIBS`` fragments to. :param int maxdepth: The maximum
+ * allowed depth for dependency resolution.  -1 means infinite recursion.
+ * :return:
  * ``LIBPKG_CONFIG_PKG_ERRF_OK`` if successful, otherwise an error code.
  *    :rtype: unsigned int
  */
 unsigned int
-pkgconf_pkg_libs (pkgconf_client_t* client,
-                  pkgconf_pkg_t* root,
-                  pkgconf_list_t* list,
-                  int maxdepth)
+pkg_config_pkg_libs (pkg_config_client_t* client,
+                     pkg_config_pkg_t* root,
+                     pkg_config_list_t* list,
+                     int maxdepth)
 {
   unsigned int eflag;
 
-  eflag = pkgconf_pkg_traverse (
-      client, root, pkgconf_pkg_libs_collect, list, maxdepth, 0);
+  eflag = pkg_config_pkg_traverse (
+      client, root, pkg_config_pkg_libs_collect, list, maxdepth, 0);
 
   if (eflag != LIBPKG_CONFIG_PKG_ERRF_OK)
   {
-    pkgconf_fragment_free (list);
+    pkg_config_fragment_free (list);
     return eflag;
   }
 

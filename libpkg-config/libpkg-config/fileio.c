@@ -24,7 +24,7 @@
 #include <libpkg-config/stdinc.h>
 
 char*
-pkgconf_fgetline (char* line, size_t size, FILE* stream)
+pkg_config_fgetline (char* line, size_t size, FILE* stream)
 {
   char* s = line;
   char* end = line + size - 2; /* Potentially assign 2 char in loop. */

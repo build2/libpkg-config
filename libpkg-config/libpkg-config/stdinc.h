@@ -67,7 +67,7 @@
 # endif
 #  define ssize_t SSIZE_T
 # endif
-# define PKGCONF_ITEM_SIZE (_MAX_PATH + 1024)
+# define PKG_CONFIG_ITEM_SIZE (_MAX_PATH + 1024)
 
 #else /* _WIN32 */
 
@@ -76,18 +76,18 @@
 # include <unistd.h>
 # include <limits.h>
 # ifdef PATH_MAX
-#  define PKGCONF_ITEM_SIZE (PATH_MAX + 1024)
+#  define PKG_CONFIG_ITEM_SIZE (PATH_MAX + 1024)
 # else
-#  define PKGCONF_ITEM_SIZE (4096 + 1024)
+#  define PKG_CONFIG_ITEM_SIZE (4096 + 1024)
 # endif
 #endif
 
 /* Besides other things, this size limits the length of the line that we can
  * read from a .pc file and thus the size of variable name/value.
  */
-#define PKGCONF_BUFSIZE (65535)
+#define PKG_CONFIG_BUFSIZE (65535)
 
-#define PKGCONF_ARRAY_SIZE(x) (sizeof(x) / sizeof(*(x)))
+#define PKG_CONFIG_ARRAY_SIZE(x) (sizeof(x) / sizeof(*(x)))
 
 /* Hook NTRACE to NDEBUG. This both feels natural and gives us a way to
  * test this mode (since we have NDEBUG configurations on CI).
@@ -98,27 +98,27 @@
 
 #ifndef LIBPKG_CONFIG_NTRACE
 #if defined(__GNUC__) || defined(__INTEL_COMPILER)
-#define PKGCONF_TRACE(client, ...) do { \
-    pkgconf_trace(client, __FILE__, __LINE__, __PRETTY_FUNCTION__, __VA_ARGS__); \
+#define PKG_CONFIG_TRACE(client, ...) do { \
+    pkg_config_trace(client, __FILE__, __LINE__, __PRETTY_FUNCTION__, __VA_ARGS__); \
   } while (0)
 #else
-#define PKGCONF_TRACE(client, ...) do { \
-    pkgconf_trace(client, __FILE__, __LINE__, __func__, __VA_ARGS__);   \
+#define PKG_CONFIG_TRACE(client, ...) do { \
+    pkg_config_trace(client, __FILE__, __LINE__, __func__, __VA_ARGS__);   \
   } while (0)
 #endif
 #else
-#define PKGCONF_TRACE(client, ...) do {} while (0)
+#define PKG_CONFIG_TRACE(client, ...) do {} while (0)
 #endif
 
 #ifdef _WIN32
-#  undef PKG_DEFAULT_PATH
-#  define PKG_DEFAULT_PATH "../lib/pkgconfig;../share/pkgconfig"
+#  undef PKG_CONFIG_DEFAULT_PATH
+#  define PKG_CONFIG_DEFAULT_PATH "../lib/pkgconfig;../share/pkgconfig"
 #endif
 
 #define PKG_CONFIG_EXT ".pc"
 
-extern size_t pkgconf_strlcpy(char *dst, const char *src, size_t siz);
-extern size_t pkgconf_strlcat(char *dst, const char *src, size_t siz);
-extern char *pkgconf_strndup(const char *src, size_t len);
+extern size_t pkg_config_strlcpy(char *dst, const char *src, size_t siz);
+extern size_t pkg_config_strlcat(char *dst, const char *src, size_t siz);
+extern char *pkg_config_strndup(const char *src, size_t len);
 
 #endif /* LIBPKG_CONFIG_STDINC_H */

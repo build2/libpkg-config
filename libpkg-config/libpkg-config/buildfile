@@ -14,12 +14,12 @@ msvc_runtime = ($c.target.system == 'win32-msvc')
 msvc       = ($c.class == 'msvc')
 clang_msvc = ($c.id == 'clang' && $msvc_runtime)
 
-# Assign variables for the PKG_DEFAULT_PATH, SYSTEM_INCLUDEDIR, and
+# Assign variables for the PKG_CONFIG_DEFAULT_PATH, SYSTEM_INCLUDEDIR, and
 # SYSTEM_LIBDIR macro definitions. The whole idea feels utterly broken (hello
 # cross-compilation) so we will just do bare minimum and wait and see.
 #
 # @@ We should probably allow to configure these macros via configuration
-#    variables config.pkgconfig.pkg_default_path and alike.
+#    variables config.libpkg_config.pkg_config_default_path and alike.
 #
 if! $windows
 {
@@ -40,8 +40,8 @@ else
   inc_dirs = ""
   lib_dirs = ""
 
-  # Note that on Windows PKG_DEFAULT_PATH macros is internally redefined as
-  # "../lib/pkgconfig;../share/pkgconfig" and is used as a fallback. Normally
+  # Note that on Windows PKG_CONFIG_DEFAULT_PATH macros is internally redefined
+  # as "../lib/pkgconfig;../share/pkgconfig" and is used as a fallback. Normally
   # the default path is relative to the program's (that link the library)
   # directory and has the following format:
   #
@@ -57,7 +57,6 @@ else
 #
 h{config}: in{config}
 {
-
   PROJECT_URL = $project.url
 
   # Escape backslashes and quotes in the directory paths prior to representing
@@ -65,7 +64,7 @@ h{config}: in{config}
   #
   SYSTEM_INCLUDEDIR = $regex.replace($inc_dirs, '(\\|")', '\\\1')
   SYSTEM_LIBDIR     = $regex.replace($lib_dirs, '(\\|")', '\\\1')
-  PKG_DEFAULT_PATH  = $regex.replace($def_dirs, '(\\|")', '\\\1')
+  PKG_CONFIG_DEFAULT_PATH  = $regex.replace($def_dirs, '(\\|")', '\\\1')
 }
 
 # Include the generated version header into the distribution (so that we don't

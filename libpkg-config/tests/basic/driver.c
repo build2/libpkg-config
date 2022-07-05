@@ -20,7 +20,7 @@
 static void
 error_handler (unsigned int e,
                const char* msg,
-               const pkgconf_client_t* c,
+               const pkg_config_client_t* c,
                const void* d)
 {
   (void) e; /* Unused. */
@@ -31,21 +31,21 @@ error_handler (unsigned int e,
 }
 
 static void
-print_and_free (pkgconf_list_t* list)
+print_and_free (pkg_config_list_t* list)
 {
-  char* buf = pkgconf_fragment_render (list,
-                                       true /* escape */,
-                                       NULL /* options */);
+  char* buf = pkg_config_fragment_render (list,
+                                          true /* escape */,
+                                          NULL /* options */);
   printf("%s", buf);
   free (buf);
 
-  pkgconf_fragment_free (list);
+  pkg_config_fragment_free (list);
 }
 
 /* Usage: argv[0] [--cflags] [--libs] (--with-path <dir>)* <name>
  *
  * Print package compiler and linker flags. If the package name has '.pc'
- * extension it is interpreted as a file name. Prints all flags, as pkgconf
+ * extension it is interpreted as a file name. Prints all flags, as pkg-config
  * utility does when --keep-system-libs and --keep-system-cflags are specified.
  *
  * --cflags
@@ -64,9 +64,10 @@ print_and_free (pkgconf_list_t* list)
 int
 main (int argc, const char* argv[])
 {
-  pkgconf_client_t* c = pkgconf_client_new (error_handler,
-                                            NULL /* error_handler_data */,
-                                            true /* init_filters */);
+  pkg_config_client_t* c =
+    pkg_config_client_new (error_handler,
+                           NULL /* error_handler_data */,
+                           true /* init_filters */);
 
   assert (c != NULL);
 
@@ -92,7 +93,7 @@ main (int argc, const char* argv[])
       ++i;
       assert (i < argc);
 
-      pkgconf_path_add (argv[i], &c->dir_list, true /* filter_duplicates */);
+      pkg_config_path_add (argv[i], &c->dir_list, true /* filter_duplicates */);
       default_dirs = false;
     }
     else
@@ -105,14 +106,14 @@ main (int argc, const char* argv[])
   int r = 1;
   int max_depth = 2000;
 
-  pkgconf_client_set_flags (c, client_flags);
+  pkg_config_client_set_flags (c, client_flags);
 
   /* Bootstrap the package search default paths if not specified explicitly.
    */
   if (default_dirs)
-    pkgconf_client_dir_list_build (c);
+    pkg_config_client_dir_list_build (c);
 
-  pkgconf_pkg_t* p = pkgconf_pkg_find (c, name);
+  pkg_config_pkg_t* p = pkg_config_pkg_find (c, name);
 
   if (p != NULL)
   {
@@ -122,25 +123,25 @@ main (int argc, const char* argv[])
      */
     if (cflags)
     {
-      pkgconf_client_set_flags (
+      pkg_config_client_set_flags (
         c,
         client_flags | LIBPKG_CONFIG_PKG_PKGF_SEARCH_PRIVATE);
 
-      pkgconf_list_t list = LIBPKG_CONFIG_LIST_INITIALIZER;
-      e = pkgconf_pkg_cflags (c, p, &list, max_depth);
+      pkg_config_list_t list = LIBPKG_CONFIG_LIST_INITIALIZER;
+      e = pkg_config_pkg_cflags (c, p, &list, max_depth);
 
       if (e == LIBPKG_CONFIG_PKG_ERRF_OK)
         print_and_free (&list);
 
-      pkgconf_client_set_flags (c, client_flags); /* Restore. */
+      pkg_config_client_set_flags (c, client_flags); /* Restore. */
     }
 
     /* Print libs.
      */
     if (libs && e == LIBPKG_CONFIG_PKG_ERRF_OK)
     {
-      pkgconf_list_t list = LIBPKG_CONFIG_LIST_INITIALIZER;
-      e = pkgconf_pkg_libs (c, p, &list, max_depth);
+      pkg_config_list_t list = LIBPKG_CONFIG_LIST_INITIALIZER;
+      e = pkg_config_pkg_libs (c, p, &list, max_depth);
 
       if (e == LIBPKG_CONFIG_PKG_ERRF_OK)
         print_and_free (&list);
@@ -154,11 +155,11 @@ main (int argc, const char* argv[])
         printf ("\n");
     }
 
-    pkgconf_pkg_unref (c, p);
+    pkg_config_pkg_unref (c, p);
   }
   else
     fprintf (stderr, "package '%s' not found\n", name);
 
-  pkgconf_client_free (c);
+  pkg_config_client_free (c);
   return r;
 }

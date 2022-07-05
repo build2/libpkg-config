@@ -26,28 +26,28 @@
 /*
  * !doc
  *
- * .. c:function:: pkgconf_pkg_t *pkgconf_pkg_new_from_file(const
- * pkgconf_client_t *client, const char *filename, FILE *f)
+ * .. c:function:: pkg_config_pkg_t *pkg_config_pkg_new_from_file(const
+ * pkg_config_client_t *client, const char *filename, FILE *f)
  *
- *    Parse a .pc file into a pkgconf_pkg_t object structure.
+ *    Parse a .pc file into a pkg_config_pkg_t object structure.
  *
- *    :param pkgconf_client_t* client: The pkgconf client object to use for
- * dependency resolution. :param char* filename: The filename of the package
- * file (including full path). :param FILE* f: The file object to read from.
- *    :returns: A ``pkgconf_pkg_t`` object which contains the package data.
- *    :rtype: pkgconf_pkg_t *
+ *    :param pkg_config_client_t* client: The pkg-config client object to use
+ * for dependency resolution. :param char* filename: The filename of the
+ * package file (including full path). :param FILE* f: The file object to read
+ * from. :returns: A ``pkg_config_pkg_t`` object which contains the package
+ * data. :rtype: pkg_config_pkg_t *
  */
 void
-pkgconf_parser_parse (FILE* f,
-                      void* data,
-                      const pkgconf_parser_operand_func_t* ops,
-                      const pkgconf_parser_warn_func_t warnfunc,
-                      const char* filename)
+pkg_config_parser_parse (FILE* f,
+                         void* data,
+                         const pkg_config_parser_operand_func_t* ops,
+                         const pkg_config_parser_warn_func_t warnfunc,
+                         const char* filename)
 {
-  char readbuf[PKGCONF_BUFSIZE];
+  char readbuf[PKG_CONFIG_BUFSIZE];
   size_t lineno = 0;
 
-  while (pkgconf_fgetline (readbuf, PKGCONF_BUFSIZE, f) != NULL)
+  while (pkg_config_fgetline (readbuf, PKG_CONFIG_BUFSIZE, f) != NULL)
   {
     char op, *p, *key, *value;
     bool warned_key_whitespace = false, warned_value_whitespace = false;
