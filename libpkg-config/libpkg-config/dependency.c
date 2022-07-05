@@ -135,7 +135,7 @@ add_or_replace_dependency_node (const pkg_config_client_t* client,
                         depbuf2,
                         dep2);
 
-      pkg_config_node_delete (&dep2->iter, list);
+      pkg_config_list_delete (&dep2->iter, list);
       free (dep2);
     }
     else
@@ -154,7 +154,7 @@ add_or_replace_dependency_node (const pkg_config_client_t* client,
                     dependency_to_str (dep, depbuf, sizeof depbuf),
                     list,
                     dep->flags);
-  pkg_config_node_insert_tail (&dep->iter, dep, list);
+  pkg_config_list_insert_tail (&dep->iter, dep, list);
 
   return dep;
 }
@@ -239,7 +239,7 @@ void
 pkg_config_dependency_append (pkg_config_list_t* list,
                               pkg_config_dependency_t* tail)
 {
-  pkg_config_node_insert_tail (&tail->iter, tail, list);
+  pkg_config_list_insert_tail (&tail->iter, tail, list);
 }
 
 /*

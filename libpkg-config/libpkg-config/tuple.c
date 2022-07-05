@@ -220,7 +220,7 @@ pkg_config_tuple_add (const pkg_config_client_t* client,
   else
     tuple->value = strdup (dequote_value);
 
-  pkg_config_node_insert (&tuple->iter, tuple, list);
+  pkg_config_list_insert (&tuple->iter, tuple, list);
 
   free (dequote_value);
 
@@ -406,7 +406,7 @@ void
 pkg_config_tuple_free_entry (pkg_config_tuple_t* tuple,
                              pkg_config_list_t* list)
 {
-  pkg_config_node_delete (&tuple->iter, list);
+  pkg_config_list_delete (&tuple->iter, list);
 
   free (tuple->key);
   free (tuple->value);

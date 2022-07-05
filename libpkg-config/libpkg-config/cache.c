@@ -92,7 +92,7 @@ pkg_config_cache_add (pkg_config_client_t* client, pkg_config_pkg_t* pkg)
     return;
 
   pkg_config_pkg_ref (client, pkg);
-  pkg_config_node_insert (&pkg->cache_iter, pkg, &client->pkg_cache);
+  pkg_config_list_insert (&pkg->cache_iter, pkg, &client->pkg_cache);
 
   PKG_CONFIG_TRACE (client, "added @%p to cache", pkg);
 
@@ -123,7 +123,7 @@ pkg_config_cache_remove (pkg_config_client_t* client, pkg_config_pkg_t* pkg)
 
   PKG_CONFIG_TRACE (client, "removed @%p from cache", pkg);
 
-  pkg_config_node_delete (&pkg->cache_iter, &client->pkg_cache);
+  pkg_config_list_delete (&pkg->cache_iter, &client->pkg_cache);
 }
 
 static inline void
