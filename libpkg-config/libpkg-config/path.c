@@ -128,7 +128,7 @@ pkg_config_path_add (const char* text,
   }
 #endif
 
-  pkg_config_node_insert_tail (&node->lnode, node, dirlist);
+  pkg_config_list_insert_tail (&node->lnode, node, dirlist);
 }
 
 /*
@@ -270,7 +270,7 @@ pkg_config_path_copy_list (pkg_config_list_t* dst,
     path->handle_device = srcpath->handle_device;
 #endif
 
-    pkg_config_node_insert_tail (&path->lnode, path, dst);
+    pkg_config_list_insert_tail (&path->lnode, path, dst);
   }
 }
 

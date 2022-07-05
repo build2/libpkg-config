@@ -65,7 +65,7 @@ pkg_config_list_zero (pkg_config_list_t* list)
 }
 
 static inline void
-pkg_config_node_insert (pkg_config_node_t* node,
+pkg_config_list_insert (pkg_config_node_t* node,
                         void* data,
                         pkg_config_list_t* list)
 {
@@ -91,7 +91,7 @@ pkg_config_node_insert (pkg_config_node_t* node,
 }
 
 static inline void
-pkg_config_node_insert_tail (pkg_config_node_t* node,
+pkg_config_list_insert_tail (pkg_config_node_t* node,
                              void* data,
                              pkg_config_list_t* list)
 {
@@ -117,7 +117,7 @@ pkg_config_node_insert_tail (pkg_config_node_t* node,
 }
 
 static inline void
-pkg_config_node_delete (pkg_config_node_t* node, pkg_config_list_t* list)
+pkg_config_list_delete (pkg_config_node_t* node, pkg_config_list_t* list)
 {
   list->length--;
 

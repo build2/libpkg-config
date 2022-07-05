@@ -233,7 +233,7 @@ pkg_config_fragment_add (const pkg_config_client_t* client,
         parent->merged = true;
 
         /* use a copy operation to force a dedup */
-        pkg_config_node_delete (&parent->iter, list);
+        pkg_config_list_delete (&parent->iter, list);
         pkg_config_fragment_copy (client, list, parent, false);
 
         /* the fragment list now (maybe) has the copied node, so free the
@@ -256,7 +256,7 @@ pkg_config_fragment_add (const pkg_config_client_t* client,
                       list);
   }
 
-  pkg_config_node_insert_tail (&frag->iter, frag, list);
+  pkg_config_list_insert_tail (&frag->iter, frag, list);
 }
 
 static inline pkg_config_fragment_t*
@@ -441,7 +441,7 @@ pkg_config_fragment_copy (const pkg_config_client_t* client,
   if (base->data != NULL)
     frag->data = strdup (base->data);
 
-  pkg_config_node_insert_tail (&frag->iter, frag, list);
+  pkg_config_list_insert_tail (&frag->iter, frag, list);
 }
 
 /*
@@ -729,7 +729,7 @@ void
 pkg_config_fragment_delete (pkg_config_list_t* list,
                             pkg_config_fragment_t* node)
 {
-  pkg_config_node_delete (&node->iter, list);
+  pkg_config_list_delete (&node->iter, list);
 
   free (node->data);
   free (node);
