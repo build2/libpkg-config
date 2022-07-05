@@ -1528,7 +1528,7 @@ pkgconf_pkg_cflags (pkgconf_client_t* client,
       client, root, pkgconf_pkg_cflags_collect, &frags, maxdepth, skip_flags);
 
   if (eflag == LIBPKG_CONFIG_PKG_ERRF_OK &&
-      client->flags & LIBPKG_CONFIG_PKG_PKGF_MERGE_PRIVATE_FRAGMENTS)
+      client->flags & LIBPKG_CONFIG_PKG_PKGF_ADD_PRIVATE_FRAGMENTS)
     eflag = pkgconf_pkg_traverse (client,
                                   root,
                                   pkgconf_pkg_cflags_private_collect,
@@ -1566,7 +1566,7 @@ pkgconf_pkg_libs_collect (pkgconf_client_t* client,
         (client->flags & LIBPKG_CONFIG_PKG_PKGF_ITER_PKG_IS_PRIVATE) != 0);
   }
 
-  if (client->flags & LIBPKG_CONFIG_PKG_PKGF_MERGE_PRIVATE_FRAGMENTS)
+  if (client->flags & LIBPKG_CONFIG_PKG_PKGF_ADD_PRIVATE_FRAGMENTS)
   {
     LIBPKG_CONFIG_FOREACH_LIST_ENTRY (pkg->libs_private.head, node)
     {
