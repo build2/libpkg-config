@@ -5,6 +5,7 @@
  *
  * ISC License
  *
+ * Copyright (c) the build2 authors (see the COPYRIGHT, AUTHORS files).
  * Copyright (c) 2011-2018 pkgconf authors (see AUTHORS file).
  *
  * Permission to use, copy, modify, and/or distribute this software for any
