@@ -1,9 +1,8 @@
 # file      : buildfile
 # license   : ISC; see accompanying COPYING file
 
-./: {*/ -build/} doc{INSTALL README} legal{AUTHORS LICENSE COPYRIGHT} manifest
+./: {*/ -build/} doc{README.md} legal{AUTHORS LICENSE COPYRIGHT} manifest
 
-# Don't install tests or the INSTALL file.
+# Don't install tests.
 #
-tests/:          install = false
-doc{INSTALL}@./: install = false
+tests/: install = false
