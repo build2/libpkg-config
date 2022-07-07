@@ -1,4 +1,4 @@
-# libpkg-config - retrieving compiler/linker flags and other metadata
+# libpkg-config - retrieve compiler/linker flags and other metadata
 
 The `libpkg-config` library provides a C API for retrieving C-language family
 compiler/linker flags and other metadata from `pkg-config` files (`.pc`). It's
