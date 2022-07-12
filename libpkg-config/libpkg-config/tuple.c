@@ -281,7 +281,16 @@ pkg_config_tuple_parse (const pkg_config_client_t* client,
                         pkg_config_list_t* vars,
                         const char* value)
 {
-  char buf[PKG_CONFIG_BUFSIZE];
+  /* Allocate the buffer dynamically to make sure it will at least fit the
+     value provided it has no expansions. */
+  char* buf;
+  size_t bufn = strlen (value) + 1;
+
+  if (bufn < PKG_CONFIG_BUFSIZE)
+    bufn = PKG_CONFIG_BUFSIZE;
+
+  buf = malloc (bufn);
+
   const char* ptr;
   char* bptr = buf;
 
@@ -292,7 +301,7 @@ pkg_config_tuple_parse (const pkg_config_client_t* client,
       bptr += pkg_config_strlcpy (buf, client->sysroot_dir, sizeof buf);
   }
 
-  for (ptr = value; *ptr != '\0' && bptr - buf < PKG_CONFIG_BUFSIZE  - 1; ptr++)
+  for (ptr = value; *ptr != '\0' && (size_t)(bptr - buf) < bufn  - 1; ptr++)
   {
     if (*ptr != '$' || (*ptr == '$' && *(ptr + 1) != '{'))
       *bptr++ = *ptr;
@@ -326,7 +335,7 @@ pkg_config_tuple_parse (const pkg_config_client_t* client,
       }
 
       ptr += (pptr - ptr);
-      size_t n = PKG_CONFIG_BUFSIZE - (bptr - buf) - 1; /* Available. */
+      size_t n = bufn - (bptr - buf) - 1; /* Available. */
 
       kv = pkg_config_tuple_find_global (client, varname);
       if (kv != NULL)
@@ -375,6 +384,7 @@ pkg_config_tuple_parse (const pkg_config_client_t* client,
    * Finally, we call pkg_config_path_relocate() to clean the path of spurious
    * elements.
    */
+  char* result;
   if (*buf == '/' && client->sysroot_dir != NULL &&
       strcmp (client->sysroot_dir, "/") != 0 &&
       strlen (buf) > strlen (client->sysroot_dir) &&
@@ -387,10 +397,13 @@ pkg_config_tuple_parse (const pkg_config_client_t* client,
         cleanpath, buf + strlen (client->sysroot_dir), sizeof cleanpath);
     pkg_config_path_relocate (cleanpath, sizeof cleanpath);
 
-    return strdup (cleanpath);
+    result = strdup (cleanpath);
   }
+  else
+    result = strdup (buf);
 
-  return strdup (buf);
+  free (buf);
+  return result;
 }
 
 /*

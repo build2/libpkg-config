@@ -229,9 +229,14 @@ sp = " "
   v = "$v$v$v$v$v$v$v$v$v$v$v$v";
   v = "$v$v$v$v$v$v$v$v$v$v$v$n$n";
 
+  # >64K
+  #
+  V = "$v$v$v";
+
   cat <<"EOI" >=libfoo.pc;
     $n="$v"
     var=\${$n}
+    $n$n="$V"
     Name: libfoo
     Description: Foo library
     Version: 1.0
@@ -240,6 +245,7 @@ sp = " "
   f = $~/libfoo.pc;
 
   $* --vars $f >>"EOO"
+    $n$n $V
     var $v
     $n $v
     EOO
