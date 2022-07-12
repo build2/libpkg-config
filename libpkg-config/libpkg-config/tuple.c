@@ -292,7 +292,7 @@ pkg_config_tuple_parse (const pkg_config_client_t* client,
       bptr += pkg_config_strlcpy (buf, client->sysroot_dir, sizeof buf);
   }
 
-  for (ptr = value; *ptr != '\0' && bptr - buf < PKG_CONFIG_BUFSIZE; ptr++)
+  for (ptr = value; *ptr != '\0' && bptr - buf < PKG_CONFIG_BUFSIZE  - 1; ptr++)
   {
     if (*ptr != '$' || (*ptr == '$' && *(ptr + 1) != '{'))
       *bptr++ = *ptr;
@@ -326,11 +326,14 @@ pkg_config_tuple_parse (const pkg_config_client_t* client,
       }
 
       ptr += (pptr - ptr);
+      size_t n = PKG_CONFIG_BUFSIZE - (bptr - buf) - 1; /* Available. */
+
       kv = pkg_config_tuple_find_global (client, varname);
       if (kv != NULL)
       {
-        strncpy (bptr, kv, PKG_CONFIG_BUFSIZE - (bptr - buf));
-        bptr += strlen (kv);
+        size_t l = strlen (kv);
+        strncpy (bptr, kv, n);
+        bptr += l < n ? l : n;
       }
       else
       {
@@ -340,8 +343,9 @@ pkg_config_tuple_parse (const pkg_config_client_t* client,
         {
           parsekv = pkg_config_tuple_parse (client, vars, kv);
 
-          strncpy (bptr, parsekv, PKG_CONFIG_BUFSIZE - (bptr - buf));
-          bptr += strlen (parsekv);
+          size_t l = strlen (parsekv);
+          strncpy (bptr, parsekv, n);
+          bptr += l < n ? l : n;
 
           free (parsekv);
         }
