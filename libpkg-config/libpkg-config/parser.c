@@ -52,7 +52,10 @@ pkg_config_parser_parse (FILE* f,
   while (pkg_config_fgetline (readbuf, PKG_CONFIG_BUFSIZE, f) != NULL)
   {
     char op, *p, *key, *value;
-    bool warned_key_whitespace = false, warned_value_whitespace = false;
+#if 0
+    bool warned_key_whitespace = false;
+#endif
+    bool warned_value_whitespace = false;
 
     lineno++;
 
@@ -67,6 +70,10 @@ pkg_config_parser_parse (FILE* f,
 
     while (*p && isspace ((unsigned int)*p))
     {
+      /* It seems silly to warn about trailing whitespaces in keys. For
+         example, this warns if we put a whitespace before `=` in a variable
+         assignment, as in `var = value`. */
+#if 0
       if (!warned_key_whitespace)
       {
         warnfunc (
@@ -77,6 +84,7 @@ pkg_config_parser_parse (FILE* f,
             lineno);
         warned_key_whitespace = true;
       }
+#endif
 
       /* set to null to avoid trailing spaces in key */
       *p = '\0';
