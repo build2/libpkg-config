@@ -36,15 +36,13 @@
 #include <stdint.h>
 #include <stdbool.h>
 #include <sys/types.h>
+#include <sys/stat.h>
 
 #ifdef _WIN32
 # define WIN32_LEAN_AND_MEAN
 # include <windows.h> /* @@ I wonder if we still need it? */
 # include <malloc.h>
 # define PATH_DEV_NULL "nul"
-
-# define strncasecmp _strnicmp
-# define strcasecmp _stricmp
 
 /* Note that MinGW's printf() format semantics have changed starting GCC 10.
  * In particular, GCC 10 complains about MSVC's 'I64' length modifier but now
@@ -61,14 +59,17 @@
 # endif
 
 # ifndef ssize_t
-# ifndef __MINGW32__
-#  include <BaseTsd.h>
-# else
-#  include <basetsd.h>
-# endif
+#  ifndef __MINGW32__
+#   include <BaseTsd.h>
+#  else
+#   include <basetsd.h>
+#  endif
 #  define ssize_t SSIZE_T
 # endif
 # define PKG_CONFIG_ITEM_SIZE (_MAX_PATH + 1024)
+
+# define strncasecmp _strnicmp
+# define strcasecmp _stricmp
 
 #else /* _WIN32 */
 

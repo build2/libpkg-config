@@ -46,10 +46,36 @@ pkg_config_parser_parse (FILE* f,
                          const pkg_config_parser_warn_func_t warnfunc,
                          const char* filename)
 {
-  char readbuf[PKG_CONFIG_BUFSIZE];
   size_t lineno = 0;
 
-  while (pkg_config_fgetline (readbuf, PKG_CONFIG_BUFSIZE, f) != NULL)
+  /* Determine the file size and allocate a buffer of that size (plus 2; see
+     pkg_config_fgetline()) to avoid truncations (which this code does not
+     handle gracefully). */
+  size_t readbufn;
+  char* readbuf;
+  {
+    int fd;
+#ifdef _WIN32
+    struct _stat st;
+    if ((fd = _fileno (f)) != -1 &&
+        _fstat (fd, &st) != -1 &&
+        (st.st_mode & S_IFMT) == S_IFREG)
+#else
+    struct stat st;
+    if ((fd = fileno (f)) != -1 &&
+        fstat (fd, &st) != -1 &&
+        S_ISREG (st.st_mode))
+#endif
+    {
+      readbufn = st.st_size + 2;
+    }
+    else
+      readbufn = 1024 * 1024;
+
+    readbuf = malloc (readbufn);
+  }
+
+  while (pkg_config_fgetline (readbuf, readbufn, f) != NULL)
   {
     char op, *p, *key, *value;
 #if 0
@@ -135,5 +161,6 @@ pkg_config_parser_parse (FILE* f,
       ops[i](data, lineno, key, value);
   }
 
+  free (readbuf);
   fclose (f);
 }
