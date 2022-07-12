@@ -42,6 +42,7 @@ void
 pkg_config_parser_parse (FILE* f,
                          void* data,
                          const pkg_config_parser_operand_func_t* ops,
+                         size_t ops_count,
                          const pkg_config_parser_warn_func_t warnfunc,
                          const char* filename)
 {
@@ -110,8 +111,20 @@ pkg_config_parser_parse (FILE* f,
       p--;
     }
 
-    if (ops[(unsigned char)op])
-      ops[(unsigned char)op](data, lineno, key, value);
+    unsigned char i = (unsigned char)op;
+
+    if (i >= ops_count)
+    {
+      /* @@ TODO: should be an error. */
+      warnfunc (data,
+                "%s:" SIZE_FMT_SPECIFIER
+                ": warning: unexpected key/value separator '%c'",
+                filename,
+                lineno,
+                op);
+    }
+    else if (ops[i])
+      ops[i](data, lineno, key, value);
   }
 
   fclose (f);

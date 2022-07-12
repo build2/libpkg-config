@@ -312,6 +312,7 @@ LIBPKG_CONFIG_SYMEXPORT void
 pkg_config_parser_parse (FILE* f,
                          void* data,
                          const pkg_config_parser_operand_func_t* ops,
+                         size_t ops_count,
                          const pkg_config_parser_warn_func_t warnfunc,
                          const char* filename);
 

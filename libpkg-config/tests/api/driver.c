@@ -17,10 +17,10 @@
 #include <stdbool.h> /* bool, true, false */
 
 static void
-error_handler (unsigned int e,
-               const char* msg,
-               const pkg_config_client_t* c,
-               const void* d)
+diag_handler (unsigned int e,
+              const char* msg,
+              const pkg_config_client_t* c,
+              const void* d)
 {
   (void) e; /* Unused. */
   (void) c; /* Unused. */
@@ -119,9 +119,12 @@ main (int argc, const char* argv[])
   pkg_config_client_t cs;
   pkg_config_client_t* c = &cs;
   pkg_config_client_init (c,
-                          error_handler,
+                          diag_handler,
                           NULL /* error_handler_data */,
                           true /* init_filters */);
+  pkg_config_client_set_warn_handler (c,
+                                      diag_handler,
+                                      NULL /* warn_handler_data */);
 
   assert (c != NULL);
 

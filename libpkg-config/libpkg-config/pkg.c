@@ -552,6 +552,7 @@ pkg_config_pkg_new_from_file (pkg_config_client_t* client,
   pkg_config_parser_parse (f,
                            pkg,
                            pkg_parser_funcs,
+                           PKG_CONFIG_ARRAY_SIZE (pkg_parser_funcs),
                            (pkg_config_parser_warn_func_t)pkg_warn_func,
                            pkg->filename);
 
