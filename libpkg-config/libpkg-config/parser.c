@@ -147,7 +147,7 @@ pkg_config_parser_parse (FILE* f,
 
     unsigned char i = (unsigned char)op;
 
-    if (i >= ops_count)
+    if (i >= ops_count || ops[i] == NULL)
     {
       /* @@ TODO: should be an error. */
       warnfunc (data,
@@ -157,7 +157,7 @@ pkg_config_parser_parse (FILE* f,
                 lineno,
                 op);
     }
-    else if (ops[i])
+    else
       ops[i](data, lineno, key, value);
   }
 
