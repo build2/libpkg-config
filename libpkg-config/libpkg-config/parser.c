@@ -39,11 +39,11 @@
  * data. :rtype: pkg_config_pkg_t *
  */
 void
-pkg_config_parser_parse (FILE* f,
+pkg_config_parser_parse (pkg_config_client_t* client,
+                         FILE* f,
                          void* data,
                          const pkg_config_parser_operand_func_t* ops,
                          size_t ops_count,
-                         const pkg_config_parser_warn_func_t warnfunc,
                          const char* filename)
 {
   size_t lineno = 0;
@@ -102,12 +102,12 @@ pkg_config_parser_parse (FILE* f,
 #if 0
       if (!warned_key_whitespace)
       {
-        warnfunc (
-            data,
-            "%s:" SIZE_FMT_SPECIFIER
-            ": warning: whitespace encountered while parsing key section",
-            filename,
-            lineno);
+        pkg_config_warn (
+          client,
+          "%s:" SIZE_FMT_SPECIFIER
+          ": warning: whitespace encountered while parsing key section",
+          filename,
+          lineno);
         warned_key_whitespace = true;
       }
 #endif
@@ -132,12 +132,14 @@ pkg_config_parser_parse (FILE* f,
     {
       if (!warned_value_whitespace && op == '=')
       {
-        warnfunc (data,
-                  "%s:" SIZE_FMT_SPECIFIER
-                  ": warning: trailing whitespace encountered while parsing "
-                  "value section",
-                  filename,
-                  lineno);
+        pkg_config_warn (
+          client,
+          "%s:" SIZE_FMT_SPECIFIER
+          ": warning: trailing whitespace encountered while parsing "
+          "value section",
+          filename,
+          lineno);
+
         warned_value_whitespace = true;
       }
 
@@ -149,13 +151,14 @@ pkg_config_parser_parse (FILE* f,
 
     if (i >= ops_count || ops[i] == NULL)
     {
-      /* @@ TODO: should be an error. */
-      warnfunc (data,
-                "%s:" SIZE_FMT_SPECIFIER
-                ": warning: unexpected key/value separator '%c'",
-                filename,
-                lineno,
-                op);
+      /* @@ TODO: should be an error. But will need to signal failure to
+         caller and handle it. */
+      pkg_config_warn (client,
+                       "%s:" SIZE_FMT_SPECIFIER
+                       ": warning: unexpected key/value separator '%c'",
+                       filename,
+                       lineno,
+                       op);
     }
     else
       ops[i](data, lineno, key, value);

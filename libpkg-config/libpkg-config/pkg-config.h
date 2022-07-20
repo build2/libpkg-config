@@ -304,16 +304,12 @@ typedef void (*pkg_config_parser_operand_func_t) (void* data,
                                                   const size_t lineno,
                                                   const char* key,
                                                   const char* value);
-typedef void (*pkg_config_parser_warn_func_t) (void* data,
-                                               const char* fmt,
-                                               ...);
-
 LIBPKG_CONFIG_SYMEXPORT void
-pkg_config_parser_parse (FILE* f,
+pkg_config_parser_parse (pkg_config_client_t* client,
+                         FILE* f,
                          void* data,
                          const pkg_config_parser_operand_func_t* ops,
                          size_t ops_count,
-                         const pkg_config_parser_warn_func_t warnfunc,
                          const char* filename);
 
 /* pkg.c */

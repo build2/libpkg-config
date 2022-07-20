@@ -435,23 +435,6 @@ static const pkg_config_parser_operand_func_t pkg_parser_funcs[] = {
   [':'] = pkg_config_pkg_parser_keyword_set,
   ['='] = pkg_config_pkg_parser_value_set};
 
-static void
-pkg_warn_func (pkg_config_pkg_t* pkg, const char* fmt, ...)
-    LIBPKG_CONFIG_PRINTFLIKE (2, 3);
-
-static void
-pkg_warn_func (pkg_config_pkg_t* pkg, const char* fmt, ...)
-{
-  char buf[PKG_CONFIG_ITEM_SIZE];
-  va_list va;
-
-  va_start (va, fmt);
-  vsnprintf (buf, sizeof buf, fmt, va);
-  va_end (va);
-
-  pkg_config_warn (pkg->owner, "%s", buf);
-}
-
 static bool
 pkg_config_pkg_validate (const pkg_config_client_t* client,
                          const pkg_config_pkg_t* pkg)
@@ -550,11 +533,11 @@ pkg_config_pkg_new_from_file (pkg_config_client_t* client,
   if (idptr)
     *idptr = '\0';
 
-  pkg_config_parser_parse (f,
+  pkg_config_parser_parse (client,
+                           f,
                            pkg,
                            pkg_parser_funcs,
                            PKG_CONFIG_ARRAY_SIZE (pkg_parser_funcs),
-                           (pkg_config_parser_warn_func_t)pkg_warn_func,
                            pkg->filename);
 
   if (!pkg_config_pkg_validate (client, pkg))
