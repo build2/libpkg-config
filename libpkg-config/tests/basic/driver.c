@@ -113,12 +113,11 @@ main (int argc, const char* argv[])
   if (default_dirs)
     pkg_config_client_dir_list_build (c);
 
-  pkg_config_pkg_t* p = pkg_config_pkg_find (c, name);
+  unsigned int e;
+  pkg_config_pkg_t* p = pkg_config_pkg_find (c, name, &e);
 
   if (p != NULL)
   {
-    unsigned int e = LIBPKG_CONFIG_PKG_ERRF_OK;
-
     /* Print C flags.
      */
     if (cflags)
@@ -157,8 +156,12 @@ main (int argc, const char* argv[])
 
     pkg_config_pkg_unref (c, p);
   }
-  else
+  else if (e == LIBPKG_CONFIG_PKG_ERRF_OK)
     fprintf (stderr, "package '%s' not found\n", name);
+  else
+    /* Diagnostics should have already been issue via the error handler
+       except for allocation errors. */
+    fprintf (stderr, "unable to load package '%s'\n", name);
 
   pkg_config_client_free (c);
   return r;

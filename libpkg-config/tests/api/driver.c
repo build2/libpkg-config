@@ -134,12 +134,12 @@ main (int argc, const char* argv[])
   const int pkg_config_flags = 0;
 
   pkg_config_client_set_flags (c, pkg_config_flags);
-  pkg_config_pkg_t* p = pkg_config_pkg_find (c, path);
+
+  unsigned int e;
+  pkg_config_pkg_t* p = pkg_config_pkg_find (c, path, &e);
 
   if (p != NULL)
   {
-    unsigned int e = LIBPKG_CONFIG_PKG_ERRF_OK;
-
     switch (mode)
     {
     case dump_cflags:
@@ -190,8 +190,12 @@ main (int argc, const char* argv[])
 
     pkg_config_pkg_unref (c, p);
   }
+  else if (e == LIBPKG_CONFIG_PKG_ERRF_OK)
+    fprintf (stderr, "package file '%s' not found\n", path);
   else
-    fprintf (stderr, "package file '%s' not found or invalid\n", path);
+    /* Diagnostics should have already been issue via the error handler
+       except for allocation errors. */
+    fprintf (stderr, "unable to load package file '%s'\n", path);
 
   pkg_config_client_deinit (c);
   return r;

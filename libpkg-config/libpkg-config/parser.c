@@ -27,7 +27,7 @@
 /*
  * !doc
  *
- * .. c:function:: pkg_config_pkg_t *pkg_config_pkg_new_from_file(const
+ * .. c:function:: pkg_config_pkg_t *pkg_config_parser_parse(const
  * pkg_config_client_t *client, const char *filename, FILE *f)
  *
  *    Parse a .pc file into a pkg_config_pkg_t object structure.

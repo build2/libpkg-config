@@ -445,12 +445,12 @@ static const pkg_config_parser_operand_func_t pkg_parser_funcs[] = {
   [':'] = pkg_config_pkg_parser_keyword_set,
   ['='] = pkg_config_pkg_parser_value_set};
 
-static bool
+static unsigned int
 pkg_config_pkg_validate (const pkg_config_client_t* client,
                          const pkg_config_pkg_t* pkg)
 {
   size_t i;
-  bool valid = true;
+  unsigned int eflags = LIBPKG_CONFIG_PKG_ERRF_OK;
 
   for (i = 0; i < PKG_CONFIG_ARRAY_SIZE (pkg_config_pkg_validations); i++)
   {
@@ -459,15 +459,15 @@ pkg_config_pkg_validate (const pkg_config_client_t* client,
     if (*p != NULL)
       continue;
 
+    eflags = LIBPKG_CONFIG_PKG_ERRF_FILE_MISSING_FIELD;
     pkg_config_error (client,
-                      LIBPKG_CONFIG_PKG_ERRF_FILE_MISSING_FIELD,
+                      eflags,
                       "%s missing '%s' field",
                       pkg->filename,
                       pkg_config_pkg_validations[i].field);
-    valid = false;
   }
 
-  return valid;
+  return eflags;
 }
 
 /*
@@ -487,7 +487,8 @@ pkg_config_pkg_validate (const pkg_config_client_t* client,
 pkg_config_pkg_t*
 pkg_config_pkg_new_from_file (pkg_config_client_t* client,
                               const char* filename,
-                              FILE* f)
+                              FILE* f,
+                              unsigned int* eflags)
 {
   pkg_config_pkg_t* pkg;
   char* idptr;
@@ -495,7 +496,10 @@ pkg_config_pkg_new_from_file (pkg_config_client_t* client,
   pkg = calloc (sizeof (pkg_config_pkg_t), 1);
 
   if (pkg == NULL)
+  {
+    *eflags = LIBPKG_CONFIG_PKG_ERRF_MEMORY;
     return NULL;
+  }
 
   pkg->owner = client;
   pkg->filename = strdup (filename);
@@ -543,17 +547,16 @@ pkg_config_pkg_new_from_file (pkg_config_client_t* client,
   if (idptr)
     *idptr = '\0';
 
-  unsigned int e = pkg_config_parser_parse (
-    client,
-    f,
-    pkg,
-    pkg_parser_funcs,
-    PKG_CONFIG_ARRAY_SIZE (pkg_parser_funcs),
-    pkg->filename);
+  *eflags = pkg_config_parser_parse (client,
+                                     f,
+                                     pkg,
+                                     pkg_parser_funcs,
+                                     PKG_CONFIG_ARRAY_SIZE (pkg_parser_funcs),
+                                     pkg->filename);
 
-  /* @@ TODO: propagate error better. */
-  if (e != LIBPKG_CONFIG_PKG_ERRF_OK ||
-      !pkg_config_pkg_validate (client, pkg))
+
+  if (*eflags != LIBPKG_CONFIG_PKG_ERRF_OK ||
+      (*eflags = pkg_config_pkg_validate (client, pkg)) != LIBPKG_CONFIG_PKG_ERRF_OK)
   {
     pkg_config_pkg_free (client, pkg);
     return NULL;
@@ -690,14 +693,18 @@ pkg_config_pkg_unref (pkg_config_client_t* client, pkg_config_pkg_t* pkg)
   }
 }
 
+/* If the file does not exist, return NULL and LIBPKG_CONFIG_PKG_ERRF_OK. */
 static inline pkg_config_pkg_t*
 pkg_config_pkg_try_specific_path (pkg_config_client_t* client,
                                   const char* path,
-                                  const char* name)
+                                  const char* name,
+                                  unsigned int* eflags)
 {
   pkg_config_pkg_t* pkg = NULL;
   FILE* f;
   char locbuf[PKG_CONFIG_ITEM_SIZE];
+
+  *eflags = LIBPKG_CONFIG_PKG_ERRF_OK;
 
   PKG_CONFIG_TRACE (client, "trying path: %s for %s", path, name);
 
@@ -713,7 +720,7 @@ pkg_config_pkg_try_specific_path (pkg_config_client_t* client,
     if ((f = fopen (locbuf, "r")) != NULL)
     {
       PKG_CONFIG_TRACE (client, "found (uninstalled): %s", locbuf);
-      pkg = pkg_config_pkg_new_from_file (client, locbuf, f);
+      pkg = pkg_config_pkg_new_from_file (client, locbuf, f, eflags);
       if (pkg != NULL)
         pkg->flags |= LIBPKG_CONFIG_PKG_PROPF_UNINSTALLED;
       return pkg;
@@ -730,10 +737,11 @@ pkg_config_pkg_try_specific_path (pkg_config_client_t* client,
   if ((f = fopen (locbuf, "r")) != NULL)
   {
     PKG_CONFIG_TRACE (client, "found: %s", locbuf);
-    pkg = pkg_config_pkg_new_from_file (client, locbuf, f);
+    pkg = pkg_config_pkg_new_from_file (client, locbuf, f, eflags);
+    return pkg;
   }
 
-  return pkg;
+  return NULL;
 }
 
 /*
@@ -748,13 +756,21 @@ pkg_config_pkg_try_specific_path (pkg_config_client_t* client,
  * for dependency resolution. :param char* name: The name of the package
  * `atom` to use for searching. :return: A package object reference if the
  * package was found, else ``NULL``. :rtype: pkg_config_pkg_t *
+ *
+ *
+ * If not found, return NULL and LIBPKG_CONFIG_PKG_ERRF_OK.
+ *
  */
 pkg_config_pkg_t*
-pkg_config_pkg_find (pkg_config_client_t* client, const char* name)
+pkg_config_pkg_find (pkg_config_client_t* client,
+                     const char* name,
+                     unsigned int* eflags)
 {
   pkg_config_pkg_t* pkg = NULL;
   pkg_config_node_t* n;
   FILE* f;
+
+  *eflags = LIBPKG_CONFIG_PKG_ERRF_OK;
 
   PKG_CONFIG_TRACE (client, "looking for: %s", name);
 
@@ -765,7 +781,7 @@ pkg_config_pkg_find (pkg_config_client_t* client, const char* name)
     {
       PKG_CONFIG_TRACE (client, "%s is a file", name);
 
-      pkg = pkg_config_pkg_new_from_file (client, name, f);
+      pkg = pkg_config_pkg_new_from_file (client, name, f, eflags);
       if (pkg != NULL)
         pkg_config_path_add (pkg->pc_filedir, &client->dir_list, true);
     }
@@ -796,12 +812,13 @@ pkg_config_pkg_find (pkg_config_client_t* client, const char* name)
   {
     pkg_config_path_t* pnode = n->data;
 
-    pkg = pkg_config_pkg_try_specific_path (client, pnode->path, name);
-    if (pkg != NULL)
+    pkg = pkg_config_pkg_try_specific_path (client, pnode->path, name, eflags);
+    if (pkg != NULL || *eflags != LIBPKG_CONFIG_PKG_ERRF_OK)
       break;
   }
 
-  pkg_config_cache_add (client, pkg);
+  if (pkg != NULL)
+    pkg_config_cache_add (client, pkg);
 
   return pkg;
 }
@@ -1180,11 +1197,14 @@ pkg_config_pkg_verify_dependency (pkg_config_client_t* client,
     return pkg_config_pkg_ref (client, pkgdep->match);
   }
 
-  pkg = pkg_config_pkg_find (client, pkgdep->package);
+  unsigned int def;
+  pkg = pkg_config_pkg_find (client, pkgdep->package, &def);
   if (pkg == NULL)
   {
     if (eflags != NULL)
-      *eflags |= LIBPKG_CONFIG_PKG_ERRF_PACKAGE_NOT_FOUND;
+      *eflags |= (def == LIBPKG_CONFIG_PKG_ERRF_OK
+                  ? LIBPKG_CONFIG_PKG_ERRF_PACKAGE_NOT_FOUND
+                  : LIBPKG_CONFIG_PKG_ERRF_PACKAGE_INVALID);
     return NULL;
   }
 
@@ -1249,6 +1269,14 @@ pkg_config_pkg_report_graph_error (pkg_config_client_t* client,
     /*
     pkg_config_audit_log(client, "%s NOT-FOUND\n", node->package);
     */
+  }
+  else if (eflags & LIBPKG_CONFIG_PKG_ERRF_PACKAGE_INVALID)
+  {
+    pkg_config_error (client,
+                      LIBPKG_CONFIG_PKG_ERRF_PACKAGE_INVALID,
+                      "package '%s' required by '%s' found but invalid",
+                      node->package,
+                      parent->id);
   }
   else if (eflags & LIBPKG_CONFIG_PKG_ERRF_PACKAGE_VER_MISMATCH)
   {
