@@ -38,7 +38,7 @@
  * from. :returns: A ``pkg_config_pkg_t`` object which contains the package
  * data. :rtype: pkg_config_pkg_t *
  */
-void
+unsigned int
 pkg_config_parser_parse (pkg_config_client_t* client,
                          FILE* f,
                          void* data,
@@ -75,6 +75,7 @@ pkg_config_parser_parse (pkg_config_client_t* client,
     readbuf = malloc (readbufn);
   }
 
+  unsigned int eflags = LIBPKG_CONFIG_PKG_ERRF_OK;
   while (pkg_config_fgetline (readbuf, readbufn, f) != NULL)
   {
     char op, *p, *key, *value;
@@ -151,19 +152,25 @@ pkg_config_parser_parse (pkg_config_client_t* client,
 
     if (i >= ops_count || ops[i] == NULL)
     {
-      /* @@ TODO: should be an error. But will need to signal failure to
-         caller and handle it. */
-      pkg_config_warn (client,
-                       "%s:" SIZE_FMT_SPECIFIER
-                       ": warning: unexpected key/value separator '%c'",
-                       filename,
-                       lineno,
-                       op);
+      eflags = LIBPKG_CONFIG_PKG_ERRF_FILE_INVALID_SYNTAX;
+      pkg_config_error (client,
+                        eflags,
+                        "unexpected key/value separator '%c' in %s:"
+                        SIZE_FMT_SPECIFIER,
+                        op,
+                        filename,
+                        lineno);
+      break;
     }
     else
-      ops[i](data, lineno, key, value);
+    {
+      eflags = ops[i](data, lineno, key, value);
+      if (eflags != LIBPKG_CONFIG_PKG_ERRF_OK)
+        break;
+    }
   }
 
   free (readbuf);
   fclose (f);
+  return eflags;
 }

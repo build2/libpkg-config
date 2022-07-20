@@ -61,7 +61,7 @@ pkg_get_parent_dir (pkg_config_pkg_t* pkg)
   return strdup (buf);
 }
 
-typedef void (*pkg_config_pkg_parser_keyword_func_t) (
+typedef unsigned int /* eflags */ (*pkg_config_pkg_parser_keyword_func_t) (
     const pkg_config_client_t* client,
     pkg_config_pkg_t* pkg,
     const char* keyword,
@@ -82,7 +82,7 @@ pkg_config_pkg_parser_keyword_pair_cmp (const void* key, const void* ptr)
   return strcasecmp (key, pair->keyword);
 }
 
-static void
+static unsigned int
 pkg_config_pkg_parser_tuple_func (const pkg_config_client_t* client,
                                   pkg_config_pkg_t* pkg,
                                   const char* keyword,
@@ -95,9 +95,10 @@ pkg_config_pkg_parser_tuple_func (const pkg_config_client_t* client,
 
   char** dest = (char**)((char*)pkg + offset);
   *dest = pkg_config_tuple_parse (client, &pkg->vars, value);
+  return LIBPKG_CONFIG_PKG_ERRF_OK;
 }
 
-static void
+static unsigned int
 pkg_config_pkg_parser_version_func (const pkg_config_client_t* client,
                                     pkg_config_pkg_t* pkg,
                                     const char* keyword,
@@ -120,19 +121,22 @@ pkg_config_pkg_parser_version_func (const pkg_config_client_t* client,
     i = p + (ptrdiff_t)len;
     *i = '\0';
 
-    pkg_config_warn (client,
-                     "%s:" SIZE_FMT_SPECIFIER
-                     ": warning: malformed version field with whitespace, "
-                     "trimming to [%s]",
-                     pkg->filename,
-                     lineno,
-                     p);
+    /* While this should probably be an error, it is a bit dodgy to change it
+       now since things that worked before might stop working. */
+    pkg_config_warn (
+      client,
+      "%s:" SIZE_FMT_SPECIFIER
+      ": warning: version field with whitespaces trimmed to '%s'",
+      pkg->filename,
+      lineno,
+      p);
   }
 
   *dest = p;
+  return LIBPKG_CONFIG_PKG_ERRF_OK;
 }
 
-static void
+static unsigned int
 pkg_config_pkg_parser_fragment_func (const pkg_config_client_t* client,
                                      pkg_config_pkg_t* pkg,
                                      const char* keyword,
@@ -141,22 +145,23 @@ pkg_config_pkg_parser_fragment_func (const pkg_config_client_t* client,
                                      const char* value)
 {
   pkg_config_list_t* dest = (pkg_config_list_t*)((char*)pkg + offset);
-  bool ret = pkg_config_fragment_parse (client, dest, &pkg->vars, value);
+  if (pkg_config_fragment_parse (client, dest, &pkg->vars, value))
+    return LIBPKG_CONFIG_PKG_ERRF_OK;
 
-  if (!ret)
-  {
-    pkg_config_warn (client,
-                     "%s:" SIZE_FMT_SPECIFIER
-                     ": warning: unable to parse field '%s' into an argument "
-                     "vector, value [%s]",
-                     pkg->filename,
-                     lineno,
-                     keyword,
-                     value);
-  }
+  unsigned int eflags = LIBPKG_CONFIG_PKG_ERRF_FILE_INVALID_SYNTAX;
+
+  pkg_config_error (client,
+                    eflags,
+                   "unable to parse field '%s' value '%s' into arguments "
+                   "in %s:" SIZE_FMT_SPECIFIER,
+                    keyword,
+                    value,
+                    pkg->filename,
+                    lineno);
+  return eflags;
 }
 
-static void
+static unsigned int
 pkg_config_pkg_parser_dependency_func (const pkg_config_client_t* client,
                                        pkg_config_pkg_t* pkg,
                                        const char* keyword,
@@ -169,11 +174,12 @@ pkg_config_pkg_parser_dependency_func (const pkg_config_client_t* client,
 
   pkg_config_list_t* dest = (pkg_config_list_t*)((char*)pkg + offset);
   pkg_config_dependency_parse (client, pkg, dest, value, 0);
+  return LIBPKG_CONFIG_PKG_ERRF_OK;
 }
 
 /* a variant of pkg_config_pkg_parser_dependency_func which colors the
  * dependency node as an "internal" dependency. */
-static void
+static unsigned int
 pkg_config_pkg_parser_internal_dependency_func (
     const pkg_config_client_t* client,
     pkg_config_pkg_t* pkg,
@@ -188,6 +194,7 @@ pkg_config_pkg_parser_internal_dependency_func (
   pkg_config_list_t* dest = (pkg_config_list_t*)((char*)pkg + offset);
   pkg_config_dependency_parse (
       client, pkg, dest, value, LIBPKG_CONFIG_PKG_DEPF_INTERNAL);
+  return LIBPKG_CONFIG_PKG_ERRF_OK;
 }
 
 /* keep this in alphabetical order */
@@ -228,7 +235,7 @@ pkg_config_pkg_parser_keyword_funcs[] = {
    offsetof (pkg_config_pkg_t, version)}
 };
 
-static void
+static unsigned int /* eflags */
 pkg_config_pkg_parser_keyword_set (void* opaque,
                                    const size_t lineno,
                                    const char* keyword,
@@ -243,10 +250,11 @@ pkg_config_pkg_parser_keyword_set (void* opaque,
                sizeof (pkg_config_pkg_parser_keyword_pair_t),
                pkg_config_pkg_parser_keyword_pair_cmp);
 
+  /* @@ Is this really ok or should it be an error? */
   if (pair == NULL || pair->func == NULL)
-    return;
+    return LIBPKG_CONFIG_PKG_ERRF_OK;
 
-  pair->func (pkg->owner, pkg, keyword, lineno, pair->offset, value);
+  return pair->func (pkg->owner, pkg, keyword, lineno, pair->offset, value);
 }
 
 static const char*
@@ -360,7 +368,7 @@ is_path_prefix_equal (const char* path1, const char* path2, size_t path2_len)
 #endif
 }
 
-static void
+static unsigned int /* eflags */
 pkg_config_pkg_parser_value_set (void* opaque,
                                  const size_t lineno,
                                  const char* keyword,
@@ -373,7 +381,7 @@ pkg_config_pkg_parser_value_set (void* opaque,
   if (!(pkg->owner->flags & LIBPKG_CONFIG_PKG_PKGF_REDEFINE_PREFIX))
   {
     pkg_config_tuple_add (pkg->owner, &pkg->vars, keyword, value, true);
-    return;
+    return LIBPKG_CONFIG_PKG_ERRF_OK;
   }
 
   char canonicalized_value[PKG_CONFIG_ITEM_SIZE];
@@ -417,6 +425,8 @@ pkg_config_pkg_parser_value_set (void* opaque,
     else
       pkg_config_tuple_add (pkg->owner, &pkg->vars, keyword, value, true);
   }
+
+  return LIBPKG_CONFIG_PKG_ERRF_OK;
 }
 
 typedef struct
@@ -533,14 +543,17 @@ pkg_config_pkg_new_from_file (pkg_config_client_t* client,
   if (idptr)
     *idptr = '\0';
 
-  pkg_config_parser_parse (client,
-                           f,
-                           pkg,
-                           pkg_parser_funcs,
-                           PKG_CONFIG_ARRAY_SIZE (pkg_parser_funcs),
-                           pkg->filename);
+  unsigned int e = pkg_config_parser_parse (
+    client,
+    f,
+    pkg,
+    pkg_parser_funcs,
+    PKG_CONFIG_ARRAY_SIZE (pkg_parser_funcs),
+    pkg->filename);
 
-  if (!pkg_config_pkg_validate (client, pkg))
+  /* @@ TODO: propagate error better. */
+  if (e != LIBPKG_CONFIG_PKG_ERRF_OK ||
+      !pkg_config_pkg_validate (client, pkg))
   {
     pkg_config_pkg_free (client, pkg);
     return NULL;

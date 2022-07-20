@@ -267,6 +267,14 @@ pkg_config_client_set_trace_handler (pkg_config_client_t* client,
 LIBPKG_CONFIG_SYMEXPORT void
 pkg_config_client_dir_list_build (pkg_config_client_t* client);
 
+/* Errors/flags that are either returned or set; see eflags arguments. */
+#define LIBPKG_CONFIG_PKG_ERRF_OK                   0x00
+#define LIBPKG_CONFIG_PKG_ERRF_PACKAGE_NOT_FOUND    0x01
+#define LIBPKG_CONFIG_PKG_ERRF_PACKAGE_VER_MISMATCH 0x02
+#define LIBPKG_CONFIG_PKG_ERRF_PACKAGE_CONFLICT     0x04
+#define LIBPKG_CONFIG_PKG_ERRF_FILE_INVALID_SYNTAX  0x08
+#define LIBPKG_CONFIG_PKG_ERRF_FILE_MISSING_FIELD   0x10
+
 /* Note that MinGW's printf() format semantics have changed starting GCC 10
  * (see stdinc.h for details).
  */
@@ -300,11 +308,13 @@ pkg_config_trace (const pkg_config_client_t* client,
                   ...) LIBPKG_CONFIG_PRINTFLIKE (5, 6);
 
 /* parser.c */
-typedef void (*pkg_config_parser_operand_func_t) (void* data,
-                                                  const size_t lineno,
-                                                  const char* key,
-                                                  const char* value);
-LIBPKG_CONFIG_SYMEXPORT void
+typedef unsigned int /* eflags */ (*pkg_config_parser_operand_func_t) (
+  void* data,
+  const size_t lineno,
+  const char* key,
+  const char* value);
+
+LIBPKG_CONFIG_SYMEXPORT unsigned int /* eflags */
 pkg_config_parser_parse (pkg_config_client_t* client,
                          FILE* f,
                          void* data,
@@ -313,13 +323,6 @@ pkg_config_parser_parse (pkg_config_client_t* client,
                          const char* filename);
 
 /* pkg.c */
-
-/* Errors/flags that are either returned or set; see eflags arguments. */
-#define LIBPKG_CONFIG_PKG_ERRF_OK                   0x00
-#define LIBPKG_CONFIG_PKG_ERRF_PACKAGE_NOT_FOUND    0x01
-#define LIBPKG_CONFIG_PKG_ERRF_PACKAGE_VER_MISMATCH 0x02
-#define LIBPKG_CONFIG_PKG_ERRF_PACKAGE_CONFLICT     0x04
-#define LIBPKG_CONFIG_PKG_ERRF_FILE_MISSING_FIELD   0x08
 
 LIBPKG_CONFIG_SYMEXPORT pkg_config_pkg_t*
 pkg_config_pkg_ref (pkg_config_client_t* client, pkg_config_pkg_t* pkg);
