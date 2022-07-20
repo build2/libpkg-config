@@ -95,7 +95,7 @@ pkg_config_pkg_parser_tuple_func (const pkg_config_client_t* client,
 
   char** dest = (char**)((char*)pkg + offset);
   *dest = pkg_config_tuple_parse (client, &pkg->vars, value);
-  return LIBPKG_CONFIG_PKG_ERRF_OK;
+  return LIBPKG_CONFIG_ERRF_OK;
 }
 
 static unsigned int
@@ -133,7 +133,7 @@ pkg_config_pkg_parser_version_func (const pkg_config_client_t* client,
   }
 
   *dest = p;
-  return LIBPKG_CONFIG_PKG_ERRF_OK;
+  return LIBPKG_CONFIG_ERRF_OK;
 }
 
 static unsigned int
@@ -146,9 +146,9 @@ pkg_config_pkg_parser_fragment_func (const pkg_config_client_t* client,
 {
   pkg_config_list_t* dest = (pkg_config_list_t*)((char*)pkg + offset);
   if (pkg_config_fragment_parse (client, dest, &pkg->vars, value))
-    return LIBPKG_CONFIG_PKG_ERRF_OK;
+    return LIBPKG_CONFIG_ERRF_OK;
 
-  unsigned int eflags = LIBPKG_CONFIG_PKG_ERRF_FILE_INVALID_SYNTAX;
+  unsigned int eflags = LIBPKG_CONFIG_ERRF_FILE_INVALID_SYNTAX;
 
   pkg_config_error (client,
                     eflags,
@@ -174,7 +174,7 @@ pkg_config_pkg_parser_dependency_func (const pkg_config_client_t* client,
 
   pkg_config_list_t* dest = (pkg_config_list_t*)((char*)pkg + offset);
   pkg_config_dependency_parse (client, pkg, dest, value, 0);
-  return LIBPKG_CONFIG_PKG_ERRF_OK;
+  return LIBPKG_CONFIG_ERRF_OK;
 }
 
 /* a variant of pkg_config_pkg_parser_dependency_func which colors the
@@ -194,7 +194,7 @@ pkg_config_pkg_parser_internal_dependency_func (
   pkg_config_list_t* dest = (pkg_config_list_t*)((char*)pkg + offset);
   pkg_config_dependency_parse (
       client, pkg, dest, value, LIBPKG_CONFIG_PKG_DEPF_INTERNAL);
-  return LIBPKG_CONFIG_PKG_ERRF_OK;
+  return LIBPKG_CONFIG_ERRF_OK;
 }
 
 /* keep this in alphabetical order */
@@ -252,7 +252,7 @@ pkg_config_pkg_parser_keyword_set (void* opaque,
 
   /* @@ Is this really ok or should it be an error? */
   if (pair == NULL || pair->func == NULL)
-    return LIBPKG_CONFIG_PKG_ERRF_OK;
+    return LIBPKG_CONFIG_ERRF_OK;
 
   return pair->func (pkg->owner, pkg, keyword, lineno, pair->offset, value);
 }
@@ -381,7 +381,7 @@ pkg_config_pkg_parser_value_set (void* opaque,
   if (!(pkg->owner->flags & LIBPKG_CONFIG_PKG_PKGF_REDEFINE_PREFIX))
   {
     pkg_config_tuple_add (pkg->owner, &pkg->vars, keyword, value, true);
-    return LIBPKG_CONFIG_PKG_ERRF_OK;
+    return LIBPKG_CONFIG_ERRF_OK;
   }
 
   char canonicalized_value[PKG_CONFIG_ITEM_SIZE];
@@ -426,7 +426,7 @@ pkg_config_pkg_parser_value_set (void* opaque,
       pkg_config_tuple_add (pkg->owner, &pkg->vars, keyword, value, true);
   }
 
-  return LIBPKG_CONFIG_PKG_ERRF_OK;
+  return LIBPKG_CONFIG_ERRF_OK;
 }
 
 typedef struct
@@ -450,7 +450,7 @@ pkg_config_pkg_validate (const pkg_config_client_t* client,
                          const pkg_config_pkg_t* pkg)
 {
   size_t i;
-  unsigned int eflags = LIBPKG_CONFIG_PKG_ERRF_OK;
+  unsigned int eflags = LIBPKG_CONFIG_ERRF_OK;
 
   for (i = 0; i < PKG_CONFIG_ARRAY_SIZE (pkg_config_pkg_validations); i++)
   {
@@ -459,7 +459,7 @@ pkg_config_pkg_validate (const pkg_config_client_t* client,
     if (*p != NULL)
       continue;
 
-    eflags = LIBPKG_CONFIG_PKG_ERRF_FILE_MISSING_FIELD;
+    eflags = LIBPKG_CONFIG_ERRF_FILE_MISSING_FIELD;
     pkg_config_error (client,
                       eflags,
                       "%s missing '%s' field",
@@ -497,7 +497,7 @@ pkg_config_pkg_new_from_file (pkg_config_client_t* client,
 
   if (pkg == NULL)
   {
-    *eflags = LIBPKG_CONFIG_PKG_ERRF_MEMORY;
+    *eflags = LIBPKG_CONFIG_ERRF_MEMORY;
     return NULL;
   }
 
@@ -555,8 +555,8 @@ pkg_config_pkg_new_from_file (pkg_config_client_t* client,
                                      pkg->filename);
 
 
-  if (*eflags != LIBPKG_CONFIG_PKG_ERRF_OK ||
-      (*eflags = pkg_config_pkg_validate (client, pkg)) != LIBPKG_CONFIG_PKG_ERRF_OK)
+  if (*eflags != LIBPKG_CONFIG_ERRF_OK ||
+      (*eflags = pkg_config_pkg_validate (client, pkg)) != LIBPKG_CONFIG_ERRF_OK)
   {
     pkg_config_pkg_free (client, pkg);
     return NULL;
@@ -693,7 +693,7 @@ pkg_config_pkg_unref (pkg_config_client_t* client, pkg_config_pkg_t* pkg)
   }
 }
 
-/* If the file does not exist, return NULL and LIBPKG_CONFIG_PKG_ERRF_OK. */
+/* If the file does not exist, return NULL and LIBPKG_CONFIG_ERRF_OK. */
 static inline pkg_config_pkg_t*
 pkg_config_pkg_try_specific_path (pkg_config_client_t* client,
                                   const char* path,
@@ -704,7 +704,7 @@ pkg_config_pkg_try_specific_path (pkg_config_client_t* client,
   FILE* f;
   char locbuf[PKG_CONFIG_ITEM_SIZE];
 
-  *eflags = LIBPKG_CONFIG_PKG_ERRF_OK;
+  *eflags = LIBPKG_CONFIG_ERRF_OK;
 
   PKG_CONFIG_TRACE (client, "trying path: %s for %s", path, name);
 
@@ -758,7 +758,7 @@ pkg_config_pkg_try_specific_path (pkg_config_client_t* client,
  * package was found, else ``NULL``. :rtype: pkg_config_pkg_t *
  *
  *
- * If not found, return NULL and LIBPKG_CONFIG_PKG_ERRF_OK.
+ * If not found, return NULL and LIBPKG_CONFIG_ERRF_OK.
  *
  */
 pkg_config_pkg_t*
@@ -770,7 +770,7 @@ pkg_config_pkg_find (pkg_config_client_t* client,
   pkg_config_node_t* n;
   FILE* f;
 
-  *eflags = LIBPKG_CONFIG_PKG_ERRF_OK;
+  *eflags = LIBPKG_CONFIG_ERRF_OK;
 
   PKG_CONFIG_TRACE (client, "looking for: %s", name);
 
@@ -813,7 +813,7 @@ pkg_config_pkg_find (pkg_config_client_t* client,
     pkg_config_path_t* pnode = n->data;
 
     pkg = pkg_config_pkg_try_specific_path (client, pnode->path, name, eflags);
-    if (pkg != NULL || *eflags != LIBPKG_CONFIG_PKG_ERRF_OK)
+    if (pkg != NULL || *eflags != LIBPKG_CONFIG_ERRF_OK)
       break;
   }
 
@@ -1182,7 +1182,7 @@ pkg_config_pkg_verify_dependency (pkg_config_client_t* client,
   pkg_config_pkg_t* pkg = NULL;
 
   if (eflags != NULL)
-    *eflags = LIBPKG_CONFIG_PKG_ERRF_OK;
+    *eflags = LIBPKG_CONFIG_ERRF_OK;
 
   PKG_CONFIG_TRACE (
       client, "trying to verify dependency: %s", pkgdep->package);
@@ -1202,9 +1202,9 @@ pkg_config_pkg_verify_dependency (pkg_config_client_t* client,
   if (pkg == NULL)
   {
     if (eflags != NULL)
-      *eflags |= (def == LIBPKG_CONFIG_PKG_ERRF_OK
-                  ? LIBPKG_CONFIG_PKG_ERRF_PACKAGE_NOT_FOUND
-                  : LIBPKG_CONFIG_PKG_ERRF_PACKAGE_INVALID);
+      *eflags |= (def == LIBPKG_CONFIG_ERRF_OK
+                  ? LIBPKG_CONFIG_ERRF_PACKAGE_NOT_FOUND
+                  : LIBPKG_CONFIG_ERRF_PACKAGE_INVALID);
     return NULL;
   }
 
@@ -1218,7 +1218,7 @@ pkg_config_pkg_verify_dependency (pkg_config_client_t* client,
           pkg->version, pkgdep->version) != true)
   {
     if (eflags != NULL)
-      *eflags |= LIBPKG_CONFIG_PKG_ERRF_PACKAGE_VER_MISMATCH;
+      *eflags |= LIBPKG_CONFIG_ERRF_PACKAGE_VER_MISMATCH;
   }
   else
     pkgdep->match = pkg_config_pkg_ref (client, pkg);
@@ -1241,7 +1241,7 @@ pkg_config_pkg_verify_dependency (pkg_config_client_t* client,
  * for dependency resolution. :param pkg_config_pkg_t* root: The root entry in
  * the package dependency graph which should contain the top-level
  * dependencies to resolve. :param int depth: The maximum allowed depth for
- * dependency resolution. :return: On success, ``LIBPKG_CONFIG_PKG_ERRF_OK``
+ * dependency resolution. :return: On success, ``LIBPKG_CONFIG_ERRF_OK``
  * (0), else an error code. :rtype: unsigned int
  */
 unsigned int
@@ -1259,10 +1259,10 @@ pkg_config_pkg_report_graph_error (pkg_config_client_t* client,
                                    const pkg_config_dependency_t* node,
                                    unsigned int eflags)
 {
-  if (eflags & LIBPKG_CONFIG_PKG_ERRF_PACKAGE_NOT_FOUND)
+  if (eflags & LIBPKG_CONFIG_ERRF_PACKAGE_NOT_FOUND)
   {
     pkg_config_error (client,
-                      LIBPKG_CONFIG_PKG_ERRF_PACKAGE_NOT_FOUND,
+                      LIBPKG_CONFIG_ERRF_PACKAGE_NOT_FOUND,
                       "package '%s' required by '%s' not found",
                       node->package,
                       parent->id);
@@ -1270,21 +1270,21 @@ pkg_config_pkg_report_graph_error (pkg_config_client_t* client,
     pkg_config_audit_log(client, "%s NOT-FOUND\n", node->package);
     */
   }
-  else if (eflags & LIBPKG_CONFIG_PKG_ERRF_PACKAGE_INVALID)
+  else if (eflags & LIBPKG_CONFIG_ERRF_PACKAGE_INVALID)
   {
     pkg_config_error (client,
-                      LIBPKG_CONFIG_PKG_ERRF_PACKAGE_INVALID,
+                      LIBPKG_CONFIG_ERRF_PACKAGE_INVALID,
                       "package '%s' required by '%s' found but invalid",
                       node->package,
                       parent->id);
   }
-  else if (eflags & LIBPKG_CONFIG_PKG_ERRF_PACKAGE_VER_MISMATCH)
+  else if (eflags & LIBPKG_CONFIG_ERRF_PACKAGE_VER_MISMATCH)
   {
     if (pkg == NULL)
     {
       pkg_config_error (
           client,
-          LIBPKG_CONFIG_PKG_ERRF_PACKAGE_VER_MISMATCH,
+          LIBPKG_CONFIG_ERRF_PACKAGE_VER_MISMATCH,
           "package version constraint '%s %s %s' could not be satisfied",
           node->package,
           pkg_config_pkg_get_comparator (node),
@@ -1294,7 +1294,7 @@ pkg_config_pkg_report_graph_error (pkg_config_client_t* client,
     {
       pkg_config_error (
           client,
-          LIBPKG_CONFIG_PKG_ERRF_PACKAGE_VER_MISMATCH,
+          LIBPKG_CONFIG_ERRF_PACKAGE_VER_MISMATCH,
           "package version constraint '%s %s %s' could not be satisfied, "
           "available version is '%s'",
           node->package,
@@ -1319,12 +1319,12 @@ pkg_config_pkg_walk_list (pkg_config_client_t* client,
                           int depth,
                           unsigned int skip_flags)
 {
-  unsigned int eflags = LIBPKG_CONFIG_PKG_ERRF_OK;
+  unsigned int eflags = LIBPKG_CONFIG_ERRF_OK;
   pkg_config_node_t* node;
 
   LIBPKG_CONFIG_FOREACH_LIST_ENTRY (deplist->head, node)
   {
-    unsigned int eflags_local = LIBPKG_CONFIG_PKG_ERRF_OK;
+    unsigned int eflags_local = LIBPKG_CONFIG_ERRF_OK;
     pkg_config_dependency_t* depnode = node->data;
     pkg_config_pkg_t* pkgdep;
 
@@ -1335,7 +1335,7 @@ pkg_config_pkg_walk_list (pkg_config_client_t* client,
         pkg_config_pkg_verify_dependency (client, depnode, &eflags_local);
 
     eflags |= eflags_local;
-    if (eflags_local != LIBPKG_CONFIG_PKG_ERRF_OK &&
+    if (eflags_local != LIBPKG_CONFIG_ERRF_OK &&
         !(client->flags & LIBPKG_CONFIG_PKG_PKGF_SKIP_ERRORS))
     {
       pkg_config_pkg_report_graph_error (
@@ -1401,10 +1401,10 @@ pkg_config_pkg_walk_conflicts_list (pkg_config_client_t* client,
         continue;
 
       pkgdep = pkg_config_pkg_verify_dependency (client, parentnode, &eflags);
-      if (eflags == LIBPKG_CONFIG_PKG_ERRF_OK)
+      if (eflags == LIBPKG_CONFIG_ERRF_OK)
       {
         pkg_config_error (client,
-                          LIBPKG_CONFIG_PKG_ERRF_PACKAGE_CONFLICT,
+                          LIBPKG_CONFIG_ERRF_PACKAGE_CONFLICT,
                           "version '%s' of '%s' conflicts with '%s' due to "
                           "conflict rule '%s %s%s%s'",
                           pkgdep->version,
@@ -1418,14 +1418,14 @@ pkg_config_pkg_walk_conflicts_list (pkg_config_client_t* client,
 
         pkg_config_pkg_unref (client, pkgdep);
 
-        return LIBPKG_CONFIG_PKG_ERRF_PACKAGE_CONFLICT;
+        return LIBPKG_CONFIG_ERRF_PACKAGE_CONFLICT;
       }
 
       pkg_config_pkg_unref (client, pkgdep);
     }
   }
 
-  return LIBPKG_CONFIG_PKG_ERRF_OK;
+  return LIBPKG_CONFIG_ERRF_OK;
 }
 
 /*
@@ -1445,7 +1445,7 @@ pkg_config_pkg_walk_conflicts_list (pkg_config_client_t* client,
  * function. :param int maxdepth: The maximum depth to walk the dependency
  * graph for.  -1 means infinite recursion. :param uint skip_flags: Skip over
  * dependency nodes containing the specified flags.  A setting of 0 skips no
- * dependency nodes. :return: ``LIBPKG_CONFIG_PKG_ERRF_OK`` on success, else
+ * dependency nodes. :return: ``LIBPKG_CONFIG_ERRF_OK`` on success, else
  * an error code. :rtype: unsigned int
  */
 unsigned int
@@ -1456,7 +1456,7 @@ pkg_config_pkg_traverse (pkg_config_client_t* client,
                          int maxdepth,
                          unsigned int skip_flags)
 {
-  unsigned int eflags = LIBPKG_CONFIG_PKG_ERRF_OK;
+  unsigned int eflags = LIBPKG_CONFIG_ERRF_OK;
 
   if (maxdepth == 0)
     return eflags;
@@ -1470,14 +1470,14 @@ pkg_config_pkg_traverse (pkg_config_client_t* client,
   {
     eflags =
         pkg_config_pkg_walk_conflicts_list (client, root, &root->conflicts);
-    if (eflags != LIBPKG_CONFIG_PKG_ERRF_OK)
+    if (eflags != LIBPKG_CONFIG_ERRF_OK)
       return eflags;
   }
 
   PKG_CONFIG_TRACE (client, "%s: walking requires list", root->id);
   eflags = pkg_config_pkg_walk_list (
       client, root, &root->required, func, data, maxdepth, skip_flags);
-  if (eflags != LIBPKG_CONFIG_PKG_ERRF_OK)
+  if (eflags != LIBPKG_CONFIG_ERRF_OK)
     return eflags;
 
   if (client->flags & LIBPKG_CONFIG_PKG_PKGF_SEARCH_PRIVATE)
@@ -1495,7 +1495,7 @@ pkg_config_pkg_traverse (pkg_config_client_t* client,
                                        skip_flags);
     client->flags &= ~LIBPKG_CONFIG_PKG_PKGF_ITER_PKG_IS_PRIVATE;
 
-    if (eflags != LIBPKG_CONFIG_PKG_ERRF_OK)
+    if (eflags != LIBPKG_CONFIG_ERRF_OK)
       return eflags;
   }
 
@@ -1546,7 +1546,7 @@ pkg_config_pkg_cflags_private_collect (pkg_config_client_t* client,
  * the extracted ``CFLAGS`` fragments to. :param int maxdepth: The maximum
  * allowed depth for dependency resolution.  -1 means infinite recursion.
  * :return:
- * ``LIBPKG_CONFIG_PKG_ERRF_OK`` if successful, otherwise an error code.
+ * ``LIBPKG_CONFIG_ERRF_OK`` if successful, otherwise an error code.
  *    :rtype: unsigned int
  */
 unsigned int
@@ -1570,7 +1570,7 @@ pkg_config_pkg_cflags (pkg_config_client_t* client,
                                    maxdepth,
                                    skip_flags);
 
-  if (eflag == LIBPKG_CONFIG_PKG_ERRF_OK &&
+  if (eflag == LIBPKG_CONFIG_ERRF_OK &&
       client->flags & LIBPKG_CONFIG_PKG_PKGF_ADD_PRIVATE_FRAGMENTS)
     eflag = pkg_config_pkg_traverse (client,
                                      root,
@@ -1579,7 +1579,7 @@ pkg_config_pkg_cflags (pkg_config_client_t* client,
                                      maxdepth,
                                      skip_flags);
 
-  if (eflag != LIBPKG_CONFIG_PKG_ERRF_OK)
+  if (eflag != LIBPKG_CONFIG_ERRF_OK)
   {
     pkg_config_fragment_free (&frags);
     return eflag;
@@ -1633,7 +1633,7 @@ pkg_config_pkg_libs_collect (pkg_config_client_t* client,
  * the extracted ``LIBS`` fragments to. :param int maxdepth: The maximum
  * allowed depth for dependency resolution.  -1 means infinite recursion.
  * :return:
- * ``LIBPKG_CONFIG_PKG_ERRF_OK`` if successful, otherwise an error code.
+ * ``LIBPKG_CONFIG_ERRF_OK`` if successful, otherwise an error code.
  *    :rtype: unsigned int
  */
 unsigned int
@@ -1647,7 +1647,7 @@ pkg_config_pkg_libs (pkg_config_client_t* client,
   eflag = pkg_config_pkg_traverse (
       client, root, pkg_config_pkg_libs_collect, list, maxdepth, 0);
 
-  if (eflag != LIBPKG_CONFIG_PKG_ERRF_OK)
+  if (eflag != LIBPKG_CONFIG_ERRF_OK)
   {
     pkg_config_fragment_free (list);
     return eflag;

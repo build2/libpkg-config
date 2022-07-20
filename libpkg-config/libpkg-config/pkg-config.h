@@ -164,7 +164,7 @@ typedef void (*pkg_config_pkg_traverse_func_t) (pkg_config_client_t* client,
                                                 pkg_config_pkg_t* pkg,
                                                 void* data);
 
-/* The eflag argument is one of LIBPKG_CONFIG_PKG_ERRF_* "flags" for
+/* The eflag argument is one of LIBPKG_CONFIG_ERRF_* "flags" for
    errors and 0 (*_OK) for warnings/traces. */
 typedef void (*pkg_config_error_handler_func_t) (
   unsigned int eflag,
@@ -268,14 +268,14 @@ LIBPKG_CONFIG_SYMEXPORT void
 pkg_config_client_dir_list_build (pkg_config_client_t* client);
 
 /* Errors/flags that are either returned or set; see eflags arguments. */
-#define LIBPKG_CONFIG_PKG_ERRF_OK                   0x00
-#define LIBPKG_CONFIG_PKG_ERRF_MEMORY               0x01
-#define LIBPKG_CONFIG_PKG_ERRF_PACKAGE_NOT_FOUND    0x02
-#define LIBPKG_CONFIG_PKG_ERRF_PACKAGE_INVALID      0x04
-#define LIBPKG_CONFIG_PKG_ERRF_PACKAGE_VER_MISMATCH 0x08
-#define LIBPKG_CONFIG_PKG_ERRF_PACKAGE_CONFLICT     0x10
-#define LIBPKG_CONFIG_PKG_ERRF_FILE_INVALID_SYNTAX  0x20
-#define LIBPKG_CONFIG_PKG_ERRF_FILE_MISSING_FIELD   0x40
+#define LIBPKG_CONFIG_ERRF_OK                   0x00
+#define LIBPKG_CONFIG_ERRF_MEMORY               0x01
+#define LIBPKG_CONFIG_ERRF_PACKAGE_NOT_FOUND    0x02
+#define LIBPKG_CONFIG_ERRF_PACKAGE_INVALID      0x04
+#define LIBPKG_CONFIG_ERRF_PACKAGE_VER_MISMATCH 0x08
+#define LIBPKG_CONFIG_ERRF_PACKAGE_CONFLICT     0x10
+#define LIBPKG_CONFIG_ERRF_FILE_INVALID_SYNTAX  0x20
+#define LIBPKG_CONFIG_ERRF_FILE_MISSING_FIELD   0x40
 
 /* Note that MinGW's printf() format semantics have changed starting GCC 10
  * (see stdinc.h for details).
@@ -348,7 +348,7 @@ pkg_config_pkg_verify_graph (pkg_config_client_t* client,
                              pkg_config_pkg_t* root,
                              int depth);
 
-/* The eflags argument is one or more of LIBPKG_CONFIG_PKG_ERRF_PACKAGE_*. */
+/* The eflags argument is one or more of LIBPKG_CONFIG_ERRF_PACKAGE_*. */
 LIBPKG_CONFIG_SYMEXPORT pkg_config_pkg_t*
 pkg_config_pkg_verify_dependency (pkg_config_client_t* client,
                                   pkg_config_dependency_t* pkgdep,

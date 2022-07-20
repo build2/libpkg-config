@@ -75,7 +75,7 @@ pkg_config_parser_parse (pkg_config_client_t* client,
     readbuf = malloc (readbufn);
   }
 
-  unsigned int eflags = LIBPKG_CONFIG_PKG_ERRF_OK;
+  unsigned int eflags = LIBPKG_CONFIG_ERRF_OK;
   while (pkg_config_fgetline (readbuf, readbufn, f) != NULL)
   {
     char op, *p, *key, *value;
@@ -152,7 +152,7 @@ pkg_config_parser_parse (pkg_config_client_t* client,
 
     if (i >= ops_count || ops[i] == NULL)
     {
-      eflags = LIBPKG_CONFIG_PKG_ERRF_FILE_INVALID_SYNTAX;
+      eflags = LIBPKG_CONFIG_ERRF_FILE_INVALID_SYNTAX;
       pkg_config_error (client,
                         eflags,
                         "unexpected key/value separator '%c' in %s:"
@@ -165,7 +165,7 @@ pkg_config_parser_parse (pkg_config_client_t* client,
     else
     {
       eflags = ops[i](data, lineno, key, value);
-      if (eflags != LIBPKG_CONFIG_PKG_ERRF_OK)
+      if (eflags != LIBPKG_CONFIG_ERRF_OK)
         break;
     }
   }

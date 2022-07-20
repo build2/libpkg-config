@@ -151,7 +151,7 @@ main (int argc, const char* argv[])
         pkg_config_list_t list = LIBPKG_CONFIG_LIST_INITIALIZER;
         e = pkg_config_pkg_cflags (c, p, &list, max_depth);
 
-        if (e == LIBPKG_CONFIG_PKG_ERRF_OK)
+        if (e == LIBPKG_CONFIG_ERRF_OK)
           frags_print_and_free (&list);
 
         pkg_config_client_set_flags (c, 0); /* Restore. */
@@ -168,7 +168,7 @@ main (int argc, const char* argv[])
         pkg_config_list_t list = LIBPKG_CONFIG_LIST_INITIALIZER;
         e = pkg_config_pkg_libs (c, p, &list, max_depth);
 
-        if (e == LIBPKG_CONFIG_PKG_ERRF_OK)
+        if (e == LIBPKG_CONFIG_ERRF_OK)
           frags_print_and_free (&list);
 
         pkg_config_client_set_flags (c, 0); /* Restore. */
@@ -185,12 +185,12 @@ main (int argc, const char* argv[])
       }
     }
 
-    if (e == LIBPKG_CONFIG_PKG_ERRF_OK)
+    if (e == LIBPKG_CONFIG_ERRF_OK)
       r = 0;
 
     pkg_config_pkg_unref (c, p);
   }
-  else if (e == LIBPKG_CONFIG_PKG_ERRF_OK)
+  else if (e == LIBPKG_CONFIG_ERRF_OK)
     fprintf (stderr, "package file '%s' not found\n", path);
   else
     /* Diagnostics should have already been issue via the error handler

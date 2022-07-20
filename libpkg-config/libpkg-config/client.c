@@ -396,7 +396,7 @@ pkg_config_client_set_buildroot_dir (pkg_config_client_t* client,
  *
  *    :param pkg_config_client_t* client: The pkg-config client object to
  * report the error to. :param unsigned int eflag: On of the
- * LIBPKG_CONFIG_PKG_ERRF_* error "flags" describing this error. :param char*
+ * LIBPKG_CONFIG_ERRF_* error "flags" describing this error. :param char*
  * format: A printf-style format string to use for formatting the error
  * message. :return: nothing
  */
@@ -444,7 +444,7 @@ pkg_config_warn (const pkg_config_client_t* client, const char* format, ...)
     va_end (va);
 
     client->warn_handler (
-        LIBPKG_CONFIG_PKG_ERRF_OK, errbuf, client, client->warn_handler_data);
+        LIBPKG_CONFIG_ERRF_OK, errbuf, client, client->warn_handler_data);
   }
 }
 
@@ -493,7 +493,7 @@ pkg_config_trace (const pkg_config_client_t* client,
   va_end (va);
 
   client->trace_handler (
-      LIBPKG_CONFIG_PKG_ERRF_OK, errbuf, client, client->trace_handler_data);
+      LIBPKG_CONFIG_ERRF_OK, errbuf, client, client->trace_handler_data);
 #else
   (void)client;
   (void)filename;
