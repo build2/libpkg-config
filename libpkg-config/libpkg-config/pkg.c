@@ -466,10 +466,11 @@ pkg_config_pkg_validate (const pkg_config_client_t* client,
     if (*p != NULL)
       continue;
 
-    pkg_config_warn (client,
-                     "%s: warning: file does not declare a '%s' field",
-                     pkg->filename,
-                     pkg_config_pkg_validations[i].field);
+    pkg_config_error (client,
+                      LIBPKG_CONFIG_PKG_ERRF_FILE_MISSING_FIELD,
+                      "%s missing '%s' field",
+                      pkg->filename,
+                      pkg_config_pkg_validations[i].field);
     valid = false;
   }
 
@@ -558,8 +559,6 @@ pkg_config_pkg_new_from_file (pkg_config_client_t* client,
 
   if (!pkg_config_pkg_validate (client, pkg))
   {
-    pkg_config_warn (
-        client, "%s: warning: skipping invalid file", pkg->filename);
     pkg_config_pkg_free (client, pkg);
     return NULL;
   }

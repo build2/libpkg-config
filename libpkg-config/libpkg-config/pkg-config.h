@@ -323,6 +323,7 @@ pkg_config_parser_parse (FILE* f,
 #define LIBPKG_CONFIG_PKG_ERRF_PACKAGE_NOT_FOUND    0x01
 #define LIBPKG_CONFIG_PKG_ERRF_PACKAGE_VER_MISMATCH 0x02
 #define LIBPKG_CONFIG_PKG_ERRF_PACKAGE_CONFLICT     0x04
+#define LIBPKG_CONFIG_PKG_ERRF_FILE_MISSING_FIELD   0x08
 
 LIBPKG_CONFIG_SYMEXPORT pkg_config_pkg_t*
 pkg_config_pkg_ref (pkg_config_client_t* client, pkg_config_pkg_t* pkg);
@@ -343,10 +344,13 @@ LIBPKG_CONFIG_SYMEXPORT unsigned int
 pkg_config_pkg_verify_graph (pkg_config_client_t* client,
                              pkg_config_pkg_t* root,
                              int depth);
+
+/* The eflags argument is one or more of LIBPKG_CONFIG_PKG_ERRF_PACKAGE_*. */
 LIBPKG_CONFIG_SYMEXPORT pkg_config_pkg_t*
 pkg_config_pkg_verify_dependency (pkg_config_client_t* client,
                                   pkg_config_dependency_t* pkgdep,
                                   unsigned int* eflags);
+
 LIBPKG_CONFIG_SYMEXPORT const char*
 pkg_config_pkg_get_comparator (const pkg_config_dependency_t* pkgdep);
 LIBPKG_CONFIG_SYMEXPORT unsigned int
