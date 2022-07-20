@@ -125,10 +125,9 @@ pkg_config_pkg_parser_version_func (const pkg_config_client_t* client,
        now since things that worked before might stop working. */
     pkg_config_warn (
       client,
-      "%s:" SIZE_FMT_SPECIFIER
-      ": warning: version field with whitespaces trimmed to '%s'",
       pkg->filename,
       lineno,
+      "version field with whitespaces trimmed to '%s'",
       p);
   }
 
@@ -152,12 +151,11 @@ pkg_config_pkg_parser_fragment_func (const pkg_config_client_t* client,
 
   pkg_config_error (client,
                     eflags,
-                   "unable to parse field '%s' value '%s' into arguments "
-                   "in %s:" SIZE_FMT_SPECIFIER,
-                    keyword,
-                    value,
                     pkg->filename,
-                    lineno);
+                    lineno,
+                    "unable to parse field '%s' value '%s' into arguments",
+                    keyword,
+                    value);
   return eflags;
 }
 
@@ -462,8 +460,9 @@ pkg_config_pkg_validate (const pkg_config_client_t* client,
     eflags = LIBPKG_CONFIG_ERRF_FILE_MISSING_FIELD;
     pkg_config_error (client,
                       eflags,
-                      "%s missing '%s' field",
                       pkg->filename,
+                      0 /* lineno */,
+                      "missing '%s' field",
                       pkg_config_pkg_validations[i].field);
   }
 
@@ -1263,6 +1262,7 @@ pkg_config_pkg_report_graph_error (pkg_config_client_t* client,
   {
     pkg_config_error (client,
                       LIBPKG_CONFIG_ERRF_PACKAGE_NOT_FOUND,
+                      NULL, 0,
                       "package '%s' required by '%s' not found",
                       node->package,
                       parent->id);
@@ -1274,6 +1274,7 @@ pkg_config_pkg_report_graph_error (pkg_config_client_t* client,
   {
     pkg_config_error (client,
                       LIBPKG_CONFIG_ERRF_PACKAGE_INVALID,
+                      NULL, 0,
                       "package '%s' required by '%s' found but invalid",
                       node->package,
                       parent->id);
@@ -1285,6 +1286,7 @@ pkg_config_pkg_report_graph_error (pkg_config_client_t* client,
       pkg_config_error (
           client,
           LIBPKG_CONFIG_ERRF_PACKAGE_VER_MISMATCH,
+          NULL, 0,
           "package version constraint '%s %s %s' could not be satisfied",
           node->package,
           pkg_config_pkg_get_comparator (node),
@@ -1295,6 +1297,7 @@ pkg_config_pkg_report_graph_error (pkg_config_client_t* client,
       pkg_config_error (
           client,
           LIBPKG_CONFIG_ERRF_PACKAGE_VER_MISMATCH,
+          NULL, 0,
           "package version constraint '%s %s %s' could not be satisfied, "
           "available version is '%s'",
           node->package,
@@ -1405,6 +1408,7 @@ pkg_config_pkg_walk_conflicts_list (pkg_config_client_t* client,
       {
         pkg_config_error (client,
                           LIBPKG_CONFIG_ERRF_PACKAGE_CONFLICT,
+                          NULL, 0,
                           "version '%s' of '%s' conflicts with '%s' due to "
                           "conflict rule '%s %s%s%s'",
                           pkgdep->version,

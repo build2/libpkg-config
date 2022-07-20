@@ -44,20 +44,6 @@
 # include <malloc.h>
 # define PATH_DEV_NULL "nul"
 
-/* Note that MinGW's printf() format semantics have changed starting GCC 10.
- * In particular, GCC 10 complains about MSVC's 'I64' length modifier but now
- * accepts the standard (C99) 'z' modifier.
- */
-# if defined(__GNUC__) && __GNUC__ >= 10
-#  define SIZE_FMT_SPECIFIER "%zu"
-# else
-#  ifdef _WIN64
-#   define SIZE_FMT_SPECIFIER "%I64u"
-#  else
-#   define SIZE_FMT_SPECIFIER "%u"
-#  endif
-# endif
-
 # ifndef ssize_t
 #  ifndef __MINGW32__
 #   include <BaseTsd.h>
@@ -74,7 +60,6 @@
 #else /* _WIN32 */
 
 # define PATH_DEV_NULL "/dev/null"
-# define SIZE_FMT_SPECIFIER "%zu"
 # include <unistd.h>
 # include <limits.h>
 # ifdef PATH_MAX

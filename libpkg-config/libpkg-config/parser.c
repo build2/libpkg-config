@@ -105,10 +105,9 @@ pkg_config_parser_parse (pkg_config_client_t* client,
       {
         pkg_config_warn (
           client,
-          "%s:" SIZE_FMT_SPECIFIER
-          ": warning: whitespace encountered while parsing key section",
           filename,
-          lineno);
+          lineno,
+          "whitespace encountered while parsing key section");
         warned_key_whitespace = true;
       }
 #endif
@@ -135,11 +134,9 @@ pkg_config_parser_parse (pkg_config_client_t* client,
       {
         pkg_config_warn (
           client,
-          "%s:" SIZE_FMT_SPECIFIER
-          ": warning: trailing whitespace encountered while parsing "
-          "value section",
           filename,
-          lineno);
+          lineno,
+          "trailing whitespace encountered while parsing value section");
 
         warned_value_whitespace = true;
       }
@@ -155,11 +152,10 @@ pkg_config_parser_parse (pkg_config_client_t* client,
       eflags = LIBPKG_CONFIG_ERRF_FILE_INVALID_SYNTAX;
       pkg_config_error (client,
                         eflags,
-                        "unexpected key/value separator '%c' in %s:"
-                        SIZE_FMT_SPECIFIER,
-                        op,
                         filename,
-                        lineno);
+                        lineno,
+                        "unexpected key/value separator '%c'",
+                        op);
       break;
     }
     else

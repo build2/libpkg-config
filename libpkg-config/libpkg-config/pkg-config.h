@@ -165,9 +165,15 @@ typedef void (*pkg_config_pkg_traverse_func_t) (pkg_config_client_t* client,
                                                 void* data);
 
 /* The eflag argument is one of LIBPKG_CONFIG_ERRF_* "flags" for
-   errors and 0 (*_OK) for warnings/traces. */
+   errors and 0 (*_OK) for warnings/traces.
+
+   The filename may be NULL if there is no file position (in which case lineno
+   is meaningless).
+*/
 typedef void (*pkg_config_error_handler_func_t) (
   unsigned int eflag,
+  const char* filename,
+  size_t lineno,
   const char* msg,
   const pkg_config_client_t* client,
   const void* data);
@@ -277,8 +283,26 @@ pkg_config_client_dir_list_build (pkg_config_client_t* client);
 #define LIBPKG_CONFIG_ERRF_FILE_INVALID_SYNTAX  0x20
 #define LIBPKG_CONFIG_ERRF_FILE_MISSING_FIELD   0x40
 
+/* Note that MinGW's printf() format semantics have changed starting GCC 10.
+ * In particular, GCC 10 complains about MSVC's 'I64' length modifier but now
+ * accepts the standard (C99) 'z' modifier.
+ */
+#ifdef _WIN32
+#  if defined(__GNUC__) && __GNUC__ >= 10
+#    define LIBPKG_CONFIG_SIZE_FMT "%zu"
+#  else
+#    ifdef _WIN64
+#      define LIBPKG_CONFIG_SIZE_FMT "%I64u"
+#    else
+#      define LIBPKG_CONFIG_SIZE_FMT "%u"
+#    endif
+#  endif
+#else
+#  define LIBPKG_CONFIG_SIZE_FMT "%zu"
+#endif
+
 /* Note that MinGW's printf() format semantics have changed starting GCC 10
- * (see stdinc.h for details).
+ * (see above for details).
  */
 #if defined(__GNUC__) || defined(__INTEL_COMPILER)
 #  if defined(_WIN32) && defined(__GNUC__) && __GNUC__ >= 10
@@ -297,10 +321,14 @@ pkg_config_client_dir_list_build (pkg_config_client_t* client);
 LIBPKG_CONFIG_SYMEXPORT void
 pkg_config_error (const pkg_config_client_t* client,
                   unsigned int eflag,
-                  const char* format, ...) LIBPKG_CONFIG_PRINTFLIKE (3, 4);
+                  const char* filename,
+                  size_t lineno,
+                  const char* format, ...) LIBPKG_CONFIG_PRINTFLIKE (5, 6);
 LIBPKG_CONFIG_SYMEXPORT void
 pkg_config_warn (const pkg_config_client_t* client,
-                 const char* format, ...) LIBPKG_CONFIG_PRINTFLIKE (2, 3);
+                 const char* filename,
+                 size_t lineno,
+                 const char* format, ...) LIBPKG_CONFIG_PRINTFLIKE (4, 5);
 LIBPKG_CONFIG_SYMEXPORT void
 pkg_config_trace (const pkg_config_client_t* client,
                   const char* filename,

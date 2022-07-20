@@ -403,19 +403,24 @@ pkg_config_client_set_buildroot_dir (pkg_config_client_t* client,
 void
 pkg_config_error (const pkg_config_client_t* client,
                   unsigned int eflag,
+                  const char* filename,
+                  size_t lineno,
                   const char* format,
                   ...)
 {
   if (client->error_handler != NULL)
   {
-    char errbuf[PKG_CONFIG_BUFSIZE];
+    char buf[PKG_CONFIG_BUFSIZE];
     va_list va;
 
     va_start (va, format);
-    vsnprintf (errbuf, sizeof errbuf, format, va);
+    vsnprintf (buf, sizeof buf, format, va);
     va_end (va);
 
-    client->error_handler (eflag, errbuf, client, client->error_handler_data);
+    client->error_handler (eflag,
+                           filename, lineno,
+                           buf,
+                           client, client->error_handler_data);
   }
 }
 
@@ -432,19 +437,24 @@ pkg_config_error (const pkg_config_client_t* client,
  * use for formatting the warning message. :return: nothing
  */
 void
-pkg_config_warn (const pkg_config_client_t* client, const char* format, ...)
+pkg_config_warn (const pkg_config_client_t* client,
+                 const char* filename,
+                 size_t lineno,
+                 const char* format, ...)
 {
   if (client->warn_handler != NULL)
   {
-    char errbuf[PKG_CONFIG_BUFSIZE];
+    char buf[PKG_CONFIG_BUFSIZE];
     va_list va;
 
     va_start (va, format);
-    vsnprintf (errbuf, sizeof errbuf, format, va);
+    vsnprintf (buf, sizeof buf, format, va);
     va_end (va);
 
-    client->warn_handler (
-        LIBPKG_CONFIG_ERRF_OK, errbuf, client, client->warn_handler_data);
+    client->warn_handler (LIBPKG_CONFIG_ERRF_OK,
+                          filename, lineno,
+                          buf,
+                          client, client->warn_handler_data);
   }
 }
 
@@ -477,23 +487,21 @@ pkg_config_trace (const pkg_config_client_t* client,
 
 #ifndef LIBPKG_CONFIG_NTRACE
 
-  char errbuf[PKG_CONFIG_BUFSIZE];
+  char buf[PKG_CONFIG_BUFSIZE];
   size_t len;
   va_list va;
 
-  len = snprintf (errbuf,
-                  sizeof errbuf,
-                  "%s:" SIZE_FMT_SPECIFIER " [%s]: ",
-                  filename,
-                  lineno,
-                  funcname);
+  len = snprintf (buf, sizeof buf, "[%s]: ", funcname);
 
   va_start (va, format);
-  vsnprintf (errbuf + len, sizeof (errbuf) - len, format, va);
+  vsnprintf (buf + len, sizeof (buf) - len, format, va);
   va_end (va);
 
   client->trace_handler (
-      LIBPKG_CONFIG_ERRF_OK, errbuf, client, client->trace_handler_data);
+      LIBPKG_CONFIG_ERRF_OK,
+      filename, lineno,
+      buf,
+      client, client->trace_handler_data);
 #else
   (void)client;
   (void)filename;
