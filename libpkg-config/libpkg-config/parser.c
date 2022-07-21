@@ -127,22 +127,25 @@ pkg_config_parser_parse (pkg_config_client_t* client,
     while (*p && isspace ((unsigned int)*p)) p++;
 
     value = p;
-    p = value + (strlen (value) - 1);
-    while (*p && isspace ((unsigned int)*p) && p > value)
+    if (*value != '\0')
     {
-      if (!warned_value_whitespace && op == '=')
+      p = value + (strlen (value) - 1);
+      while (p >= value && isspace ((unsigned int)*p))
       {
-        pkg_config_warn (
-          client,
-          filename,
-          lineno,
-          "trailing whitespace encountered while parsing value section");
+        if (!warned_value_whitespace && op == '=')
+        {
+          pkg_config_warn (
+            client,
+            filename,
+            lineno,
+            "trailing whitespace encountered while parsing value section");
 
-        warned_value_whitespace = true;
+          warned_value_whitespace = true;
+        }
+
+        *p = '\0';
+        p--;
       }
-
-      *p = '\0';
-      p--;
     }
 
     unsigned char i = (unsigned char)op;
