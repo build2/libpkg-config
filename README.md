@@ -39,7 +39,7 @@ configured to look for `.pc` files in `/usr/local/lib/pkgconfig` and
 
 However, if these two sets of search paths start diverging, for example due to
 custom installation locations, cross-compilation, etc., then things will most
-likely not go smoothly at ll. The traditional `pkg-config` answer to this type
+likely not go smoothly at all. The traditional `pkg-config` answer to this type
 of problems is an array of environment variables to tweak various aspects of
 the search paths, the `sysroot` rewrite logic, and, in case of `pkgconf`, the
 cross-personality functionality.
@@ -51,7 +51,7 @@ back to the one set, the single source of truth, then all our troubles will
 likely disappear and we won't need an impressive list of hacks and
 workarounds.
 
-We've decided to use this approach in `build2`. As a step one, we collect
+We've decided to go with this approach in `build2`. As a step one, we collect
 exactly the same library search paths as what will be used by the compiler.
 Specifically, we parse the linker options specified by the user and collect
 all the paths specified with `-L`. Then we extract the system library search
