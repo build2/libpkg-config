@@ -16,7 +16,7 @@ still an over-engineered, inscrutable mess and there likely are bugs in the
 corner cases. However, we do use it in [`build2`][build2], which means at
 least the recommended usage patterns (see below) are reasonably well
 tested. We hope to continue cleaning things up as time permits but a complete
-require is also on the cards (in which case it will most likely become a C++
+rewrite is also on the cards (in which case it will most likely become a C++
 library).
 
 
@@ -28,7 +28,7 @@ during compilation and then call `pkg-config --libs foo` passing the returned
 options and libraries during linking. In other words, instead of letting the
 compiler find `libfoo.a` or `libfoo.so` (or their equivalents on other
 platforms) using its library search paths, we rather let `pkg-config` find
-`foo.pc` using its `pkg-config` library search paths.
+`foo.pc` using its `.pc` file search paths.
 
 This works reasonably well if the two sets of search paths are consistent,
 which is normally the case for the native compilation using standard
@@ -69,7 +69,8 @@ environment variables.
 
 (To be precise, in `build2` we go a step further and search for the library
 ourselves, then locate the corresponding `.pc` file, if any, and load it
-directly.)
+directly. This removes the possibility of using the `.pc` file and the
+library from different locations.)
 
 You can find the complete source code that implements this approach with the
 help of `libpkg-config` in [`pkgconfig.hxx`][pkgconfig.hxx] and
