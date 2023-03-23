@@ -292,35 +292,79 @@ determine_prefix (const pkg_config_pkg_t* pkg, char* buf, size_t buflen)
   return buf;
 }
 
-/*
- * Takes a real path and converts it to a pkg-config value. This means
- * normalizing directory separators and escaping things (only spaces covered
- * atm).
+/* Convert a path to pkg-config value. Return NULL on the memory allocation
+ * failure.
+ *
+ * Specifically, escape backslashes, spaces, and quotes with a backslash.
  *
  * This is useful for things like prefix/pcfiledir which might get injected
- * at runtime and are not sourced from the .pc file.
+ * at runtime and are not sourced from the .pc file. For example:
  *
- * "C:\foo bar\baz" -> "C:/foo\ bar/baz"
- * "/foo bar/baz" -> "/foo\ bar/baz"
+ * C:\foo bar\baz  ->  C:\\foo\ bar\\baz
+ * /foo bar/baz    ->  /foo\ bar/baz
  */
 static char*
 convert_path_to_value (const char* path)
 {
-  char* buf = calloc ((strlen (path) + 1) * 2, 1);
-  char* bptr = buf;
-  const char* i;
+  const char cs[] = " \\\"'";
 
-  for (i = path; *i != '\0'; i++)
+  /* Calculate the number of characters which needs to be escaped.
+   */
+  size_t n = 0;
+  const char* p = path;
+
+  for (;;)
   {
-    if (*i == LIBPKG_CONFIG_DIR_SEP_S)
-      *bptr++ = '/';
-    else if (*i == ' ')
+    p = strpbrk (p, cs);
+
+    if (p != NULL)
     {
-      *bptr++ = '\\';
-      *bptr++ = *i;
+      ++n;
+      ++p;
     }
     else
-      *bptr++ = *i;
+      break;
+  }
+
+  /* Let's optimize for the common case (on POSIX), when no characters needs
+   * to be escaped.
+   */
+  if (n == 0)
+    return strdup (path);
+
+  char* buf = malloc (strlen (path) + n + 1);
+
+  if (buf != NULL)
+  {
+    char* bp = buf;
+    const char* p = path;
+
+    for (;;)
+    {
+      const char* sp = strpbrk (p, cs);
+
+      if (sp != NULL)
+      {
+        size_t n = sp - p;
+
+        if (n != 0)
+        {
+          strncpy (bp, p, n);
+          bp += n;
+        }
+
+        *bp++ = '\\';
+        *bp++ = *sp;
+        p = sp + 1;
+      }
+      else
+      {
+        /* Copy the trailing part including the NULL character and bail out.
+         */
+        strcpy (bp, p);
+        break;
+      }
+    }
   }
 
   return buf;
@@ -414,6 +458,9 @@ pkg_config_pkg_parser_value_set (void* opaque,
     if (relvalue != NULL)
     {
       char* prefix_value = convert_path_to_value (relvalue);
+      if (prefix_value == NULL)
+        return LIBPKG_CONFIG_ERRF_MEMORY;
+
       pkg->orig_prefix = pkg_config_tuple_add (
           pkg->owner, &pkg->vars, "orig_prefix", canonicalized_value, true);
       pkg->prefix = pkg_config_tuple_add (
@@ -505,6 +552,12 @@ pkg_config_pkg_new_from_file (pkg_config_client_t* client,
   pkg->pc_filedir = pkg_get_parent_dir (pkg);
 
   char* pc_filedir_value = convert_path_to_value (pkg->pc_filedir);
+  if (pc_filedir_value == NULL)
+  {
+    *eflags = LIBPKG_CONFIG_ERRF_MEMORY;
+    return NULL;
+  }
+
   pkg_config_tuple_add (
       client, &pkg->vars, "pcfiledir", pc_filedir_value, true);
   free (pc_filedir_value);
