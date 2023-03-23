@@ -1,7 +1,8 @@
 # file      : tests/api/testscript
 # license   : ISC; see accompanying COPYING file
 
-sp = " "
+posix = ($c.target.class != 'windows')
+sp = ' '
 
 : double-quoted
 :
@@ -249,4 +250,61 @@ sp = " "
     var $v
     $n $v
     EOO
+}
+
+: pcfiledir-var
+:
+{
+  # Generate the .pc file with the platform-specific directory separators.
+  #
+  s = ($posix ? '/' : '\\')
+
+  +cat <<"EOI" >=libfoo.pc
+    Name: libfoo
+    Description: Foo library
+    Version: 1.0
+    inc=\${pcfiledir}$(s)..$(s)..$(s)include
+    Libs: -L\${pcfiledir}$(s)..
+    Cflags: -I\${inc}
+    EOI
+
+  f = [path] $~/libfoo.pc
+
+  : no-escape
+  :
+  {
+    : libs
+    :
+    $* --libs $f >>/"EOO"
+      L $directory($f)/..
+      EOO
+
+    : cflags
+    :
+    $* --cflags $f >>/"EOO"
+      I $directory($f)/../../include
+      EOO
+  }
+
+  : escape
+  :
+  {
+    d = [dir_path] ($posix ? 'a "b c\d'"'" : 'a b c')
+    +mkdir -p $d
+
+    f2 = [path] $~/$d/libfoo.pc
+    +cp $f $f2
+
+    : libs
+    :
+    $* --libs $f2 >>/"EOO"
+      L $directory($f2)/..
+      EOO
+
+    : cflags
+    :
+    $* --cflags $f2 >>/"EOO"
+      I $directory($f2)/../../include
+      EOO
+  }
 }
