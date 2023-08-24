@@ -4,6 +4,10 @@
 #ifndef LIBPKG_CONFIG_CONFIG_H
 #define LIBPKG_CONFIG_CONFIG_H
 
+#if defined(__linux__)
+#  include <features.h> /* __GLIBC__, __GLIBC_MINOR__ */
+#endif
+
 /*
  * strndup() is not present on Windows while strl*() are only present on
  * *BSD and MacOS.
@@ -13,9 +17,10 @@
 #  define HAVE_STRNDUP 1
 #endif
 
-// GNU libc added strlcpy() and strlcat() in version 2.38 (in anticipation
-// of their addition to POSIX).
-//
+/*
+ * GNU libc added strlcpy() and strlcat() in version 2.38 (in anticipation
+ * of their addition to POSIX).
+ */
 #if defined(__FreeBSD__) || \
     defined(__OpenBSD__) || \
     defined(__NetBSD__)  || \
