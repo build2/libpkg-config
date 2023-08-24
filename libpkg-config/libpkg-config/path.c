@@ -153,7 +153,7 @@ pkg_config_path_split (const char* text,
   size_t count = 0;
   char *workbuf, *p, *iter;
 
-  if (text == NULL)
+  if (text == NULL || *text == '\0')
     return 0;
 
   iter = workbuf = strdup (text);
@@ -197,7 +197,7 @@ pkg_config_path_build_from_environ (const char* envvarname,
   if (data != NULL)
     return pkg_config_path_split (data, dirlist, filter);
 
-  if (fallback != NULL)
+  if (fallback != NULL && *fallback != '\0')
     return pkg_config_path_split (fallback, dirlist, filter);
 
   /* no fallback and no environment variable, thusly no nodes added */

@@ -25,32 +25,48 @@ if! $windows
 {
   if ($install.root != [null])
   {
-    inc_dirs = "$install.resolve($install.include)"
-    lib_dirs = "$install.resolve($install.lib)"
-    def_dirs = "$install.resolve($install.pkgconfig)"
+    if! $install.relocatable
+    {
+      inc_dirs = "$install.resolve($install.include)"
+      lib_dirs = "$install.resolve($install.lib)"
+      def_dirs = "$install.resolve($install.pkgconfig)"
+    }
+    else
+    {
+      # While ideally we would want to do something similar to the Windows
+      # case below and use relative paths, seeing that relying on built-in
+      # paths is not the recommended usage, we are not going to bother for
+      # now.
+      #
+      inc_dirs = ''
+      lib_dirs = ''
+      def_dirs = ''
+    }
   }
   else
   {
-    inc_dirs = "/usr/include"
-    lib_dirs = "/usr/lib"
-    def_dirs = "/usr/lib/pkconfig"
+    inc_dirs = '/usr/include'
+    lib_dirs = '/usr/lib'
+    def_dirs = '/usr/lib/pkconfig'
   }
 }
 else
 {
-  inc_dirs = ""
-  lib_dirs = ""
+  inc_dirs = ''
+  lib_dirs = ''
 
-  # Note that on Windows PKG_CONFIG_DEFAULT_PATH macros is internally redefined
-  # as "../lib/pkgconfig;../share/pkgconfig" and is used as a fallback. Normally
-  # the default path is relative to the program's (that link the library)
-  # directory and has the following format:
+  # Note that on Windows the PKG_CONFIG_DEFAULT_PATH macro is internally
+  # redefined as "../lib/pkgconfig;../share/pkgconfig" and is used as a
+  # fallback. Normally the default path is relative to the program's (that
+  # links the library) directory and has the following format:
   #
   # <dir>/../lib/pkgconfig;<dir>/../share/pkgconfig
   #
+  # (Note: this relative path functionality is only supported on Windows.)
+  #
   # So we keep the macro empty.
   #
-  def_dirs = ""
+  def_dirs = ''
 }
 
 # The config header is internal (is only included from C files), so we don't
