@@ -19,15 +19,18 @@
 #include <stdlib.h>
 #include <string.h>
 
-#ifndef HAVE_STRLCPY
-/*
- * Copy src to string dst of size siz.  At most siz-1 characters
- * will be copied.  Always NUL terminates (unless siz == 0).
- * Returns strlen(src); if retval >= siz, truncation occurred.
- */
-static inline size_t
-strlcpy (char* dst, const char* src, size_t siz)
+size_t
+pkg_config_strlcpy (char* dst, const char* src, size_t siz)
 {
+#ifdef HAVE_STRLCPY
+  return strlcpy (dst, src, siz);
+#else
+ /*
+  * Copy src to string dst of size siz.  At most siz-1 characters
+  * will be copied.  Always NUL terminates (unless siz == 0).
+  * Returns strlen(src); if retval >= siz, truncation occurred.
+  */
+
   char* d = dst;
   const char* s = src;
   size_t n = siz;
@@ -52,20 +55,23 @@ strlcpy (char* dst, const char* src, size_t siz)
   }
 
   return (s - src - 1); /* count does not include NUL */
-}
 #endif
+}
 
-#ifndef HAVE_STRLCAT
-/*
- * Appends src to string dst of size siz (unlike strncat, siz is the
- * full size of dst, not space left).  At most siz-1 characters
- * will be copied.  Always NUL terminates (unless siz <= strlen(dst)).
- * Returns strlen(src) + MIN(siz, strlen(initial dst)).
- * If retval >= siz, truncation occurred.
- */
-static inline size_t
-strlcat (char* dst, const char* src, size_t siz)
+size_t
+pkg_config_strlcat (char* dst, const char* src, size_t siz)
 {
+#ifdef HAVE_STRLCAT
+  return strlcat (dst, src, siz);
+#else
+ /*
+  * Appends src to string dst of size siz (unlike strncat, siz is the
+  * full size of dst, not space left).  At most siz-1 characters
+  * will be copied.  Always NUL terminates (unless siz <= strlen(dst)).
+  * Returns strlen(src) + MIN(siz, strlen(initial dst)).
+  * If retval >= siz, truncation occurred.
+  */
+
   char* d = dst;
   const char* s = src;
   size_t n = siz;
@@ -90,37 +96,22 @@ strlcat (char* dst, const char* src, size_t siz)
   *d = '\0';
 
   return (dlen + (s - src)); /* count does not include NUL */
-}
 #endif
-
-#ifndef HAVE_STRNDUP
-/*
- * Creates a memory buffer and copies at most 'len' characters to it.
- * If 'len' is less than the length of the source string, truncation occured.
- */
-static inline char*
-strndup (const char* src, size_t len)
-{
-  char* out = malloc (len + 1);
-  pkg_config_strlcpy (out, src, len + 1);
-  return out;
-}
-#endif
-
-size_t
-pkg_config_strlcpy (char* dst, const char* src, size_t siz)
-{
-  return strlcpy (dst, src, siz);
-}
-
-size_t
-pkg_config_strlcat (char* dst, const char* src, size_t siz)
-{
-  return strlcat (dst, src, siz);
 }
 
 char*
 pkg_config_strndup (const char* src, size_t len)
 {
+#ifdef HAVE_STRNDUP
   return strndup (src, len);
+#else
+ /*
+  * Creates a memory buffer and copies at most 'len' characters to it.
+  * If 'len' is less than the length of the source string, truncation occured.
+  */
+
+  char* out = malloc (len + 1);
+  pkg_config_strlcpy (out, src, len + 1);
+  return out;
+#endif
 }
