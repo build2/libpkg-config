@@ -3,16 +3,12 @@
 
 lib{pkg-config}: {h c}{* -config -version} {h}{config version}
 
-tclass = $c.target.class
-
-bsd     = ($tclass == 'bsd')
-macos   = ($tclass == 'macos')
-windows = ($tclass == 'windows')
+windows = ($c.target.class == 'windows')
 
 msvc_runtime = ($c.target.system == 'win32-msvc')
 
 msvc       = ($c.class == 'msvc')
-clang_msvc = ($c.id == 'clang' && $msvc_runtime)
+clang_msvc = ($c.id.type == 'clang' && $msvc_runtime)
 
 # Assign variables for the PKG_CONFIG_DEFAULT_PATH, SYSTEM_INCLUDEDIR, and
 # SYSTEM_LIBDIR macro definitions. The whole idea feels utterly broken (hello
