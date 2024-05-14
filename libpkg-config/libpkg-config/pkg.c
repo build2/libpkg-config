@@ -539,7 +539,7 @@ pkg_config_pkg_new_from_file (pkg_config_client_t* client,
   pkg_config_pkg_t* pkg;
   char* idptr;
 
-  pkg = calloc (sizeof (pkg_config_pkg_t), 1);
+  pkg = calloc (1, sizeof (pkg_config_pkg_t));
 
   if (pkg == NULL)
   {

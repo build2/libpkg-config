@@ -117,7 +117,7 @@ pkg_config_path_add (const char* text,
     return;
 #endif
 
-  node = calloc (sizeof (pkg_config_path_t), 1);
+  node = calloc (1, sizeof (pkg_config_path_t));
   node->path = strdup (path);
 
 #ifdef PKG_CONFIG_CACHE_INODES
@@ -262,7 +262,7 @@ pkg_config_path_copy_list (pkg_config_list_t* dst,
   {
     pkg_config_path_t *srcpath = n->data, *path;
 
-    path = calloc (sizeof (pkg_config_path_t), 1);
+    path = calloc (1, sizeof (pkg_config_path_t));
     path->path = strdup (srcpath->path);
 
 #ifdef PKG_CONFIG_CACHE_INODES

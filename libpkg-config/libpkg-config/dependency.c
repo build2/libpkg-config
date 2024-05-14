@@ -171,7 +171,7 @@ pkg_config_dependency_addraw (const pkg_config_client_t* client,
 {
   pkg_config_dependency_t* dep;
 
-  dep = calloc (sizeof (pkg_config_dependency_t), 1);
+  dep = calloc (1, sizeof (pkg_config_dependency_t));
   dep->package = pkg_config_strndup (package, package_sz);
 
   if (version_sz != 0)

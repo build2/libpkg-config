@@ -184,7 +184,7 @@ pkg_config_fragment_add (const pkg_config_client_t* client,
       data = string + 2;
     }
 
-    frag = calloc (sizeof (pkg_config_fragment_t), 1);
+    frag = calloc (1, sizeof (pkg_config_fragment_t));
 
     frag->type = type;
     frag->data = pkg_config_fragment_copy_munged (client, data);
@@ -245,7 +245,7 @@ pkg_config_fragment_add (const pkg_config_client_t* client,
       }
     }
 
-    frag = calloc (sizeof (pkg_config_fragment_t), 1);
+    frag = calloc (1, sizeof (pkg_config_fragment_t));
 
     frag->type = 0;
     frag->data = strdup (string);
@@ -434,7 +434,7 @@ pkg_config_fragment_copy (const pkg_config_client_t* client,
       return;
   }
 
-  frag = calloc (sizeof (pkg_config_fragment_t), 1);
+  frag = calloc (1, sizeof (pkg_config_fragment_t));
 
   frag->type = base->type;
   frag->merged = base->merged;

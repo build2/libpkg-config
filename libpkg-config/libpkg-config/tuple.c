@@ -201,7 +201,7 @@ pkg_config_tuple_add (const pkg_config_client_t* client,
                       bool parse)
 {
   char* dequote_value;
-  pkg_config_tuple_t* tuple = calloc (sizeof (pkg_config_tuple_t), 1);
+  pkg_config_tuple_t* tuple = calloc (1, sizeof (pkg_config_tuple_t));
 
   pkg_config_tuple_find_delete (list, key);
 
