@@ -1,0 +1,5 @@
+: 1
+name: libpkg-config
+version: 0.1.2
+summary: C library for retrieving compiler/linker flags and other metadata
+license: ISC
