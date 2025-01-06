@@ -69,8 +69,9 @@ environment variables.
 
 (To be precise, in `build2` we go a step further and search for the library
 ourselves, then locate the corresponding `.pc` file, if any, and load it
-directly. This removes the possibility of using the `.pc` file and the
-library from different locations.)
+directly. This removes the possibility of using the `.pc` file and the library
+from different locations. See [Importation of Installed
+Libraries][build2-import] for details.)
 
 You can find the complete source code that implements this approach with the
 help of `libpkg-config` in [`pkgconfig.hxx`][pkgconfig.hxx] and
@@ -86,6 +87,7 @@ help of `libpkg-config` in [`pkgconfig.hxx`][pkgconfig.hxx] and
 [srht18]: https://todo.sr.ht/~kaniini/pkgconf/18
 
 [build2]: https://build2.org
+[build2-import]: https://build2.org/build2/doc/build2-build-system-manual.xhtml#cc-import-installed
 
 [pkgconfig.hxx]: https://github.com/build2/build2/blob/master/libbuild2/cc/pkgconfig.hxx
 [pkgconfig-libpkg-config.hxx]: https://github.com/build2/build2/blob/master/libbuild2/cc/pkgconfig-libpkg-config.cxx
