@@ -46,6 +46,8 @@ pkg_config_parser_parse (pkg_config_client_t* client,
                          size_t ops_count,
                          const char* filename)
 {
+  unsigned int eflags = LIBPKG_CONFIG_ERRF_OK;
+
   size_t lineno = 0;
 
   /* Determine the file size and allocate a buffer of that size (plus 2; see
@@ -54,28 +56,96 @@ pkg_config_parser_parse (pkg_config_client_t* client,
   size_t readbufn;
   char* readbuf;
   {
-    int fd;
-#ifdef _WIN32
-    struct _stat st;
-    if ((fd = _fileno (f)) != -1 &&
-        _fstat (fd, &st) != -1 &&
-        (st.st_mode & S_IFMT) == S_IFREG)
-#else
-    struct stat st;
-    if ((fd = fileno (f)) != -1 &&
-        fstat (fd, &st) != -1 &&
-        S_ISREG (st.st_mode))
-#endif
+    /* While we are likely at the beginning of the stream, let's not rely on
+     * that. Instead of the file size, let's calculate the number of unread
+     * characters in the stream. That will also be more accurate in regards to
+     * the translation of the character sequences in the text mode (\r\n,
+     * etc).
+     *
+     * Note that positioning to the end of the stream, by calling fseek(), and
+     * then trying to interpret the value returned by ftell() as a number of
+     * characters is generally not a good idea in the text mode (which we are
+     * in). The latter is actually discouraged by the standard and the safe
+     * way to calculate the number of characters in the stream would be
+     * calling fread() until EOF is encountered and rewinding to the initial
+     * position afterwards. However, this approach may potentially result in a
+     * performance penalty for projects with big .pc files and/or big number
+     * of dependencies. Thus, let's still use the fseek()/ftell() based
+     * approach, assuming that in the text mode for all the major
+     * implementations ftell() returns a number, which is always greater or
+     * equal to the number of characters present in the stream before the
+     * current reading position. The only drawback (besides not being
+     * standard-compliant) is that we may allocate a bit larger buffer, than
+     * it is required for the parsing.
+     *
+     * Also note that we used to call fileno() and fstat() to retrieve the
+     * file size. However, the information returned by fstat() seems to not
+     * always be accurate on FreeBSD, probably due to the file
+     * meta-information synchronization delay.
+     */
+    long bo = ftell (f);
+
+    /* A non-zero value denotes the calculated buffer size, including 2
+     * additional characters (see above). The zero value indicates that an
+     * error has occurred.
+     */
+    readbufn = 0;
+
+    long eo; // Offset of EOF.
+    if (bo >= 0                     &&
+        fseek (f, 0, SEEK_END) == 0 &&
+        (eo = ftell (f)) >= 0       &&
+        fseek (f, bo, SEEK_SET) == 0)
     {
-      readbufn = st.st_size + 2;
+      assert (eo >= bo);
+
+#if 1
+      readbufn += (size_t)(eo - bo) + 2;
+#else
+      for (;;)
+      {
+        char buf[1024];
+        size_t n = fread (buf, 1, sizeof (buf), f);
+
+        if (n != sizeof (buf))
+        {
+          if (ferror (f) == 0 && fseek (f, bo, SEEK_SET) == 0)
+          {
+            readbufn += n;
+
+            // Verify the above assumption.
+            //
+            assert ((size_t)(eo - bo) >= readbufn);
+
+            readbufn += 2; // Reserve for extra characters (see above).
+          }
+          else
+            readbufn = 0; // Error occured.
+
+          break;
+        }
+        else
+          readbufn += n;
+      }
+#endif
     }
-    else
-      readbufn = 1024 * 1024;
+
+    if (readbufn == 0)
+    {
+      eflags = LIBPKG_CONFIG_ERRF_PACKAGE_INVALID;
+      pkg_config_error (client,
+                        eflags,
+                        filename,
+                        lineno,
+                        "unable to read file");
+
+      fclose (f);
+      return eflags;
+    }
 
     readbuf = malloc (readbufn);
   }
 
-  unsigned int eflags = LIBPKG_CONFIG_ERRF_OK;
   while (pkg_config_fgetline (readbuf, readbufn, f) != NULL)
   {
     char op, *p, *key, *value;
